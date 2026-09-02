@@ -1,54 +1,61 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard &bull; {{ config('app.name', 'Ikhlas Arsip') }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
-    <!-- Top Navbar (Flat Solid) -->
-    <nav class="bg-slate-900 text-white px-6 py-3.5 flex items-center justify-between border-b border-slate-800">
-        <div class="flex items-center space-x-3">
-            <span class="font-bold text-lg tracking-tight">Ikhlas Arsip</span>
-            <span class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 uppercase tracking-wider font-semibold border border-slate-700">
-                {{ auth()->user()->role ?? 'User' }}
-            </span>
-        </div>
-        <div class="flex items-center space-x-4">
-            <div class="text-right">
-                <div class="text-sm font-medium">{{ auth()->user()->name }}</div>
-                <div class="text-xs text-slate-400">{{ auth()->user()->email }}</div>
-            </div>
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 transition-colors">
-                    Logout
-                </button>
-            </form>
-        </div>
-    </nav>
+@extends('layouts.app')
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto p-6">
-        <div class="bg-white border border-slate-300 p-6 shadow-sm">
-            <h2 class="text-xl font-bold text-slate-900 mb-2">Selamat Datang, {{ auth()->user()->name }}!</h2>
-            <p class="text-sm text-slate-600">
-                Sistem autentikasi berhasil disiapkan. Halaman ini adalah placeholder sementara sebelum kita pasang modul Resume Cabang, Arsip Menu, Filtering, dan Export.
-            </p>
+@section('title', 'Dashboard')
+
+@section('content')
+<div class="space-y-6">
+
+    <!-- Welcome Banner (Flat Solid) -->
+    <div class="bg-white border border-slate-300 p-6 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-slate-900 tracking-tight">
+                    Selamat Datang, {{ auth()->user()->name }}!
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">
+                    Anda masuk sebagai <strong class="text-slate-800 uppercase">{{ auth()->user()->role }}</strong>
+                    @if(auth()->user()->branch)
+                        di outlet <strong class="text-slate-800">{{ auth()->user()->branch->name }}</strong>
+                    @else
+                        (Akses Global Seluruh Outlet)
+                    @endif
+                </p>
+            </div>
+            
+            @if(auth()->user()->isSuperAdmin())
+                <a href="{{ route('users.index') }}" class="inline-flex items-center justify-center px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wide transition-colors">
+                    Kelola Pengguna Sistem &rarr;
+                </a>
+            @endif
         </div>
-    </main>
-</body>
-</html>
+    </div>
+
+    <!-- Quick Stats Cards (Placeholder) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-300 p-4 shadow-sm">
+            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Cabang / Outlet</div>
+            <div class="text-2xl font-bold text-slate-900 mt-1">{{ \App\Models\Branch::count() }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Outlet terdaftar aktif</div>
+        </div>
+
+        <div class="bg-white border border-slate-300 p-4 shadow-sm">
+            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Pengguna</div>
+            <div class="text-2xl font-bold text-slate-900 mt-1">{{ \App\Models\User::count() }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Akun Superadmin & Cabang</div>
+        </div>
+
+        <div class="bg-white border border-slate-300 p-4 shadow-sm">
+            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Arsip Berkas</div>
+            <div class="text-2xl font-bold text-slate-900 mt-1">0</div>
+            <div class="text-[11px] text-slate-500 mt-1">Dokumen tersimpan</div>
+        </div>
+
+        <div class="bg-white border border-slate-300 p-4 shadow-sm">
+            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Transaksi Masuk</div>
+            <div class="text-2xl font-bold text-slate-900 mt-1">0</div>
+            <div class="text-[11px] text-slate-500 mt-1">Siap rekap & filter</div>
+        </div>
+    </div>
+
+</div>
+@endsection

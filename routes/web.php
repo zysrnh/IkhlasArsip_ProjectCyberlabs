@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -15,8 +16,13 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
-    // Dashboard sementara
+    // Dashboard Utama
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // Modul Manajemen User (Khusus Super Admin)
+    Route::middleware('superadmin')->group(function () {
+        Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
+    });
 });

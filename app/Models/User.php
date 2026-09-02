@@ -54,10 +54,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Relasi ke Cabang/Branch
+     */
+    public function branch(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
+
+    /**
      * Cek apakah status user aktif
      */
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    /**
+     * Cek apakah user adalah Viewer
+     */
+    public function isViewer(): bool
+    {
+        return $this->role === self::ROLE_VIEWER;
     }
 }
