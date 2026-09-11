@@ -28,20 +28,29 @@ class AuthController extends Controller
     }
 
     /**
-     * Proses autentikasi login
+     * Proses autentikasi login (Mendukung Email maupun Nama/Username)
      */
     public function login(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ], [
-            'email.required' => 'Alamat email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
+            'email.required' => 'Username atau email wajib diisi.',
             'password.required' => 'Password wajib diisi.',
         ]);
 
+        $loginInput = trim($request->input('email'));
+        $password = $request->input('password');
         $remember = $request->boolean('remember');
+
+        // Tentukan apakah loginInput adalah format email atau nama/username
+        $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+
+        $credentials = [
+            $fieldType => $loginInput,
+            'password' => $password,
+        ];
 
         if (Auth::attempt($credentials, $remember)) {
             $user = Auth::user();
@@ -63,7 +72,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Email atau password yang Anda masukkan salah.',
+            'email' => 'Username/email atau password yang Anda masukkan salah.',
         ])->onlyInput('email');
     }
 
