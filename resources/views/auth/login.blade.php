@@ -158,7 +158,7 @@
                 
                 <!-- Title & Subtitle -->
                 <div>
-                    <div class="mb-3">
+                    <div class="mb-3 lg:hidden">
                         <img src="{{ asset('images/logo.png') }}" alt="Ikhlas Solusi" class="w-10 h-10 object-contain rounded-lg p-1.5 bg-slate-100 border border-slate-200 shadow-xs">
                     </div>
                     <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
