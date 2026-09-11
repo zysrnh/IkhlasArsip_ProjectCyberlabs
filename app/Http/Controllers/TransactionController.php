@@ -304,6 +304,7 @@ class TransactionController extends Controller
 
     /**
      * Download Template Resmi Excel (.xls / SpreadsheetML) dengan Format & Desain Rapi
+     * (Petunjuk Pengisian ditempatkan di Atas, Baris Data Bebas Diisi ke Bawah Tanpa Batas)
      */
     public function downloadTemplate(): StreamedResponse
     {
@@ -326,7 +327,7 @@ class TransactionController extends Controller
                 <x:ExcelWorkbook>
                     <x:ExcelWorksheets>
                         <x:ExcelWorksheet>
-                            <x:Name>Template Import Transaksi</x:Name>
+                            <x:Name>Template Transaksi</x:Name>
                             <x:WorksheetOptions>
                                 <x:DisplayGridlines/>
                             </x:WorksheetOptions>
@@ -339,26 +340,45 @@ class TransactionController extends Controller
                     body { font-family: Calibri, Arial, sans-serif; }
                     .header-title { font-size: 14pt; font-weight: bold; color: #0B192C; }
                     .header-subtitle { font-size: 9pt; color: #64748B; font-style: italic; }
-                    .th-cell { background-color: #0B192C; color: #FFFFFF; font-weight: bold; font-size: 10pt; text-align: center; height: 30px; vertical-align: middle; border: 1px solid #334155; }
+                    .guide-title { font-size: 10pt; font-weight: bold; color: #92400E; background-color: #FEF3C7; border: 1px solid #FCD34D; padding: 6px; }
+                    .guide-desc { font-size: 9pt; color: #78350F; background-color: #FFFBEB; border: 1px solid #FCD34D; padding: 6px; }
+                    .th-cell { background-color: #0B192C; color: #FFFFFF; font-weight: bold; font-size: 10pt; text-align: center; height: 32px; vertical-align: middle; border: 1px solid #334155; }
                     .td-text { font-size: 10pt; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\@"; }
                     .td-date { font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "yyyy-mm-dd"; }
                     .td-qty { font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\#\,\#\#0"; }
                     .td-amount { font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\#\,\#\#0"; }
-                    .guide-title { font-size: 10pt; font-weight: bold; color: #0F172A; }
-                    .guide-desc { font-size: 9pt; color: #475569; }
                 </style>
             </head>
             <body>
                 <table border="0" cellpadding="0" cellspacing="0">
+                    <!-- Title -->
                     <tr>
                         <td colspan="7" class="header-title">TEMPLATE RESUME TRANSAKSI — IKHLAS SOLUSI</td>
                     </tr>
                     <tr>
                         <td colspan="7" class="header-subtitle">Silakan isi data mulai baris tabel di bawah ini. Jangan mengubah susunan nama kolom pada Header.</td>
                     </tr>
-                    <tr><td colspan="7" height="10"></td></tr>
+                    <tr><td colspan="7" height="8"></td></tr>
+
+                    <!-- Petunjuk Pengisian (Di Bagian Atas) -->
+                    <tr>
+                        <td colspan="7" class="guide-title">
+                            <strong>PETUNJUK PENGISIAN IMPORT TRANSAKSI:</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" class="guide-desc">
+                            1. <strong>Tanggal</strong>: Gunakan format standar YYYY-MM-DD (Contoh: 2026-09-11).<br>
+                            2. <strong>Cabang</strong>: Diisi nama cabang resmi (Contoh: Jakarta Pusat, Bandung, Surabaya).<br>
+                            3. <strong>Jenis Transaksi</strong>: Pilih salah satu dari: [Penjualan Tunai, Penjualan Kredit, Retur Penjualan, Transfer Cabang].<br>
+                            4. <strong>Customer</strong>: Diisi nama customer / pembeli / cabang tujuan transfer.<br>
+                            5. <strong>Qty</strong>: Jumlah kuantitas unit barang (Angka bulat).<br>
+                            6. <strong>Jumlah</strong>: Diisi nominal rupiah tanpa tanda titik atau koma (Untuk Retur Penjualan boleh diberi tanda minus -).
+                        </td>
+                    </tr>
+                    <tr><td colspan="7" height="12"></td></tr>
                     
-                    <!-- Table Header -->
+                    <!-- Table Header (Data Dimulai Di Bawah Ini, Bebas Ditambah Berapapun Baris Ke Bawah) -->
                     <tr>
                         <th class="th-cell" style="width: 130px;">Tanggal</th>
                         <th class="th-cell" style="width: 160px;">Cabang</th>
@@ -405,25 +425,6 @@ class TransactionController extends Controller
                         <td class="td-text">Cabang Bandung</td>
                         <td class="td-qty">10</td>
                         <td class="td-amount">12500000</td>
-                    </tr>
-
-                    <tr><td colspan="7" height="15"></td></tr>
-                    
-                    <!-- Petunjuk Pengisian -->
-                    <tr>
-                        <td colspan="7" class="guide-title" style="background-color: #FEF3C7; border: 1px solid #FCD34D; padding: 6px;">
-                            <strong>PETUNJUK PENGISIAN IMPORT TRANSAKSI:</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="7" class="guide-desc" style="background-color: #FFFBEB; border: 1px solid #FCD34D; padding: 6px;">
-                            1. <strong>Tanggal</strong>: Gunakan format standar YYYY-MM-DD (Contoh: 2026-09-11).<br>
-                            2. <strong>Cabang</strong>: Diisi nama cabang resmi (Contoh: Jakarta Pusat, Bandung, Surabaya).<br>
-                            3. <strong>Jenis Transaksi</strong>: Pilih salah satu dari: [Penjualan Tunai, Penjualan Kredit, Retur Penjualan, Transfer Cabang].<br>
-                            4. <strong>Customer</strong>: Diisi nama customer / pembeli / cabang tujuan transfer.<br>
-                            5. <strong>Qty</strong>: Jumlah kuantitas unit barang (Angka bulat).<br>
-                            6. <strong>Jumlah</strong>: Diisi nominal rupiah tanpa tanda titik atau koma (Untuk Retur Penjualan boleh diberi tanda minus -).
-                        </td>
                     </tr>
                 </table>
             </body>
@@ -485,13 +486,13 @@ class TransactionController extends Controller
                     continue;
                 }
 
-                // Deteksi header row
+                // Deteksi header row (Tanggal & Cabang)
                 if (stripos($cells[0], 'Tanggal') !== false && stripos($cells[1] ?? '', 'Cabang') !== false) {
                     $isHeaderPassed = true;
                     continue;
                 }
 
-                // Abaikan baris petunjuk atau judul
+                // Abaikan baris petunjuk atau judul di bagian atas
                 if (!$isHeaderPassed || stripos($cells[0], 'TEMPLATE') !== false || stripos($cells[0], 'PETUNJUK') !== false) {
                     continue;
                 }
