@@ -83,7 +83,7 @@ class TransactionController extends Controller
         $branches = Branch::where('status', 'active')->orderBy('name')->get();
 
         // Generate next code preview
-        $lastTrx = Transaction::latest('id')->first();
+        $lastTrx = Transaction::withTrashed()->latest('id')->first();
         $nextCodeNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
         $nextCode = 'TRX-' . str_pad($nextCodeNumber, 3, '0', STR_PAD_LEFT);
 
@@ -126,7 +126,7 @@ class TransactionController extends Controller
 
         // Auto-generate code jika kosong
         if (empty($validated['code'])) {
-            $lastTrx = Transaction::latest('id')->first();
+            $lastTrx = Transaction::withTrashed()->latest('id')->first();
             $nextCodeNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
             $validated['code'] = 'TRX-' . str_pad($nextCodeNumber, 3, '0', STR_PAD_LEFT);
         }
@@ -182,7 +182,7 @@ class TransactionController extends Controller
     }
 
     /**
-     * Hapus Transaksi
+     * Hapus Transaksi (Soft Delete)
      */
     public function destroy(Transaction $transaction): RedirectResponse
     {
@@ -196,7 +196,32 @@ class TransactionController extends Controller
         $code = $transaction->code;
         $transaction->delete();
 
-        return redirect()->route('transactions.index')->with('success', 'Transaksi ' . $code . ' berhasil dihapus.');
+        return redirect()->route('transactions.index')->with('success', 'Transaksi ' . $code . ' berhasil dipindahkan ke tempat sampah.');
+    }
+
+    /**
+     * Hapus Massal Transaksi (Bulk Soft-Delete)
+     */
+    public function bulkDelete(Request $request): RedirectResponse
+    {
+        $user = auth()->user();
+        $ids = $request->input('ids', []);
+
+        if (empty($ids) || !is_array($ids)) {
+            return redirect()->route('transactions.index')->with('error', 'Tidak ada transaksi yang dipilih untuk dihapus.');
+        }
+
+        $query = Transaction::whereIn('id', $ids);
+
+        // Jika admin cabang, batasi hanya transaksi di cabangnya
+        if ($user->isAdminCabang()) {
+            $query->where('branch_id', $user->branch_id);
+        }
+
+        $count = $query->count();
+        $query->delete(); // Soft delete
+
+        return redirect()->route('transactions.index')->with('success', "{$count} transaksi berhasil dipindahkan ke tempat sampah.");
     }
 
     /**
@@ -278,112 +303,217 @@ class TransactionController extends Controller
     }
 
     /**
-     * Download Template Resmi Excel/CSV untuk Import
+     * Download Template Resmi Excel (.xls / SpreadsheetML) dengan Format & Desain Rapi
      */
     public function downloadTemplate(): StreamedResponse
     {
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="template_import_transaksi_ikhlas.csv"',
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="template_import_transaksi_ikhlas.xls"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0',
         ];
 
-        $columns = ['Tanggal', 'Cabang', 'Jenis', 'Deskripsi', 'Customer', 'Qty', 'Jumlah'];
+        $callback = function () {
+            echo "\xEF\xBB\xBF"; // UTF-8 BOM
+            ?>
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                <!--[if gte mso 9]>
+                <xml>
+                <x:ExcelWorkbook>
+                    <x:ExcelWorksheets>
+                        <x:ExcelWorksheet>
+                            <x:Name>Template Import Transaksi</x:Name>
+                            <x:WorksheetOptions>
+                                <x:DisplayGridlines/>
+                            </x:WorksheetOptions>
+                        </x:ExcelWorksheet>
+                    </x:ExcelWorksheets>
+                </x:ExcelWorkbook>
+                </xml>
+                <![endif]-->
+                <style>
+                    body { font-family: Calibri, Arial, sans-serif; }
+                    .header-title { font-size: 14pt; font-weight: bold; color: #0B192C; }
+                    .header-subtitle { font-size: 9pt; color: #64748B; font-style: italic; }
+                    .th-cell { background-color: #0B192C; color: #FFFFFF; font-weight: bold; font-size: 10pt; text-align: center; height: 30px; vertical-align: middle; border: 1px solid #334155; }
+                    .td-text { font-size: 10pt; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\@"; }
+                    .td-date { font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "yyyy-mm-dd"; }
+                    .td-qty { font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\#\,\#\#0"; }
+                    .td-amount { font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\#\,\#\#0"; }
+                    .guide-title { font-size: 10pt; font-weight: bold; color: #0F172A; }
+                    .guide-desc { font-size: 9pt; color: #475569; }
+                </style>
+            </head>
+            <body>
+                <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td colspan="7" class="header-title">TEMPLATE RESUME TRANSAKSI — IKHLAS SOLUSI</td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" class="header-subtitle">Silakan isi data mulai baris tabel di bawah ini. Jangan mengubah susunan nama kolom pada Header.</td>
+                    </tr>
+                    <tr><td colspan="7" height="10"></td></tr>
+                    
+                    <!-- Table Header -->
+                    <tr>
+                        <th class="th-cell" style="width: 130px;">Tanggal</th>
+                        <th class="th-cell" style="width: 160px;">Cabang</th>
+                        <th class="th-cell" style="width: 170px;">Jenis</th>
+                        <th class="th-cell" style="width: 280px;">Deskripsi</th>
+                        <th class="th-cell" style="width: 200px;">Customer</th>
+                        <th class="th-cell" style="width: 80px;">Qty</th>
+                        <th class="th-cell" style="width: 160px;">Jumlah</th>
+                    </tr>
 
-        $sampleData = [
-            ['2026-09-11', 'Jakarta Pusat', 'Penjualan Tunai', 'Penjualan Produk Grosir A', 'CV Bumi Pertiwi', '15', '16700000'],
-            ['2026-09-11', 'Bandung', 'Penjualan Kredit', 'Penjualan Invoice Tempo 30 Hari', 'PT Makmur Jaya', '20', '25000000'],
-            ['2026-09-11', 'Bandung', 'Retur Penjualan', 'Retur Barang Cacat Produksi', 'CV Bumi Pertiwi', '5', '-3900000'],
-            ['2026-09-11', 'Surabaya', 'Transfer Cabang', 'Transfer Stok Barang Antar Cabang', 'Cabang Bandung', '10', '12500000'],
-        ];
+                    <!-- Sample Data Rows -->
+                    <tr>
+                        <td class="td-date">2026-09-11</td>
+                        <td class="td-text">Jakarta Pusat</td>
+                        <td class="td-text">Penjualan Tunai</td>
+                        <td class="td-text">Penjualan Produk Grosir A</td>
+                        <td class="td-text">CV Bumi Pertiwi</td>
+                        <td class="td-qty">15</td>
+                        <td class="td-amount">16700000</td>
+                    </tr>
+                    <tr>
+                        <td class="td-date">2026-09-11</td>
+                        <td class="td-text">Bandung</td>
+                        <td class="td-text">Penjualan Kredit</td>
+                        <td class="td-text">Penjualan Invoice Tempo 30 Hari</td>
+                        <td class="td-text">PT Makmur Jaya</td>
+                        <td class="td-qty">20</td>
+                        <td class="td-amount">25000000</td>
+                    </tr>
+                    <tr>
+                        <td class="td-date">2026-09-11</td>
+                        <td class="td-text">Bandung</td>
+                        <td class="td-text">Retur Penjualan</td>
+                        <td class="td-text">Retur Barang Cacat Produksi</td>
+                        <td class="td-text">CV Bumi Pertiwi</td>
+                        <td class="td-qty">5</td>
+                        <td class="td-amount">-3900000</td>
+                    </tr>
+                    <tr>
+                        <td class="td-date">2026-09-11</td>
+                        <td class="td-text">Surabaya</td>
+                        <td class="td-text">Transfer Cabang</td>
+                        <td class="td-text">Transfer Stok Barang Antar Cabang</td>
+                        <td class="td-text">Cabang Bandung</td>
+                        <td class="td-qty">10</td>
+                        <td class="td-amount">12500000</td>
+                    </tr>
 
-        $callback = function () use ($columns, $sampleData) {
-            $file = fopen('php://output', 'w');
-            // Add UTF-8 BOM so Excel opens it with proper accents & columns
-            fputs($file, "\xEF\xBB\xBF");
-            fputcsv($file, $columns);
-
-            foreach ($sampleData as $row) {
-                fputcsv($file, $row);
-            }
-            fclose($file);
+                    <tr><td colspan="7" height="15"></td></tr>
+                    
+                    <!-- Petunjuk Pengisian -->
+                    <tr>
+                        <td colspan="7" class="guide-title" style="background-color: #FEF3C7; border: 1px solid #FCD34D; padding: 6px;">
+                            <strong>PETUNJUK PENGISIAN IMPORT TRANSAKSI:</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" class="guide-desc" style="background-color: #FFFBEB; border: 1px solid #FCD34D; padding: 6px;">
+                            1. <strong>Tanggal</strong>: Gunakan format standar YYYY-MM-DD (Contoh: 2026-09-11).<br>
+                            2. <strong>Cabang</strong>: Diisi nama cabang resmi (Contoh: Jakarta Pusat, Bandung, Surabaya).<br>
+                            3. <strong>Jenis Transaksi</strong>: Pilih salah satu dari: [Penjualan Tunai, Penjualan Kredit, Retur Penjualan, Transfer Cabang].<br>
+                            4. <strong>Customer</strong>: Diisi nama customer / pembeli / cabang tujuan transfer.<br>
+                            5. <strong>Qty</strong>: Jumlah kuantitas unit barang (Angka bulat).<br>
+                            6. <strong>Jumlah</strong>: Diisi nominal rupiah tanpa tanda titik atau koma (Untuk Retur Penjualan boleh diberi tanda minus -).
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+            <?php
         };
 
         return response()->stream($callback, 200, $headers);
     }
 
     /**
-     * Import Data Transaksi dari Berkas Excel/CSV
+     * Import Data Transaksi dari Berkas Excel/CSV/XLS
      */
     public function importExcel(Request $request): RedirectResponse
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt'],
+            'file' => ['required', 'file'],
         ], [
             'file.required' => 'Silakan pilih berkas Excel/CSV untuk diimpor.',
-            'file.mimes' => 'Format berkas harus berupa .xlsx, .xls, atau .csv.',
         ]);
 
         $file = $request->file('file');
         $user = auth()->user();
         $importedCount = 0;
 
-        // Baca file CSV / Text
-        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
-            // Check BOM
-            $bom = fread($handle, 3);
-            if ($bom !== "\xEF\xBB\xBF") {
-                rewind($handle);
-            }
+        $content = file_get_contents($file->getRealPath());
 
-            // Detect delimiter (comma or semicolon)
-            $firstLine = fgets($handle);
-            rewind($handle);
-            if ($bom === "\xEF\xBB\xBF") {
-                fread($handle, 3);
-            }
-            $delimiter = (strpos($firstLine, ';') !== false && strpos($firstLine, ',') === false) ? ';' : ',';
+        // Ambil semua cabang untuk mapping nama -> ID
+        $branchesMap = Branch::all()->keyBy(function ($item) {
+            return strtolower(trim($item->name));
+        });
 
-            // Skip header
-            $header = fgetcsv($handle, 1000, $delimiter);
+        // Get last transaction ID
+        $lastTrx = Transaction::withTrashed()->latest('id')->first();
+        $nextNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
 
-            // Ambil semua cabang untuk mapping nama -> ID
-            $branchesMap = Branch::all()->keyBy(function ($item) {
-                return strtolower(trim($item->name));
-            });
+        // Cek jika format adalah HTML/XML Spreadsheet (.xls)
+        if (str_contains($content, '<table') || str_contains($content, '<tr')) {
+            // Parse HTML Table
+            $dom = new \DOMDocument();
+            @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
+            $rows = $dom->getElementsByTagName('tr');
 
-            // Get last transaction ID
-            $lastTrx = Transaction::latest('id')->first();
-            $nextNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
+            $isHeaderPassed = false;
+            foreach ($rows as $tr) {
+                $cells = [];
+                foreach ($tr->getElementsByTagName('td') as $td) {
+                    $cells[] = trim($td->textContent);
+                }
 
-            while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
-                if (empty($row) || count($row) < 5) {
+                // Jika row adalah TH
+                if (empty($cells)) {
+                    foreach ($tr->getElementsByTagName('th') as $th) {
+                        $cells[] = trim($th->textContent);
+                    }
+                }
+
+                if (empty($cells) || count($cells) < 5) {
                     continue;
                 }
 
-                // Kolom: Tanggal, Cabang, Jenis, Deskripsi, Customer, Qty, Jumlah
-                $dateRaw = trim($row[0] ?? '');
-                $branchRaw = trim($row[1] ?? '');
-                $typeRaw = trim($row[2] ?? 'Penjualan Tunai');
-                $notesRaw = trim($row[3] ?? '');
-                $customerRaw = trim($row[4] ?? 'Umum');
-                $qtyRaw = isset($row[5]) ? intval(preg_replace('/[^0-9]/', '', $row[5])) : 1;
-                $amountRaw = isset($row[6]) ? floatval(str_replace(['Rp', '.', ' '], '', str_replace(',', '.', $row[6]))) : 0;
-
-                if (empty($dateRaw) || empty($customerRaw)) {
+                // Deteksi header row
+                if (stripos($cells[0], 'Tanggal') !== false && stripos($cells[1] ?? '', 'Cabang') !== false) {
+                    $isHeaderPassed = true;
                     continue;
                 }
 
-                // Format Tanggal
+                // Abaikan baris petunjuk atau judul
+                if (!$isHeaderPassed || stripos($cells[0], 'TEMPLATE') !== false || stripos($cells[0], 'PETUNJUK') !== false) {
+                    continue;
+                }
+
+                $dateRaw = trim($cells[0] ?? '');
+                $branchRaw = trim($cells[1] ?? '');
+                $typeRaw = trim($cells[2] ?? 'Penjualan Tunai');
+                $notesRaw = trim($cells[3] ?? '');
+                $customerRaw = trim($cells[4] ?? 'Umum');
+                $qtyRaw = isset($cells[5]) ? intval(preg_replace('/[^0-9]/', '', $cells[5])) : 1;
+                $amountRaw = isset($cells[6]) ? floatval(str_replace(['Rp', '.', ' '], '', str_replace(',', '.', $cells[6]))) : 0;
+
+                if (empty($dateRaw) || empty($customerRaw) || stripos($dateRaw, 'PETUNJUK') !== false) {
+                    continue;
+                }
+
                 try {
                     $parsedDate = date('Y-m-d', strtotime($dateRaw));
                 } catch (\Exception $e) {
                     $parsedDate = date('Y-m-d');
                 }
 
-                // Tentukan Cabang
                 if ($user->isAdminCabang()) {
                     $branchId = $user->branch_id;
                 } else {
@@ -391,7 +521,6 @@ class TransactionController extends Controller
                     $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
                 }
 
-                // Normalisasi jenis
                 $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
                 $matchedType = 'Penjualan Tunai';
                 foreach ($validTypes as $vt) {
@@ -401,7 +530,6 @@ class TransactionController extends Controller
                     }
                 }
 
-                // Generate code
                 $code = 'TRX-' . str_pad($nextNumber++, 3, '0', STR_PAD_LEFT);
 
                 Transaction::create([
@@ -418,8 +546,82 @@ class TransactionController extends Controller
 
                 $importedCount++;
             }
+        } else {
+            // Baca berkas CSV murni
+            if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+                $bom = fread($handle, 3);
+                if ($bom !== "\xEF\xBB\xBF") {
+                    rewind($handle);
+                }
 
-            fclose($handle);
+                $firstLine = fgets($handle);
+                rewind($handle);
+                if ($bom === "\xEF\xBB\xBF") {
+                    fread($handle, 3);
+                }
+                $delimiter = (strpos($firstLine, ';') !== false && strpos($firstLine, ',') === false) ? ';' : ',';
+
+                // Skip header
+                $header = fgetcsv($handle, 1000, $delimiter);
+
+                while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
+                    if (empty($row) || count($row) < 5) {
+                        continue;
+                    }
+
+                    $dateRaw = trim($row[0] ?? '');
+                    $branchRaw = trim($row[1] ?? '');
+                    $typeRaw = trim($row[2] ?? 'Penjualan Tunai');
+                    $notesRaw = trim($row[3] ?? '');
+                    $customerRaw = trim($row[4] ?? 'Umum');
+                    $qtyRaw = isset($row[5]) ? intval(preg_replace('/[^0-9]/', '', $row[5])) : 1;
+                    $amountRaw = isset($row[6]) ? floatval(str_replace(['Rp', '.', ' '], '', str_replace(',', '.', $row[6]))) : 0;
+
+                    if (empty($dateRaw) || empty($customerRaw)) {
+                        continue;
+                    }
+
+                    try {
+                        $parsedDate = date('Y-m-d', strtotime($dateRaw));
+                    } catch (\Exception $e) {
+                        $parsedDate = date('Y-m-d');
+                    }
+
+                    if ($user->isAdminCabang()) {
+                        $branchId = $user->branch_id;
+                    } else {
+                        $matchedBranch = $branchesMap->get(strtolower($branchRaw));
+                        $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
+                    }
+
+                    $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
+                    $matchedType = 'Penjualan Tunai';
+                    foreach ($validTypes as $vt) {
+                        if (stripos($typeRaw, $vt) !== false) {
+                            $matchedType = $vt;
+                            break;
+                        }
+                    }
+
+                    $code = 'TRX-' . str_pad($nextNumber++, 3, '0', STR_PAD_LEFT);
+
+                    Transaction::create([
+                        'code' => $code,
+                        'branch_id' => $branchId,
+                        'user_id' => $user->id,
+                        'transaction_date' => $parsedDate,
+                        'type' => $matchedType,
+                        'customer_name' => $customerRaw,
+                        'qty' => max(1, $qtyRaw),
+                        'amount' => ($matchedType === 'Retur Penjualan' && $amountRaw > 0) ? -$amountRaw : $amountRaw,
+                        'notes' => $notesRaw,
+                    ]);
+
+                    $importedCount++;
+                }
+
+                fclose($handle);
+            }
         }
 
         if ($importedCount > 0) {

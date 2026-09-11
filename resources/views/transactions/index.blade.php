@@ -10,7 +10,7 @@
         <div>
             <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Data Transaksi</h1>
             <p class="text-xs text-slate-500 mt-1 font-medium">
-                Manajemen resume transaksi, filtering laporan, dan export dokumen cabang.
+                Manajemen resume transaksi, filtering laporan, bulk delete, dan export dokumen cabang.
             </p>
         </div>
 
@@ -202,6 +202,32 @@
 
     </div>
 
+    <!-- Bulk Action Toolbar (Muncul saat ada checkbox dicentang) -->
+    <div id="bulkTrxToolbar" class="hidden bg-navy-900 text-white p-3.5 rounded-xl shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fadeIn">
+        <div class="flex items-center space-x-2 text-xs font-bold px-2">
+            <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+            <span><span id="selectedTrxCount">0</span> transaksi dipilih</span>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <!-- Form Bulk Delete -->
+            <form id="bulkDeleteForm" action="{{ route('transactions.bulk-delete') }}" method="POST" class="inline">
+                @csrf
+                <div id="bulkDeleteInputs"></div>
+                <button 
+                    type="submit" 
+                    onclick="return confirm('Apakah Anda yakin ingin memindahkan transaksi yang dipilih ke tempat sampah?');" 
+                    class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center space-x-1.5 shadow-sm"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Hapus Terpilih (Pindah ke Sampah)</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Summary Info Bar -->
     <div class="flex items-center justify-between text-xs px-1">
         <div class="text-slate-500 font-medium">
@@ -227,6 +253,9 @@
             <table class="w-full text-left text-xs text-slate-700">
                 <thead class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                     <tr>
+                        <th class="py-3 px-3 w-8 text-center">
+                            <input type="checkbox" id="selectAllTrx" onchange="toggleSelectAllTrx(this)" class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand cursor-pointer">
+                        </th>
                         <th class="py-3 px-3">ID</th>
                         <th class="py-3 px-3">Tanggal</th>
                         <th class="py-3 px-3">Cabang</th>
@@ -241,6 +270,15 @@
                 <tbody class="divide-y divide-slate-100 font-medium">
                     @forelse($transactions as $trx)
                         <tr class="hover:bg-slate-50/70 transition-colors">
+                            <!-- Checkbox Row -->
+                            <td class="py-3 px-3 text-center">
+                                @if(auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id)
+                                    <input type="checkbox" name="trx_ids[]" value="{{ $trx->id }}" onchange="updateTrxSelection()" class="trx-item-checkbox rounded border-slate-300 text-tealBrand focus:ring-tealBrand cursor-pointer">
+                                @else
+                                    <input type="checkbox" disabled class="rounded border-slate-200 text-slate-300 cursor-not-allowed opacity-40">
+                                @endif
+                            </td>
+
                             <!-- ID -->
                             <td class="py-3 px-3 font-mono text-slate-500 font-bold">{{ $trx->code }}</td>
                             
@@ -310,13 +348,13 @@
                                             </svg>
                                         </button>
 
-                                        <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi {{ $trx->code }}?');" class="inline">
+                                        <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="return confirm('Pindahkan transaksi {{ $trx->code }} ke tempat sampah?');" class="inline">
                                             @csrf
                                             @method('DELETE')
                                             <button 
                                                 type="submit" 
                                                 class="p-1 text-slate-400 hover:text-rose-600 transition-colors"
-                                                title="Hapus Transaksi"
+                                                title="Hapus Transaksi (Pindah ke Sampah)"
                                             >
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -331,7 +369,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="py-12 text-center text-slate-400 font-medium">
+                            <td colspan="10" class="py-12 text-center text-slate-400 font-medium">
                                 Tidak ada transaksi yang sesuai dengan kriteria filter.
                             </td>
                         </tr>
@@ -663,6 +701,40 @@
             const fileName = input.files[0].name;
             document.getElementById('fileNameText').textContent = fileName;
             document.getElementById('selectedFileName').classList.remove('hidden');
+        }
+    }
+
+    // Bulk Action Checkboxes
+    function toggleSelectAllTrx(master) {
+        const checkboxes = document.querySelectorAll('.trx-item-checkbox:not(:disabled)');
+        checkboxes.forEach(cb => cb.checked = master.checked);
+        updateTrxSelection();
+    }
+
+    function updateTrxSelection() {
+        const checkboxes = document.querySelectorAll('.trx-item-checkbox:checked');
+        const count = checkboxes.length;
+        const toolbar = document.getElementById('bulkTrxToolbar');
+        const countText = document.getElementById('selectedTrxCount');
+        const deleteContainer = document.getElementById('bulkDeleteInputs');
+
+        if (count > 0) {
+            countText.textContent = count;
+            toolbar.classList.remove('hidden');
+
+            deleteContainer.innerHTML = '';
+            checkboxes.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = cb.value;
+                deleteContainer.appendChild(input);
+            });
+        } else {
+            toolbar.classList.add('hidden');
+            deleteContainer.innerHTML = '';
+            const master = document.getElementById('selectAllTrx');
+            if (master) master.checked = false;
         }
     }
 

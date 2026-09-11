@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Transaction extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'code',
@@ -29,6 +30,7 @@ class Transaction extends Model
             'transaction_date' => 'date',
             'qty' => 'integer',
             'amount' => 'decimal:2',
+            'deleted_at' => 'datetime',
         ];
     }
 
