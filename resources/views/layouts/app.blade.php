@@ -210,19 +210,6 @@
                     </div>
                 </a>
 
-                <!-- Desktop Collapse Toggle Button -->
-                <button 
-                    type="button" 
-                    onclick="toggleSidebarDesktop()" 
-                    id="sidebarDesktopToggleBtn"
-                    class="hidden lg:flex p-1.5 text-slate-400 hover:text-white hover:bg-navy-800 rounded-lg transition-colors cursor-pointer sidebar-hide-on-collapse"
-                    title="Buka / Tutup Sidebar"
-                >
-                    <svg id="sidebarDesktopToggleIcon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                    </svg>
-                </button>
-
                 <!-- Mobile Close Button -->
                 <button 
                     type="button" 
