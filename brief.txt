@@ -1,0 +1,27 @@
+Brief Ikhlas Solusi
+
+- Sistem dikembangkan dengan basis Website
+
+--------------------------
+FUNGSI SISTEM :
+--------------------------
+
+Fungsi 1 : Website memiliki fungsi sebagai media untuk menginputkan resume penjualan baik itu diinput secara manual dengan menggunakan form yang sudah disediakan atau di export dari excel ke system.
+
+Fungsi 2 : website memiliki fungsi untuk filtering, missal filter berdasarkan transaksi terbanyak, transaksi paling sedikit, berdasarkan tanggal transaksi, jenis transaksi dan beberapa fungsi filter lainnya sesuai dengan data yang diinput.
+
+Fungsi 3 : Hasil filter bisa di export Kembali dari system website ke dalam bentuk pdf.
+
+--------------------------
+ALUR :
+--------------------------
+
+Website di pegang oleh kepala cabang, dimana kepala cabang biasanya membawahi beberapa cabang contoh missal 3 cabang, setiap cabang tersebut menggunakan software akunting berbeda. Admin dari setiap cabang wajib menginput data resume transaksi ke dalam system yang sudah disediakan (dibuat) baik itu secara manual atau dengan cara export excel yang dimana format excel sudah di tentukan oleh kepala cabang.
+
+Setelah data dari setiap cabang terinput ke system website, maka kepala cabang bisa melakukan filtering sesuai dengan fitur filter yang sudah disediakan dan juga bisa melakukan export Kembali ke dalam bentuk pdf sebagai bahan lapoan.
+
+
+Admin terdiri dari 2 hak akses : Kepala cabang dan admin cabang.
+
+- Kepala cabang bisa menginput, delete dan edit dan melihat semua transaksi di semua cabang.
+- Admin cabang bisa melihat hanya cabangnya sendiri, menginput data, melakukan edit dan hapus , tapi tidak bisa melakukan CRUD untuk cabang lain.

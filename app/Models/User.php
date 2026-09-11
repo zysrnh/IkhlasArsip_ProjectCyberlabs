@@ -21,6 +21,7 @@ class User extends Authenticatable
      * Role constants
      */
     public const ROLE_SUPERADMIN = 'superadmin';
+    public const ROLE_KEPALA_CABANG = 'kepala_cabang';
     public const ROLE_ADMIN_CABANG = 'admin_cabang';
     public const ROLE_VIEWER = 'viewer';
 
@@ -46,6 +47,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah user adalah Kepala Cabang
+     */
+    public function isKepalaCabang(): bool
+    {
+        return $this->role === self::ROLE_KEPALA_CABANG;
+    }
+
+    /**
+     * Cek apakah user bisa akses semua cabang (Super Admin & Kepala Cabang)
+     */
+    public function canAccessAllBranches(): bool
+    {
+        return in_array($this->role, [self::ROLE_SUPERADMIN, self::ROLE_KEPALA_CABANG]);
+    }
+
+    /**
      * Cek apakah user adalah Admin Cabang
      */
     public function isAdminCabang(): bool
@@ -59,6 +76,14 @@ class User extends Authenticatable
     public function branch(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Branch::class, 'branch_id');
+    }
+
+    /**
+     * Relasi ke Transaksi yang diinput
+     */
+    public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Transaction::class, 'user_id');
     }
 
     /**

@@ -27,4 +27,12 @@ class Branch extends Model
     {
         return $this->hasMany(User::class, 'branch_id');
     }
+
+    /**
+     * Relasi ke Transaksi Cabang
+     */
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'branch_id');
+    }
 }
