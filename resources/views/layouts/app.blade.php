@@ -101,8 +101,8 @@
                     <span>Transaksi</span>
                 </a>
 
-                <!-- Manajemen User (Superadmin / Kepala Cabang) -->
-                @if(auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang())
+                <!-- Manajemen User (Hanya Superadmin) -->
+                @if(auth()->user()->isSuperAdmin())
                     <a 
                         href="{{ route('users.index') }}" 
                         class="mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-colors {{ request()->routeIs('users.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
