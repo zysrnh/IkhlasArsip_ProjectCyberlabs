@@ -463,29 +463,27 @@
                             <td class="py-3 px-3.5">
                                 @if($user->branch)
                                     <span class="font-bold text-slate-800">{{ $user->branch->name }}</span>
-                                    <span class="text-[10px] text-slate-400 block font-mono">{{ $user->branch->code }}</span>
                                 @else
                                     <span class="text-slate-400 italic">Semua Cabang (Global)</span>
                                 @endif
                             </td>
                             <td class="py-3 px-3.5 text-center">
                                 @if($user->status === 'active')
-                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                         Aktif
                                     </span>
                                 @else
-                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                                         Nonaktif
                                     </span>
                                 @endif
                             </td>
                             <td class="py-3 px-3.5 text-center">
                                 <div class="flex items-center justify-center space-x-1.5">
-                                    <!-- Edit Button -->
                                     <button 
                                         type="button" 
                                         onclick="openEditModal({{ json_encode($user) }})"
-                                        class="p-1 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+                                        class="p-1 text-slate-400 hover:text-tealBrand transition-colors cursor-pointer"
                                         title="Edit Pengguna"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -493,7 +491,6 @@
                                         </svg>
                                     </button>
 
-                                    <!-- Delete Button -->
                                     @if($user->id !== auth()->id())
                                         <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user {{ $user->name }}? Data tidak dapat dipulihkan.');" class="inline">
                                             @csrf
@@ -535,10 +532,10 @@
 
 <!-- Modal Tambah User -->
 <div id="createModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-visible animate-fadeIn">
         
         <!-- Header -->
-        <div class="px-5 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div class="px-5 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 rounded-t-2xl">
             <h3 class="font-extrabold text-sm text-slate-900 tracking-tight">Tambah Pengguna Baru</h3>
             <button type="button" onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -568,49 +565,128 @@
                 <input type="password" name="password" required placeholder="Minimal 6 karakter" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
-            <!-- Role & Branch -->
+            <!-- Role & Branch Custom Popovers -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Role -->
                 <div>
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">HAK AKSES (ROLE)</label>
-                    <div class="relative">
-                        <select name="role" id="createRole" onchange="toggleBranchField('create')" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
-                            <option value="admin_cabang">Admin Cabang</option>
-                            <option value="kepala_cabang">Kepala Cabang</option>
-                            <option value="superadmin">Super Admin</option>
-                            <option value="viewer">Viewer (Read-Only)</option>
-                        </select>
-                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    <div class="relative" id="createRoleDropdownContainer">
+                        <input type="hidden" name="role" id="createRole" value="admin_cabang" required>
+                        <button 
+                            type="button"
+                            id="createRoleTrigger"
+                            onclick="toggleModalDropdown('createRole')"
+                            class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                        >
+                            <span id="createRoleLabel">Admin Cabang</span>
+                            <svg id="createRoleChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div id="createRoleMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
+                            @php
+                                $modalRoles = [
+                                    'admin_cabang' => 'Admin Cabang',
+                                    'kepala_cabang' => 'Kepala Cabang',
+                                    'superadmin' => 'Super Admin',
+                                    'viewer' => 'Viewer (Read-Only)'
+                                ];
+                            @endphp
+                            @foreach($modalRoles as $mRoleKey => $mRoleLabel)
+                                <button 
+                                    type="button"
+                                    id="createRoleOpt_{{ $mRoleKey }}"
+                                    onclick="selectModalDropdown('create', 'Role', '{{ $mRoleKey }}', '{{ $mRoleLabel }}')"
+                                    class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ $mRoleKey === 'admin_cabang' ? 'text-tealBrand font-bold bg-teal-50/60' : 'hover:bg-slate-50 font-medium text-slate-700' }}"
+                                >
+                                    <span>{{ $mRoleLabel }}</span>
+                                    <svg id="createRoleCheck_{{ $mRoleKey }}" class="w-3.5 h-3.5 text-tealBrand {{ $mRoleKey === 'admin_cabang' ? '' : 'hidden' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </button>
+                            @endforeach
                         </div>
                     </div>
                 </div>
 
+                <!-- Branch -->
                 <div id="createBranchContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">PILIH CABANG</label>
-                    <div class="relative">
-                        <select name="branch_id" id="createBranchId" class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
-                            <option value="">-- Pilih Cabang --</option>
+                    <div class="relative" id="createBranchDropdownContainer">
+                        <input type="hidden" name="branch_id" id="createBranchId" value="">
+                        <button 
+                            type="button"
+                            id="createBranchTrigger"
+                            onclick="toggleModalDropdown('createBranch')"
+                            class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                        >
+                            <span id="createBranchLabel" class="truncate">-- Pilih Cabang --</span>
+                            <svg id="createBranchChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div id="createBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
+                            <button 
+                                type="button"
+                                id="createBranchOpt_"
+                                onclick="selectModalDropdown('create', 'Branch', '', '-- Pilih Cabang --')"
+                                class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
+                            >
+                                <span>-- Pilih Cabang --</span>
+                                <svg id="createBranchCheck_" class="w-3.5 h-3.5 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            </button>
                             @foreach($branches as $branch)
-                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                <button 
+                                    type="button"
+                                    id="createBranchOpt_{{ $branch->id }}"
+                                    onclick="selectModalDropdown('create', 'Branch', '{{ $branch->id }}', '{{ addslashes($branch->name) }}')"
+                                    class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors hover:bg-slate-50 font-medium text-slate-700"
+                                >
+                                    <span class="truncate">{{ $branch->name }}</span>
+                                    <svg id="createBranchCheck_{{ $branch->id }}" class="w-3.5 h-3.5 text-tealBrand hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </button>
                             @endforeach
-                        </select>
-                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Status -->
+            <!-- Status Custom Popover -->
             <div>
                 <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">STATUS AKUN</label>
-                <div class="relative">
-                    <select name="status" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
-                        <option value="active">Aktif</option>
-                        <option value="inactive">Nonaktif</option>
-                    </select>
-                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                <div class="relative" id="createStatusDropdownContainer">
+                    <input type="hidden" name="status" id="createStatus" value="active" required>
+                    <button 
+                        type="button"
+                        id="createStatusTrigger"
+                        onclick="toggleModalDropdown('createStatus')"
+                        class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                    >
+                        <span id="createStatusLabel">Aktif</span>
+                        <svg id="createStatusChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div id="createStatusMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
+                        <button 
+                            type="button"
+                            id="createStatusOpt_active"
+                            onclick="selectModalDropdown('create', 'Status', 'active', 'Aktif')"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
+                        >
+                            <span>Aktif</span>
+                            <svg id="createStatusCheck_active" class="w-3.5 h-3.5 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </button>
+                        <button 
+                            type="button"
+                            id="createStatusOpt_inactive"
+                            onclick="selectModalDropdown('create', 'Status', 'inactive', 'Nonaktif')"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors hover:bg-slate-50 font-medium text-slate-700"
+                        >
+                            <span>Nonaktif</span>
+                            <svg id="createStatusCheck_inactive" class="w-3.5 h-3.5 text-tealBrand hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -630,10 +706,10 @@
 
 <!-- Modal Edit User -->
 <div id="editModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-visible animate-fadeIn">
         
         <!-- Header -->
-        <div class="px-5 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div class="px-5 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 rounded-t-2xl">
             <h3 class="font-extrabold text-sm text-slate-900 tracking-tight">Edit Data Pengguna</h3>
             <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -666,49 +742,120 @@
                 <input type="password" name="password" placeholder="Minimal 6 karakter..." class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
-            <!-- Role & Branch -->
+            <!-- Role & Branch Custom Popovers -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Role -->
                 <div>
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">HAK AKSES (ROLE)</label>
-                    <div class="relative">
-                        <select name="role" id="editRole" onchange="toggleBranchField('edit')" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
-                            <option value="admin_cabang">Admin Cabang</option>
-                            <option value="kepala_cabang">Kepala Cabang</option>
-                            <option value="superadmin">Super Admin</option>
-                            <option value="viewer">Viewer (Read-Only)</option>
-                        </select>
-                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    <div class="relative" id="editRoleDropdownContainer">
+                        <input type="hidden" name="role" id="editRole" value="admin_cabang" required>
+                        <button 
+                            type="button"
+                            id="editRoleTrigger"
+                            onclick="toggleModalDropdown('editRole')"
+                            class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                        >
+                            <span id="editRoleLabel">Admin Cabang</span>
+                            <svg id="editRoleChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div id="editRoleMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
+                            @foreach($modalRoles as $mRoleKey => $mRoleLabel)
+                                <button 
+                                    type="button"
+                                    id="editRoleOpt_{{ $mRoleKey }}"
+                                    onclick="selectModalDropdown('edit', 'Role', '{{ $mRoleKey }}', '{{ $mRoleLabel }}')"
+                                    class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ $mRoleKey === 'admin_cabang' ? 'text-tealBrand font-bold bg-teal-50/60' : 'hover:bg-slate-50 font-medium text-slate-700' }}"
+                                >
+                                    <span>{{ $mRoleLabel }}</span>
+                                    <svg id="editRoleCheck_{{ $mRoleKey }}" class="w-3.5 h-3.5 text-tealBrand {{ $mRoleKey === 'admin_cabang' ? '' : 'hidden' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </button>
+                            @endforeach
                         </div>
                     </div>
                 </div>
 
+                <!-- Branch -->
                 <div id="editBranchContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">PILIH CABANG</label>
-                    <div class="relative">
-                        <select name="branch_id" id="editBranchId" class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
-                            <option value="">-- Pilih Cabang --</option>
+                    <div class="relative" id="editBranchDropdownContainer">
+                        <input type="hidden" name="branch_id" id="editBranchId" value="">
+                        <button 
+                            type="button"
+                            id="editBranchTrigger"
+                            onclick="toggleModalDropdown('editBranch')"
+                            class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                        >
+                            <span id="editBranchLabel" class="truncate">-- Pilih Cabang --</span>
+                            <svg id="editBranchChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div id="editBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
+                            <button 
+                                type="button"
+                                id="editBranchOpt_"
+                                onclick="selectModalDropdown('edit', 'Branch', '', '-- Pilih Cabang --')"
+                                class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
+                            >
+                                <span>-- Pilih Cabang --</span>
+                                <svg id="editBranchCheck_" class="w-3.5 h-3.5 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            </button>
                             @foreach($branches as $branch)
-                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                <button 
+                                    type="button"
+                                    id="editBranchOpt_{{ $branch->id }}"
+                                    onclick="selectModalDropdown('edit', 'Branch', '{{ $branch->id }}', '{{ addslashes($branch->name) }}')"
+                                    class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors hover:bg-slate-50 font-medium text-slate-700"
+                                >
+                                    <span class="truncate">{{ $branch->name }}</span>
+                                    <svg id="editBranchCheck_{{ $branch->id }}" class="w-3.5 h-3.5 text-tealBrand hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </button>
                             @endforeach
-                        </select>
-                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Status -->
+            <!-- Status Custom Popover -->
             <div>
                 <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">STATUS AKUN</label>
-                <div class="relative">
-                    <select name="status" id="editStatus" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
-                        <option value="active">Aktif</option>
-                        <option value="inactive">Nonaktif</option>
-                    </select>
-                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                <div class="relative" id="editStatusDropdownContainer">
+                    <input type="hidden" name="status" id="editStatus" value="active" required>
+                    <button 
+                        type="button"
+                        id="editStatusTrigger"
+                        onclick="toggleModalDropdown('editStatus')"
+                        class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                    >
+                        <span id="editStatusLabel">Aktif</span>
+                        <svg id="editStatusChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div id="editStatusMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
+                        <button 
+                            type="button"
+                            id="editStatusOpt_active"
+                            onclick="selectModalDropdown('edit', 'Status', 'active', 'Aktif')"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
+                        >
+                            <span>Aktif</span>
+                            <svg id="editStatusCheck_active" class="w-3.5 h-3.5 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </button>
+                        <button 
+                            type="button"
+                            id="editStatusOpt_inactive"
+                            onclick="selectModalDropdown('edit', 'Status', 'inactive', 'Nonaktif')"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors hover:bg-slate-50 font-medium text-slate-700"
+                        >
+                            <span>Nonaktif</span>
+                            <svg id="editStatusCheck_inactive" class="w-3.5 h-3.5 text-tealBrand hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -728,6 +875,24 @@
 
 @push('scripts')
 <script>
+    const branchesMap = {
+        @foreach($branches as $b)
+        '{{ $b->id }}': '{{ addslashes($b->name) }}',
+        @endforeach
+    };
+
+    const roleLabels = {
+        'superadmin': 'Super Admin',
+        'kepala_cabang': 'Kepala Cabang',
+        'admin_cabang': 'Admin Cabang',
+        'viewer': 'Viewer (Read-Only)'
+    };
+
+    const statusLabels = {
+        'active': 'Aktif',
+        'inactive': 'Nonaktif'
+    };
+
     // Live Search Debounce
     let userSearchDebounceTimer = null;
     function handleUserSearchDebounce(input) {
@@ -779,7 +944,7 @@
         }
     }
 
-    // Custom Popovers
+    // Custom Popovers for Main Filters
     function toggleUserPopover(menuId, chevronId) {
         const menu = document.getElementById(menuId);
         const chevron = document.getElementById(chevronId);
@@ -818,18 +983,136 @@
         document.getElementById('userFilterForm').submit();
     }
 
+    // Modal Custom Dropdowns
+    function toggleModalDropdown(prefix) {
+        const menu = document.getElementById(prefix + 'Menu');
+        const chevron = document.getElementById(prefix + 'Chevron');
+        if (!menu) return;
+
+        const allModalPopovers = [
+            'createRole', 'createBranch', 'createStatus',
+            'editRole', 'editBranch', 'editStatus'
+        ];
+
+        allModalPopovers.forEach(p => {
+            if (p !== prefix) {
+                const m = document.getElementById(p + 'Menu');
+                const c = document.getElementById(p + 'Chevron');
+                if (m) m.classList.add('hidden');
+                if (c) c.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            menu.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
+    function selectModalDropdown(modalType, field, value, label) {
+        const prefix = modalType + field;
+        const input = document.getElementById(field === 'Branch' ? (modalType + 'BranchId') : prefix);
+        const labelEl = document.getElementById(prefix + 'Label');
+        const menu = document.getElementById(prefix + 'Menu');
+        const chevron = document.getElementById(prefix + 'Chevron');
+
+        if (input) input.value = value;
+        if (labelEl) labelEl.textContent = label;
+
+        if (menu) {
+            const optionBtns = menu.querySelectorAll('button');
+            optionBtns.forEach(btn => {
+                btn.classList.remove('text-tealBrand', 'font-bold', 'bg-teal-50/60');
+                btn.classList.add('text-slate-700', 'font-medium');
+                const svg = btn.querySelector('svg');
+                if (svg) svg.classList.add('hidden');
+            });
+
+            const selectedBtn = document.getElementById(prefix + 'Opt_' + value);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('text-slate-700', 'font-medium');
+                selectedBtn.classList.add('text-tealBrand', 'font-bold', 'bg-teal-50/60');
+                const check = document.getElementById(prefix + 'Check_' + value);
+                if (check) check.classList.remove('hidden');
+            }
+
+            menu.classList.add('hidden');
+        }
+        if (chevron) chevron.classList.remove('rotate-180');
+
+        if (field === 'Role') {
+            toggleBranchField(modalType);
+        }
+    }
+
+    function setModalDropdownValue(modalType, field, value, label) {
+        const prefix = modalType + field;
+        const input = document.getElementById(field === 'Branch' ? (modalType + 'BranchId') : prefix);
+        const labelEl = document.getElementById(prefix + 'Label');
+        const menu = document.getElementById(prefix + 'Menu');
+
+        if (input) input.value = value;
+        if (labelEl) labelEl.textContent = label;
+
+        if (menu) {
+            const optionBtns = menu.querySelectorAll('button');
+            optionBtns.forEach(btn => {
+                btn.classList.remove('text-tealBrand', 'font-bold', 'bg-teal-50/60');
+                btn.classList.add('text-slate-700', 'font-medium');
+                const svg = btn.querySelector('svg');
+                if (svg) svg.classList.add('hidden');
+            });
+
+            const selectedBtn = document.getElementById(prefix + 'Opt_' + value);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('text-slate-700', 'font-medium');
+                selectedBtn.classList.add('text-tealBrand', 'font-bold', 'bg-teal-50/60');
+                const check = document.getElementById(prefix + 'Check_' + value);
+                if (check) check.classList.remove('hidden');
+            }
+        }
+    }
+
+    function toggleBranchField(type) {
+        const roleInput = document.getElementById(type + 'Role');
+        const role = roleInput ? roleInput.value : 'admin_cabang';
+        const container = document.getElementById(type + 'BranchContainer');
+
+        if (role === 'superadmin' || role === 'kepala_cabang' || role === 'viewer') {
+            if (container) {
+                container.style.opacity = '0.4';
+                container.style.pointerEvents = 'none';
+            }
+            setModalDropdownValue(type, 'Branch', '', 'Semua Cabang (Global)');
+        } else {
+            if (container) {
+                container.style.opacity = '1';
+                container.style.pointerEvents = 'auto';
+            }
+            const branchInput = document.getElementById(type + 'BranchId');
+            const curVal = branchInput ? branchInput.value : '';
+            const curLabel = curVal && branchesMap[curVal] ? branchesMap[curVal] : '-- Pilih Cabang --';
+            setModalDropdownValue(type, 'Branch', curVal, curLabel);
+        }
+    }
+
+    // Global Click Listener for closing open popovers
     document.addEventListener('click', function(e) {
-        const containers = [
+        const mainContainers = [
             'userRoleDropdownContainer',
             'userBranchDropdownContainer',
             'userStatusDropdownContainer'
         ];
-        const isInsideAny = containers.some(id => {
+        const isInsideMain = mainContainers.some(id => {
             const el = document.getElementById(id);
             return el && el.contains(e.target);
         });
 
-        if (!isInsideAny) {
+        if (!isInsideMain) {
             ['userRoleMenu', 'userBranchMenu', 'userStatusMenu'].forEach((id, idx) => {
                 const menu = document.getElementById(id);
                 if (menu) menu.classList.add('hidden');
@@ -839,6 +1122,28 @@
                 if (ch) ch.classList.remove('rotate-180');
             });
         }
+
+        const modalContainers = [
+            'createRoleDropdownContainer', 'createBranchDropdownContainer', 'createStatusDropdownContainer',
+            'editRoleDropdownContainer', 'editBranchDropdownContainer', 'editStatusDropdownContainer'
+        ];
+        const isInsideModal = modalContainers.some(id => {
+            const el = document.getElementById(id);
+            return el && el.contains(e.target);
+        });
+
+        if (!isInsideModal) {
+            const allModalPopovers = [
+                'createRole', 'createBranch', 'createStatus',
+                'editRole', 'editBranch', 'editStatus'
+            ];
+            allModalPopovers.forEach(p => {
+                const m = document.getElementById(p + 'Menu');
+                const c = document.getElementById(p + 'Chevron');
+                if (m) m.classList.add('hidden');
+                if (c) c.classList.remove('rotate-180');
+            });
+        }
     });
 
     // Modals
@@ -846,6 +1151,10 @@
         const modal = document.getElementById('createModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        
+        setModalDropdownValue('create', 'Role', 'admin_cabang', 'Admin Cabang');
+        setModalDropdownValue('create', 'Branch', '', '-- Pilih Cabang --');
+        setModalDropdownValue('create', 'Status', 'active', 'Aktif');
         toggleBranchField('create');
     }
 
@@ -862,13 +1171,13 @@
         form.action = `/users/${user.id}`;
         document.getElementById('editName').value = user.name;
         document.getElementById('editEmail').value = user.email;
-        document.getElementById('editRole').value = user.role;
-        document.getElementById('editStatus').value = user.status;
         
-        const branchSelect = document.getElementById('editBranchId');
-        if (branchSelect) {
-            branchSelect.value = user.branch_id || '';
-        }
+        setModalDropdownValue('edit', 'Role', user.role, roleLabels[user.role] || 'Admin Cabang');
+        setModalDropdownValue('edit', 'Status', user.status, statusLabels[user.status] || 'Aktif');
+        
+        const branchVal = user.branch_id ? String(user.branch_id) : '';
+        const branchLabel = branchVal && branchesMap[branchVal] ? branchesMap[branchVal] : '-- Pilih Cabang --';
+        setModalDropdownValue('edit', 'Branch', branchVal, branchLabel);
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -879,27 +1188,6 @@
         const modal = document.getElementById('editModal');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
-    }
-
-    function toggleBranchField(type) {
-        const role = document.getElementById(type + 'Role').value;
-        const container = document.getElementById(type + 'BranchContainer');
-        const branchSelect = document.getElementById(type + 'BranchId');
-
-        if (role === 'superadmin' || role === 'kepala_cabang' || role === 'viewer') {
-            container.style.opacity = '0.4';
-            container.style.pointerEvents = 'none';
-            if (branchSelect) {
-                branchSelect.value = '';
-                branchSelect.removeAttribute('required');
-            }
-        } else {
-            container.style.opacity = '1';
-            container.style.pointerEvents = 'auto';
-            if (branchSelect && role === 'admin_cabang') {
-                branchSelect.setAttribute('required', 'required');
-            }
-        }
     }
 
     // Keyboard shortcut '/' to focus search input
