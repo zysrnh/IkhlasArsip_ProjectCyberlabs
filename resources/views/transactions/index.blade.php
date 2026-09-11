@@ -525,29 +525,75 @@
 
 <!-- Modal Import Excel -->
 <div id="importModal" class="fixed inset-0 z-50 bg-navy-950/70 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-md shadow-2xl overflow-hidden">
-        <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
-            <h3 class="font-extrabold text-sm tracking-tight">Import Data Resume Excel</h3>
-            <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-white font-bold text-lg">&times;</button>
+    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-lg shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-extrabold text-base text-slate-800 tracking-tight">Import dari Excel</h3>
+            <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
 
-        <form action="{{ route('transactions.import-excel') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+        <form action="{{ route('transactions.import-excel') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
             @csrf
 
-            <p class="text-xs text-slate-500 leading-relaxed">
-                Unggah berkas rekapitulasi penjualan dalam format <strong>.xlsx</strong>, <strong>.xls</strong>, atau <strong>.csv</strong> sesuai format cabang Anda.
-            </p>
-
-            <div class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-tealBrand transition-colors cursor-pointer bg-slate-50">
-                <input type="file" name="file" required accept=".xlsx,.xls,.csv" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-tealBrand file:text-white hover:file:bg-tealBrand-hover">
+            <!-- Amber Warning Notice -->
+            <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-3 text-amber-900">
+                <div class="shrink-0 mt-0.5">
+                    <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="text-xs leading-relaxed">
+                    <strong class="font-bold">Pastikan format Excel sesuai template</strong> yang disediakan kepala cabang. Kolom: <span class="font-medium text-amber-950">Tanggal, Cabang, Jenis, Deskripsi, Customer, Jumlah, Qty</span>
+                </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2">
-                <button type="button" onclick="closeImportModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors">
+            <!-- Drag and Drop Dropzone -->
+            <div id="dropzoneContainer" onclick="document.getElementById('importFileInput').click()" class="border-2 border-dashed border-slate-200 hover:border-tealBrand rounded-2xl p-7 text-center transition-all bg-slate-50/60 hover:bg-teal-50/20 cursor-pointer group">
+                <input type="file" id="importFileInput" name="file" required accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileSelect(this)">
+                
+                <div class="w-12 h-12 mx-auto mb-3 bg-emerald-100 text-emerald-600 group-hover:scale-105 rounded-full flex items-center justify-center transition-transform">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                </div>
+                <div class="text-xs font-bold text-slate-800 mb-1">
+                    Pilih File Excel / CSV
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium mb-1">
+                    Drag and drop berkas ke sini, atau klik untuk memilih (.xlsx, .xls, .csv)
+                </div>
+                <div id="selectedFileName" class="hidden mt-2.5 inline-flex items-center px-3 py-1 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="fileNameText">file.xlsx</span>
+                </div>
+            </div>
+
+            <!-- Download Template Link -->
+            <div class="text-center pt-1">
+                <a href="{{ route('transactions.download-template') }}" class="inline-flex items-center text-xs font-bold text-tealBrand hover:text-tealBrand-hover transition-colors">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Template Excel
+                </a>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2.5">
+                <button type="button" onclick="closeImportModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors">
                     Batal
                 </button>
-                <button type="submit" class="px-5 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-lg transition-colors">
-                    Proses Import
+                <button type="submit" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Import Data
                 </button>
             </div>
         </form>
@@ -611,6 +657,46 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+
+    function handleFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const fileName = input.files[0].name;
+            document.getElementById('fileNameText').textContent = fileName;
+            document.getElementById('selectedFileName').classList.remove('hidden');
+        }
+    }
+
+    // Drag & Drop event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropzone = document.getElementById('dropzoneContainer');
+        if (dropzone) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('border-tealBrand', 'bg-teal-50/40');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('border-tealBrand', 'bg-teal-50/40');
+                }, false);
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files && files.length > 0) {
+                    const input = document.getElementById('importFileInput');
+                    input.files = files;
+                    handleFileSelect(input);
+                }
+            });
+        }
+    });
 </script>
 @endpush
 @endsection

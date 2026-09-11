@@ -22,6 +22,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Modul Data Transaksi & Laporan
+    Route::get('/transactions/download-template', [TransactionController::class, 'downloadTemplate'])->name('transactions.download-template');
     Route::get('/transactions/export-pdf', [TransactionController::class, 'exportPdf'])->name('transactions.export-pdf');
     Route::post('/transactions/import-excel', [TransactionController::class, 'importExcel'])->name('transactions.import-excel');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);

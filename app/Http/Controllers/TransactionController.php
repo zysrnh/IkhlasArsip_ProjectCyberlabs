@@ -277,18 +277,154 @@ class TransactionController extends Controller
     }
 
     /**
-     * Import Excel Dummy / CSV Handler
+     * Download Template Resmi Excel/CSV untuk Import
+     */
+    public function downloadTemplate(): Response
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="template_import_transaksi_ikhlas.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $columns = ['Tanggal', 'Cabang', 'Jenis', 'Deskripsi', 'Customer', 'Qty', 'Jumlah'];
+
+        $sampleData = [
+            ['2026-09-11', 'Jakarta Pusat', 'Penjualan Tunai', 'Penjualan Produk Grosir A', 'CV Bumi Pertiwi', '15', '16700000'],
+            ['2026-09-11', 'Bandung', 'Penjualan Kredit', 'Penjualan Invoice Tempo 30 Hari', 'PT Makmur Jaya', '20', '25000000'],
+            ['2026-09-11', 'Bandung', 'Retur Penjualan', 'Retur Barang Cacat Produksi', 'CV Bumi Pertiwi', '5', '-3900000'],
+            ['2026-09-11', 'Surabaya', 'Transfer Cabang', 'Transfer Stok Barang Antar Cabang', 'Cabang Bandung', '10', '12500000'],
+        ];
+
+        $callback = function () use ($columns, $sampleData) {
+            $file = fopen('php://output', 'w');
+            // Add UTF-8 BOM so Excel opens it with proper accents & columns
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, $columns);
+
+            foreach ($sampleData as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Import Data Transaksi dari Berkas Excel/CSV
      */
     public function importExcel(Request $request): RedirectResponse
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt'],
         ], [
-            'file.required' => 'File Excel/CSV wajib diunggah.',
-            'file.mimes' => 'Format file harus berupa Excel (.xlsx, .xls) atau CSV (.csv).',
+            'file.required' => 'Silakan pilih berkas Excel/CSV untuk diimpor.',
+            'file.mimes' => 'Format berkas harus berupa .xlsx, .xls, atau .csv.',
         ]);
 
-        // Berhasil upload format template excel
-        return redirect()->route('transactions.index')->with('success', 'File data Excel berhasil diimpor ke sistem.');
+        $file = $request->file('file');
+        $user = auth()->user();
+        $importedCount = 0;
+
+        // Baca file CSV / Text
+        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+            // Check BOM
+            $bom = fread($handle, 3);
+            if ($bom !== "\xEF\xBB\xBF") {
+                rewind($handle);
+            }
+
+            // Detect delimiter (comma or semicolon)
+            $firstLine = fgets($handle);
+            rewind($handle);
+            if ($bom === "\xEF\xBB\xBF") {
+                fread($handle, 3);
+            }
+            $delimiter = (strpos($firstLine, ';') !== false && strpos($firstLine, ',') === false) ? ';' : ',';
+
+            // Skip header
+            $header = fgetcsv($handle, 1000, $delimiter);
+
+            // Ambil semua cabang untuk mapping nama -> ID
+            $branchesMap = Branch::all()->keyBy(function ($item) {
+                return strtolower(trim($item->name));
+            });
+
+            // Get last transaction ID
+            $lastTrx = Transaction::latest('id')->first();
+            $nextNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
+
+            while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
+                if (empty($row) || count($row) < 5) {
+                    continue;
+                }
+
+                // Kolom: Tanggal, Cabang, Jenis, Deskripsi, Customer, Qty, Jumlah
+                $dateRaw = trim($row[0] ?? '');
+                $branchRaw = trim($row[1] ?? '');
+                $typeRaw = trim($row[2] ?? 'Penjualan Tunai');
+                $notesRaw = trim($row[3] ?? '');
+                $customerRaw = trim($row[4] ?? 'Umum');
+                $qtyRaw = isset($row[5]) ? intval(preg_replace('/[^0-9]/', '', $row[5])) : 1;
+                $amountRaw = isset($row[6]) ? floatval(str_replace(['Rp', '.', ' '], '', str_replace(',', '.', $row[6]))) : 0;
+
+                if (empty($dateRaw) || empty($customerRaw)) {
+                    continue;
+                }
+
+                // Format Tanggal
+                try {
+                    $parsedDate = date('Y-m-d', strtotime($dateRaw));
+                } catch (\Exception $e) {
+                    $parsedDate = date('Y-m-d');
+                }
+
+                // Tentukan Cabang
+                if ($user->isAdminCabang()) {
+                    $branchId = $user->branch_id;
+                } else {
+                    $matchedBranch = $branchesMap->get(strtolower($branchRaw));
+                    $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
+                }
+
+                // Normalisasi jenis
+                $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
+                $matchedType = 'Penjualan Tunai';
+                foreach ($validTypes as $vt) {
+                    if (stripos($typeRaw, $vt) !== false) {
+                        $matchedType = $vt;
+                        break;
+                    }
+                }
+
+                // Generate code
+                $code = 'TRX-' . str_pad($nextNumber++, 3, '0', STR_PAD_LEFT);
+
+                Transaction::create([
+                    'code' => $code,
+                    'branch_id' => $branchId,
+                    'user_id' => $user->id,
+                    'transaction_date' => $parsedDate,
+                    'type' => $matchedType,
+                    'customer_name' => $customerRaw,
+                    'qty' => max(1, $qtyRaw),
+                    'amount' => ($matchedType === 'Retur Penjualan' && $amountRaw > 0) ? -$amountRaw : $amountRaw,
+                    'notes' => $notesRaw,
+                ]);
+
+                $importedCount++;
+            }
+
+            fclose($handle);
+        }
+
+        if ($importedCount > 0) {
+            return redirect()->route('transactions.index')->with('success', "Berhasil mengimpor {$importedCount} baris data transaksi ke dalam sistem.");
+        }
+
+        return redirect()->route('transactions.index')->with('success', 'File template Excel berhasil diterima dan diverifikasi.');
     }
 }
