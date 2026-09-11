@@ -404,86 +404,106 @@
 
 <!-- Modal Tambah Transaksi -->
 <div id="createModal" class="fixed inset-0 z-50 bg-navy-950/70 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-lg shadow-2xl overflow-hidden">
-        <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
-            <h3 class="font-extrabold text-sm tracking-tight">Tambah Transaksi Baru</h3>
-            <button type="button" onclick="closeCreateModal()" class="text-slate-400 hover:text-white font-bold text-lg">&times;</button>
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg shadow-2xl overflow-hidden animate-fadeIn">
+        
+        <!-- Header: Clean White -->
+        <div class="px-6 py-4.5 bg-white border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-extrabold text-base text-slate-800 tracking-tight">Input Transaksi Baru</h3>
+            <button type="button" onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
 
         <form action="{{ route('transactions.store') }}" method="POST" class="p-6 space-y-4">
             @csrf
+            <input type="hidden" name="code" value="{{ $nextCode }}">
 
-            <!-- ID & Cabang -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Baris 1: Tanggal & Cabang -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">ID Transaksi</label>
-                    <input type="text" name="code" value="{{ $nextCode }}" placeholder="Contoh: TRX-013" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold focus:bg-white focus:outline-none focus:border-tealBrand">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">TANGGAL</label>
+                    <input type="date" name="transaction_date" value="{{ date('Y-m-d') }}" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Cabang</label>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">CABANG</label>
                     @if(auth()->user()->canAccessAllBranches())
-                        <select name="branch_id" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
-                            @foreach($branches as $branch)
-                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                            @endforeach
-                        </select>
+                        <div class="relative">
+                            <select name="branch_id" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
                     @else
                         <input type="hidden" name="branch_id" value="{{ auth()->user()->branch_id }}">
-                        <input type="text" disabled value="{{ auth()->user()->branch->name ?? 'Cabang' }}" class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-600">
+                        <input type="text" disabled value="{{ auth()->user()->branch->name ?? 'Cabang' }}" class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-600">
                     @endif
                 </div>
             </div>
 
-            <!-- Tanggal & Jenis -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Tanggal Transaksi</label>
-                    <input type="date" name="transaction_date" value="{{ date('Y-m-d') }}" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Jenis Transaksi</label>
-                    <select name="type" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+            <!-- Baris 2: Jenis Transaksi -->
+            <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">JENIS TRANSAKSI</label>
+                <div class="relative">
+                    <select name="type" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
                         <option value="Penjualan Tunai">Penjualan Tunai</option>
                         <option value="Penjualan Kredit">Penjualan Kredit</option>
                         <option value="Retur Penjualan">Retur Penjualan</option>
                         <option value="Transfer Cabang">Transfer Cabang</option>
                     </select>
+                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
             </div>
 
-            <!-- Customer -->
+            <!-- Baris 3: Deskripsi -->
             <div>
-                <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Nama Customer / Tujuan</label>
-                <input type="text" name="customer_name" required placeholder="Contoh: CV Bumi Pertiwi" class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">DESKRIPSI</label>
+                <input type="text" name="notes" placeholder="Deskripsi Transaksi" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
-            <!-- Qty & Jumlah Nominal -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">QTY (Unit)</label>
-                    <input type="number" name="qty" min="1" value="1" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand">
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Jumlah Nominal (Rp)</label>
-                    <input type="number" name="amount" step="1000" placeholder="16700000" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand">
-                </div>
-            </div>
-
-            <!-- Deskripsi -->
+            <!-- Baris 4: Nama Customer / Vendor -->
             <div>
-                <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Deskripsi / Keterangan</label>
-                <textarea name="notes" rows="2" placeholder="Contoh: Penjualan produk kategori A..." class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand"></textarea>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">NAMA CUSTOMER / VENDOR</label>
+                <input type="text" name="customer_name" required placeholder="PT / CV / UD" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
-            <!-- Action Buttons -->
-            <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
-                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors">
+            <!-- Baris 5: Jumlah (Rp) & Qty -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">JUMLAH (RP)</label>
+                    <input type="number" name="amount" step="1000" value="0" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">QTY</label>
+                    <input type="number" name="qty" min="1" value="1" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                </div>
+            </div>
+
+            <!-- Baris 6: Dibuat Oleh -->
+            <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">DIBUAT OLEH</label>
+                <input type="text" disabled value="{{ auth()->user()->name }}" class="w-full px-3.5 py-2.5 text-xs bg-slate-100/80 border border-slate-200 rounded-xl text-slate-600 font-bold cursor-not-allowed">
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2.5">
+                <button type="button" onclick="closeCreateModal()" class="px-6 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors shadow-xs">
                     Batal
                 </button>
-                <button type="submit" class="px-5 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-lg transition-colors">
+                <button type="submit" class="px-6 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl transition-colors shadow-sm">
                     Simpan Transaksi
                 </button>
             </div>
@@ -493,80 +513,99 @@
 
 <!-- Modal Edit Transaksi -->
 <div id="editModal" class="fixed inset-0 z-50 bg-navy-950/70 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-lg shadow-2xl overflow-hidden">
-        <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
-            <h3 class="font-extrabold text-sm tracking-tight">Edit Transaksi <span id="editCodeDisplay" class="font-mono text-teal-300"></span></h3>
-            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-white font-bold text-lg">&times;</button>
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg shadow-2xl overflow-hidden animate-fadeIn">
+        
+        <!-- Header: Clean White -->
+        <div class="px-6 py-4.5 bg-white border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-extrabold text-base text-slate-800 tracking-tight">Edit Transaksi <span id="editCodeDisplay" class="font-mono text-teal-600"></span></h3>
+            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
 
         <form id="editForm" method="POST" class="p-6 space-y-4">
             @csrf
             @method('PUT')
 
-            <!-- Cabang & Tanggal -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Baris 1: Tanggal & Cabang -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Cabang</label>
-                    @if(auth()->user()->canAccessAllBranches())
-                        <select name="branch_id" id="editBranchId" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
-                            @foreach($branches as $branch)
-                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                            @endforeach
-                        </select>
-                    @else
-                        <input type="text" id="editBranchName" disabled class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-600">
-                    @endif
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">TANGGAL</label>
+                    <input type="date" name="transaction_date" id="editDate" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Tanggal Transaksi</label>
-                    <input type="date" name="transaction_date" id="editDate" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">CABANG</label>
+                    @if(auth()->user()->canAccessAllBranches())
+                        <div class="relative">
+                            <select name="branch_id" id="editBranchId" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                    @else
+                        <input type="text" id="editBranchName" disabled class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-600">
+                    @endif
                 </div>
             </div>
 
-            <!-- Jenis & Customer -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Jenis Transaksi</label>
-                    <select name="type" id="editType" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+            <!-- Baris 2: Jenis Transaksi -->
+            <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">JENIS TRANSAKSI</label>
+                <div class="relative">
+                    <select name="type" id="editType" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
                         <option value="Penjualan Tunai">Penjualan Tunai</option>
                         <option value="Penjualan Kredit">Penjualan Kredit</option>
                         <option value="Retur Penjualan">Retur Penjualan</option>
                         <option value="Transfer Cabang">Transfer Cabang</option>
                     </select>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Customer / Tujuan</label>
-                    <input type="text" name="customer_name" id="editCustomer" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
-                </div>
-            </div>
-
-            <!-- Qty & Jumlah Nominal -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">QTY (Unit)</label>
-                    <input type="number" name="qty" id="editQty" min="1" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand">
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Jumlah Nominal (Rp)</label>
-                    <input type="number" name="amount" id="editAmount" step="1000" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand">
+                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
             </div>
 
-            <!-- Deskripsi -->
+            <!-- Baris 3: Deskripsi -->
             <div>
-                <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Deskripsi / Keterangan</label>
-                <textarea name="notes" id="editNotes" rows="2" class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand"></textarea>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">DESKRIPSI</label>
+                <input type="text" name="notes" id="editNotes" placeholder="Deskripsi Transaksi" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
-            <!-- Action Buttons -->
-            <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors">
+            <!-- Baris 4: Nama Customer / Vendor -->
+            <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">NAMA CUSTOMER / VENDOR</label>
+                <input type="text" name="customer_name" id="editCustomer" required placeholder="PT / CV / UD" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
+            </div>
+
+            <!-- Baris 5: Jumlah (Rp) & Qty -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">JUMLAH (RP)</label>
+                    <input type="number" name="amount" id="editAmount" step="1000" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1.5">QTY</label>
+                    <input type="number" name="qty" id="editQty" min="1" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2.5">
+                <button type="button" onclick="closeEditModal()" class="px-6 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors shadow-xs">
                     Batal
                 </button>
-                <button type="submit" class="px-5 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-lg transition-colors">
+                <button type="submit" class="px-6 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl transition-colors shadow-sm">
                     Perbarui Transaksi
                 </button>
             </div>
