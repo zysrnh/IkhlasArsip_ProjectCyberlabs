@@ -11,6 +11,8 @@ use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use ZipArchive;
+use SimpleXMLElement;
 
 class TransactionController extends Controller
 {
@@ -303,8 +305,7 @@ class TransactionController extends Controller
     }
 
     /**
-     * Download Template Resmi Excel (.xls / SpreadsheetML) dengan Format & Desain Rapi
-     * (Petunjuk Pengisian ditempatkan di Atas, Baris Data Bebas Diisi ke Bawah Tanpa Batas)
+     * Download Template Resmi Excel (.xls / SpreadsheetML) dengan Format Otomatis Rp
      */
     public function downloadTemplate(): StreamedResponse
     {
@@ -346,7 +347,7 @@ class TransactionController extends Controller
                     .td-text { font-size: 10pt; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\@"; }
                     .td-date { font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "yyyy-mm-dd"; }
                     .td-qty { font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\#\,\#\#0"; }
-                    .td-amount { font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\#\,\#\#0"; }
+                    .td-amount { font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\"Rp\"\ \#\,\#\#0\;\(\"Rp\"\ \#\,\#\#0\)\;\"Rp\"\ 0"; }
                 </style>
             </head>
             <body>
@@ -373,7 +374,7 @@ class TransactionController extends Controller
                             3. <strong>Jenis Transaksi</strong>: Pilih salah satu dari: [Penjualan Tunai, Penjualan Kredit, Retur Penjualan, Transfer Cabang].<br>
                             4. <strong>Customer</strong>: Diisi nama customer / pembeli / cabang tujuan transfer.<br>
                             5. <strong>Qty</strong>: Jumlah kuantitas unit barang (Angka bulat).<br>
-                            6. <strong>Jumlah</strong>: Diisi nominal rupiah tanpa tanda titik atau koma (Untuk Retur Penjualan boleh diberi tanda minus -).
+                            6. <strong>Jumlah</strong>: Cukup ketik angkanya saja (misal: 16700000), Excel akan otomatis memformat menjadi <strong>Rp 16.700.000</strong>. Untuk Retur Penjualan boleh diberi tanda minus (-).
                         </td>
                     </tr>
                     <tr><td colspan="7" height="12"></td></tr>
@@ -386,10 +387,10 @@ class TransactionController extends Controller
                         <th class="th-cell" style="width: 280px;">Deskripsi</th>
                         <th class="th-cell" style="width: 200px;">Customer</th>
                         <th class="th-cell" style="width: 80px;">Qty</th>
-                        <th class="th-cell" style="width: 160px;">Jumlah</th>
+                        <th class="th-cell" style="width: 170px;">Jumlah</th>
                     </tr>
 
-                    <!-- Sample Data Rows -->
+                    <!-- Sample Data Rows (Otomatis Format Rp) -->
                     <tr>
                         <td class="td-date">2026-09-11</td>
                         <td class="td-text">Jakarta Pusat</td>
@@ -436,7 +437,7 @@ class TransactionController extends Controller
     }
 
     /**
-     * Import Data Transaksi dari Berkas Excel/CSV/XLS
+     * Import Data Transaksi dari Berkas Excel (.xlsx, .xls, .csv)
      */
     public function importExcel(Request $request): RedirectResponse
     {
@@ -449,180 +450,149 @@ class TransactionController extends Controller
         $file = $request->file('file');
         $user = auth()->user();
         $importedCount = 0;
-
-        $content = file_get_contents($file->getRealPath());
+        $realPath = $file->getRealPath();
 
         // Ambil semua cabang untuk mapping nama -> ID
         $branchesMap = Branch::all()->keyBy(function ($item) {
             return strtolower(trim($item->name));
         });
 
-        // Get last transaction ID
+        // Ambil ID transaksi terakhir
         $lastTrx = Transaction::withTrashed()->latest('id')->first();
         $nextNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
 
-        // Cek jika format adalah HTML/XML Spreadsheet (.xls)
-        if (str_contains($content, '<table') || str_contains($content, '<tr')) {
-            // Parse HTML Table
-            $dom = new \DOMDocument();
-            @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
-            $rows = $dom->getElementsByTagName('tr');
+        $rawRows = [];
 
-            $isHeaderPassed = false;
-            foreach ($rows as $tr) {
-                $cells = [];
-                foreach ($tr->getElementsByTagName('td') as $td) {
-                    $cells[] = trim($td->textContent);
-                }
+        // 1. Cek apakah file adalah XLSX murni (Zip container PK\x03\x04)
+        $fileHeader = file_get_contents($realPath, false, null, 0, 4);
+        if ($fileHeader === "PK\x03\x04") {
+            $rawRows = $this->parseXlsxFile($realPath);
+        } else {
+            // Cek apakah format HTML/XML (.xls) atau CSV murni
+            $content = file_get_contents($realPath);
+            if (str_contains($content, '<table') || str_contains($content, '<tr')) {
+                $dom = new \DOMDocument();
+                @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
+                $trList = $dom->getElementsByTagName('tr');
 
-                // Jika row adalah TH
-                if (empty($cells)) {
-                    foreach ($tr->getElementsByTagName('th') as $th) {
-                        $cells[] = trim($th->textContent);
+                foreach ($trList as $tr) {
+                    $cells = [];
+                    foreach ($tr->getElementsByTagName('td') as $td) {
+                        $cells[] = trim($td->textContent);
+                    }
+                    if (empty($cells)) {
+                        foreach ($tr->getElementsByTagName('th') as $th) {
+                            $cells[] = trim($th->textContent);
+                        }
+                    }
+                    if (!empty($cells)) {
+                        $rawRows[] = $cells;
                     }
                 }
+            } else {
+                // CSV murni
+                if (($handle = fopen($realPath, 'r')) !== false) {
+                    $bom = fread($handle, 3);
+                    if ($bom !== "\xEF\xBB\xBF") {
+                        rewind($handle);
+                    }
 
-                if (empty($cells) || count($cells) < 5) {
-                    continue;
+                    $firstLine = fgets($handle);
+                    rewind($handle);
+                    if ($bom === "\xEF\xBB\xBF") {
+                        fread($handle, 3);
+                    }
+                    $delimiter = (strpos($firstLine, ';') !== false && strpos($firstLine, ',') === false) ? ';' : ',';
+
+                    while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
+                        if (!empty($row)) {
+                            $rawRows[] = $row;
+                        }
+                    }
+                    fclose($handle);
                 }
+            }
+        }
 
-                // Deteksi header row (Tanggal & Cabang)
-                if (stripos($cells[0], 'Tanggal') !== false && stripos($cells[1] ?? '', 'Cabang') !== false) {
-                    $isHeaderPassed = true;
-                    continue;
-                }
+        // Proses baris-baris data yang berhasil diekstrak
+        $isHeaderPassed = false;
+        foreach ($rawRows as $cells) {
+            if (empty($cells) || count($cells) < 4) {
+                continue;
+            }
 
-                // Abaikan baris petunjuk atau judul di bagian atas
-                if (!$isHeaderPassed || stripos($cells[0], 'TEMPLATE') !== false || stripos($cells[0], 'PETUNJUK') !== false) {
-                    continue;
-                }
+            // Cari baris Header: Tanggal & Cabang
+            if (stripos($cells[0], 'Tanggal') !== false && stripos($cells[1] ?? '', 'Cabang') !== false) {
+                $isHeaderPassed = true;
+                continue;
+            }
 
-                $dateRaw = trim($cells[0] ?? '');
-                $branchRaw = trim($cells[1] ?? '');
-                $typeRaw = trim($cells[2] ?? 'Penjualan Tunai');
-                $notesRaw = trim($cells[3] ?? '');
-                $customerRaw = trim($cells[4] ?? 'Umum');
-                $qtyRaw = isset($cells[5]) ? intval(preg_replace('/[^0-9]/', '', $cells[5])) : 1;
-                $amountRaw = isset($cells[6]) ? floatval(str_replace(['Rp', '.', ' '], '', str_replace(',', '.', $cells[6]))) : 0;
+            // Lewati judul/petunjuk sebelum header
+            if (!$isHeaderPassed || stripos($cells[0], 'TEMPLATE') !== false || stripos($cells[0], 'PETUNJUK') !== false) {
+                continue;
+            }
 
-                if (empty($dateRaw) || empty($customerRaw) || stripos($dateRaw, 'PETUNJUK') !== false) {
-                    continue;
-                }
+            $dateRaw = trim($cells[0] ?? '');
+            $branchRaw = trim($cells[1] ?? '');
+            $typeRaw = trim($cells[2] ?? 'Penjualan Tunai');
+            $notesRaw = trim($cells[3] ?? '');
+            $customerRaw = trim($cells[4] ?? 'Umum');
+            $qtyRaw = isset($cells[5]) ? intval(preg_replace('/[^0-9]/', '', $cells[5])) : 1;
+            
+            // Bersihkan format nominal Rp, titik, koma, spasi
+            $cleanAmountStr = str_ireplace(['Rp', ' ', '.', ','], ['', '', '', '.'], (string)($cells[6] ?? '0'));
+            // Ambil hanya karakter angka dan minus
+            preg_match('/-?[0-9]+(\.[0-9]+)?/', $cleanAmountStr, $amountMatches);
+            $amountRaw = isset($amountMatches[0]) ? floatval($amountMatches[0]) : 0;
 
+            if (empty($dateRaw) || empty($customerRaw) || stripos($dateRaw, 'PETUNJUK') !== false) {
+                continue;
+            }
+
+            // Parsing tanggal (termasuk jika berupa serial number Excel)
+            if (is_numeric($dateRaw) && intval($dateRaw) > 30000) {
+                // Excel serial date to YYYY-MM-DD
+                $unixTimestamp = ($dateRaw - 25569) * 86400;
+                $parsedDate = gmdate('Y-m-d', $unixTimestamp);
+            } else {
                 try {
                     $parsedDate = date('Y-m-d', strtotime($dateRaw));
                 } catch (\Exception $e) {
                     $parsedDate = date('Y-m-d');
                 }
-
-                if ($user->isAdminCabang()) {
-                    $branchId = $user->branch_id;
-                } else {
-                    $matchedBranch = $branchesMap->get(strtolower($branchRaw));
-                    $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
-                }
-
-                $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
-                $matchedType = 'Penjualan Tunai';
-                foreach ($validTypes as $vt) {
-                    if (stripos($typeRaw, $vt) !== false) {
-                        $matchedType = $vt;
-                        break;
-                    }
-                }
-
-                $code = 'TRX-' . str_pad($nextNumber++, 3, '0', STR_PAD_LEFT);
-
-                Transaction::create([
-                    'code' => $code,
-                    'branch_id' => $branchId,
-                    'user_id' => $user->id,
-                    'transaction_date' => $parsedDate,
-                    'type' => $matchedType,
-                    'customer_name' => $customerRaw,
-                    'qty' => max(1, $qtyRaw),
-                    'amount' => ($matchedType === 'Retur Penjualan' && $amountRaw > 0) ? -$amountRaw : $amountRaw,
-                    'notes' => $notesRaw,
-                ]);
-
-                $importedCount++;
             }
-        } else {
-            // Baca berkas CSV murni
-            if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
-                $bom = fread($handle, 3);
-                if ($bom !== "\xEF\xBB\xBF") {
-                    rewind($handle);
-                }
 
-                $firstLine = fgets($handle);
-                rewind($handle);
-                if ($bom === "\xEF\xBB\xBF") {
-                    fread($handle, 3);
-                }
-                $delimiter = (strpos($firstLine, ';') !== false && strpos($firstLine, ',') === false) ? ';' : ',';
-
-                // Skip header
-                $header = fgetcsv($handle, 1000, $delimiter);
-
-                while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
-                    if (empty($row) || count($row) < 5) {
-                        continue;
-                    }
-
-                    $dateRaw = trim($row[0] ?? '');
-                    $branchRaw = trim($row[1] ?? '');
-                    $typeRaw = trim($row[2] ?? 'Penjualan Tunai');
-                    $notesRaw = trim($row[3] ?? '');
-                    $customerRaw = trim($row[4] ?? 'Umum');
-                    $qtyRaw = isset($row[5]) ? intval(preg_replace('/[^0-9]/', '', $row[5])) : 1;
-                    $amountRaw = isset($row[6]) ? floatval(str_replace(['Rp', '.', ' '], '', str_replace(',', '.', $row[6]))) : 0;
-
-                    if (empty($dateRaw) || empty($customerRaw)) {
-                        continue;
-                    }
-
-                    try {
-                        $parsedDate = date('Y-m-d', strtotime($dateRaw));
-                    } catch (\Exception $e) {
-                        $parsedDate = date('Y-m-d');
-                    }
-
-                    if ($user->isAdminCabang()) {
-                        $branchId = $user->branch_id;
-                    } else {
-                        $matchedBranch = $branchesMap->get(strtolower($branchRaw));
-                        $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
-                    }
-
-                    $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
-                    $matchedType = 'Penjualan Tunai';
-                    foreach ($validTypes as $vt) {
-                        if (stripos($typeRaw, $vt) !== false) {
-                            $matchedType = $vt;
-                            break;
-                        }
-                    }
-
-                    $code = 'TRX-' . str_pad($nextNumber++, 3, '0', STR_PAD_LEFT);
-
-                    Transaction::create([
-                        'code' => $code,
-                        'branch_id' => $branchId,
-                        'user_id' => $user->id,
-                        'transaction_date' => $parsedDate,
-                        'type' => $matchedType,
-                        'customer_name' => $customerRaw,
-                        'qty' => max(1, $qtyRaw),
-                        'amount' => ($matchedType === 'Retur Penjualan' && $amountRaw > 0) ? -$amountRaw : $amountRaw,
-                        'notes' => $notesRaw,
-                    ]);
-
-                    $importedCount++;
-                }
-
-                fclose($handle);
+            if ($user->isAdminCabang()) {
+                $branchId = $user->branch_id;
+            } else {
+                $matchedBranch = $branchesMap->get(strtolower($branchRaw));
+                $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
             }
+
+            $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
+            $matchedType = 'Penjualan Tunai';
+            foreach ($validTypes as $vt) {
+                if (stripos($typeRaw, $vt) !== false) {
+                    $matchedType = $vt;
+                    break;
+                }
+            }
+
+            $code = 'TRX-' . str_pad($nextNumber++, 3, '0', STR_PAD_LEFT);
+
+            Transaction::create([
+                'code' => $code,
+                'branch_id' => $branchId,
+                'user_id' => $user->id,
+                'transaction_date' => $parsedDate,
+                'type' => $matchedType,
+                'customer_name' => $customerRaw,
+                'qty' => max(1, $qtyRaw),
+                'amount' => ($matchedType === 'Retur Penjualan' && $amountRaw > 0) ? -$amountRaw : $amountRaw,
+                'notes' => $notesRaw,
+            ]);
+
+            $importedCount++;
         }
 
         if ($importedCount > 0) {
@@ -630,5 +600,96 @@ class TransactionController extends Controller
         }
 
         return redirect()->route('transactions.index')->with('success', 'File template Excel berhasil diterima dan diverifikasi.');
+    }
+
+    /**
+     * Helper Parser Berkas XLSX (OpenXML) Tanpa Dependensi Tambahan
+     */
+    private function parseXlsxFile(string $filePath): array
+    {
+        $rows = [];
+        $zip = new ZipArchive();
+        if ($zip->open($filePath) !== true) {
+            return $rows;
+        }
+
+        // 1. Baca shared strings table
+        $sharedStrings = [];
+        if (($index = $zip->locateName('xl/sharedStrings.xml')) !== false) {
+            $xmlString = $zip->getFromIndex($index);
+            $xml = simplexml_load_string($xmlString);
+            if ($xml && isset($xml->si)) {
+                foreach ($xml->si as $si) {
+                    if (isset($si->t)) {
+                        $sharedStrings[] = (string) $si->t;
+                    } elseif (isset($si->r)) {
+                        $text = '';
+                        foreach ($si->r as $r) {
+                            $text .= (string) $r->t;
+                        }
+                        $sharedStrings[] = $text;
+                    } else {
+                        $sharedStrings[] = '';
+                    }
+                }
+            }
+        }
+
+        // 2. Baca worksheet sheet1.xml
+        $sheetXmlContent = $zip->getFromName('xl/worksheets/sheet1.xml');
+        if (!$sheetXmlContent) {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $filename = $zip->getNameIndex($i);
+                if (str_starts_with($filename, 'xl/worksheets/sheet') && str_ends_with($filename, '.xml')) {
+                    $sheetXmlContent = $zip->getFromIndex($i);
+                    break;
+                }
+            }
+        }
+
+        if ($sheetXmlContent) {
+            $sheetXml = simplexml_load_string($sheetXmlContent);
+            if ($sheetXml && isset($sheetXml->sheetData->row)) {
+                foreach ($sheetXml->sheetData->row as $row) {
+                    $rowData = [];
+                    foreach ($row->c as $c) {
+                        $cellRef = (string) $c['r'];
+                        preg_match('/^([A-Z]+)(\d+)$/', $cellRef, $matches);
+                        $colLetters = $matches[1] ?? 'A';
+                        
+                        $colIdx = 0;
+                        for ($k = 0; $k < strlen($colLetters); $k++) {
+                            $colIdx = $colIdx * 26 + (ord($colLetters[$k]) - ord('A') + 1);
+                        }
+                        $colIdx -= 1;
+
+                        $type = (string) $c['t'];
+                        $val = '';
+                        if ($type === 's') {
+                            $idx = (int) $c->v;
+                            $val = $sharedStrings[$idx] ?? '';
+                        } elseif ($type === 'inlineStr') {
+                            $val = (string) $c->is->t;
+                        } else {
+                            $val = (string) $c->v;
+                        }
+
+                        $rowData[$colIdx] = trim($val);
+                    }
+
+                    if (!empty($rowData)) {
+                        $maxKey = max(array_keys($rowData));
+                        $normalizedRow = [];
+                        for ($j = 0; $j <= $maxKey; $j++) {
+                            $normalizedRow[$j] = $rowData[$j] ?? '';
+                        }
+                        $rows[] = $normalizedRow;
+                    }
+                }
+            }
+        }
+
+        $zip->close();
+        return $rows;
     }
 }
