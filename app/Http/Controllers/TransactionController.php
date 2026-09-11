@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TransactionController extends Controller
 {
@@ -279,7 +280,7 @@ class TransactionController extends Controller
     /**
      * Download Template Resmi Excel/CSV untuk Import
      */
-    public function downloadTemplate(): Response
+    public function downloadTemplate(): StreamedResponse
     {
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
