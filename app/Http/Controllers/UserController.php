@@ -58,7 +58,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
-            'role' => ['required', 'string', Rule::in([User::ROLE_SUPERADMIN, User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER])],
+            'role' => ['required', 'string', Rule::in([User::ROLE_SUPERADMIN, User::ROLE_KEPALA_CABANG, User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER])],
             'branch_id' => ['nullable', 'required_if:role,' . User::ROLE_ADMIN_CABANG, 'exists:branches,id'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
@@ -75,8 +75,8 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
 
-        // Jika superadmin, branch_id dinullkan
-        if ($validated['role'] === User::ROLE_SUPERADMIN) {
+        // Jika bukan admin cabang (superadmin / kepala cabang / viewer), branch_id null
+        if ($validated['role'] !== User::ROLE_ADMIN_CABANG) {
             $validated['branch_id'] = null;
         }
 
@@ -94,7 +94,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6'],
-            'role' => ['required', 'string', Rule::in([User::ROLE_SUPERADMIN, User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER])],
+            'role' => ['required', 'string', Rule::in([User::ROLE_SUPERADMIN, User::ROLE_KEPALA_CABANG, User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER])],
             'branch_id' => ['nullable', 'required_if:role,' . User::ROLE_ADMIN_CABANG, 'exists:branches,id'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
@@ -108,7 +108,7 @@ class UserController extends Controller
             'status.required' => 'Status wajib dipilih.',
         ]);
 
-        // Jangan izinkan superadmin menonaktifkan dirinya sendiri
+        // Jangan izinkan user menonaktifkan dirinya sendiri jika sedang login
         if ($user->id === auth()->id() && $validated['status'] === 'inactive') {
             return back()->withErrors(['error' => 'Anda tidak dapat menonaktifkan akun yang sedang digunakan saat ini.']);
         }
@@ -119,7 +119,7 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
-        if ($validated['role'] === User::ROLE_SUPERADMIN) {
+        if ($validated['role'] !== User::ROLE_ADMIN_CABANG) {
             $validated['branch_id'] = null;
         }
 

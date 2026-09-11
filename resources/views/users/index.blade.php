@@ -22,43 +22,56 @@
     </div>
 
     <!-- Role Capabilities Info (Mobile Swipe Carousel & Desktop Grid) -->
-    <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none gap-3.5 -mx-4 px-4 pb-2 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 md:pb-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible">
+    <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none gap-3.5 -mx-4 px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 lg:pb-0 lg:grid lg:grid-cols-4 lg:gap-3.5 lg:overflow-visible">
         
         <!-- Super Admin Card -->
-        <div class="min-w-[80vw] sm:min-w-[50vw] md:min-w-0 snap-center shrink-0 md:shrink bg-white rounded-xl border border-slate-200 p-4 sm:p-4.5 shadow-sm border-l-4 border-l-purple-500 flex flex-col justify-between">
+        <div class="min-w-[78vw] sm:min-w-[45vw] lg:min-w-0 snap-center shrink-0 lg:shrink bg-white rounded-xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-purple-500 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Super Administrator</span>
+                    <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Super Admin</span>
                     <span class="text-[9px] font-extrabold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200/80">FULL ACCESS</span>
                 </div>
                 <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
-                    Akses semua cabang, kelola user, master data outlet, resume statistik analitik global, dan export semua cabang.
+                    Akses penuh ke seluruh data cabang, kelola pengguna sistem, dan pengaturan teknis global.
+                </p>
+            </div>
+        </div>
+
+        <!-- Kepala Cabang Card -->
+        <div class="min-w-[78vw] sm:min-w-[45vw] lg:min-w-0 snap-center shrink-0 lg:shrink bg-white rounded-xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-tealBrand flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Kepala Cabang</span>
+                    <span class="text-[9px] font-extrabold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200/80">ALL BRANCHES</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
+                    Memantau statistik analitik seluruh cabang, filtering laporan komparasi, dan export berkas PDF/Excel.
                 </p>
             </div>
         </div>
 
         <!-- Admin Cabang Card -->
-        <div class="min-w-[80vw] sm:min-w-[50vw] md:min-w-0 snap-center shrink-0 md:shrink bg-white rounded-xl border border-slate-200 p-4 sm:p-4.5 shadow-sm border-l-4 border-l-cyan-500 flex flex-col justify-between">
+        <div class="min-w-[78vw] sm:min-w-[45vw] lg:min-w-0 snap-center shrink-0 lg:shrink bg-white rounded-xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-cyan-500 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Admin Cabang</span>
                     <span class="text-[9px] font-extrabold bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded-full border border-cyan-200/80">OUTLET LEVEL</span>
                 </div>
                 <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
-                    Input data transaksi/arsip menu, edit data cabang miliknya, lihat riwayat cabang, dan export laporan cabang.
+                    Input & edit data transaksi di cabangnya masing-masing, import data Excel, dan export laporan cabang.
                 </p>
             </div>
         </div>
 
         <!-- Viewer / Staf Card -->
-        <div class="min-w-[80vw] sm:min-w-[50vw] md:min-w-0 snap-center shrink-0 md:shrink bg-white rounded-xl border border-slate-200 p-4 sm:p-4.5 shadow-sm border-l-4 border-l-slate-400 flex flex-col justify-between">
+        <div class="min-w-[78vw] sm:min-w-[45vw] lg:min-w-0 snap-center shrink-0 lg:shrink bg-white rounded-xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-slate-400 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Viewer / Staf</span>
                     <span class="text-[9px] font-extrabold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full border border-slate-200/80">READ ONLY</span>
                 </div>
                 <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
-                    Hanya memiliki hak akses untuk melihat data arsip dan mengunduh laporan berkas tanpa izin mengubah data.
+                    Melihat data arsip transaksi dan mengunduh laporan berkas tanpa izin mengubah atau menghapus data.
                 </p>
             </div>
         </div>
@@ -145,6 +158,8 @@
                     <span class="truncate">
                         @if(request('role') === 'superadmin')
                             Super Admin
+                        @elseif(request('role') === 'kepala_cabang')
+                            Kepala Cabang
                         @elseif(request('role') === 'admin_cabang')
                             Admin Cabang
                         @elseif(request('role') === 'viewer')
@@ -158,11 +173,12 @@
                     </svg>
                 </button>
 
-                <div id="userRoleMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[190px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
+                <div id="userRoleMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[200px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
                     @php
                         $roleOptions = [
                             '' => 'Semua Role',
                             'superadmin' => 'Super Admin',
+                            'kepala_cabang' => 'Kepala Cabang',
                             'admin_cabang' => 'Admin Cabang',
                             'viewer' => 'Viewer (Read-Only)'
                         ];
@@ -305,7 +321,7 @@
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center space-x-2.5">
                             <!-- Initials Avatar -->
-                            <div class="w-8 h-8 rounded-full bg-navy-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                            <div class="w-8 h-8 rounded-full {{ $user->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : ($user->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-navy-900 text-white') }} font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
                                 {{ strtoupper(substr($user->name, 0, 2)) }}
                             </div>
                             <div>
@@ -341,6 +357,8 @@
                             <span class="text-[10px] text-slate-400 uppercase font-bold block">Role:</span>
                             @if($user->role === 'superadmin')
                                 <span class="font-bold text-purple-700">Super Admin</span>
+                            @elseif($user->role === 'kepala_cabang')
+                                <span class="font-bold text-tealBrand">Kepala Cabang</span>
                             @elseif($user->role === 'admin_cabang')
                                 <span class="font-bold text-cyan-700">Admin Cabang</span>
                             @else
@@ -349,7 +367,7 @@
                         </div>
                         <div>
                             <span class="text-[10px] text-slate-400 uppercase font-bold block">Cabang:</span>
-                            <span class="font-bold text-slate-800">{{ $user->branch->name ?? 'Semua Cabang' }}</span>
+                            <span class="font-bold text-slate-800">{{ $user->branch->name ?? 'Semua Cabang (Global)' }}</span>
                         </div>
                     </div>
 
@@ -409,7 +427,7 @@
                             </td>
                             <td class="py-3 px-3.5">
                                 <div class="flex items-center space-x-2.5">
-                                    <div class="w-7 h-7 rounded-full bg-navy-900 text-white font-bold text-[11px] flex items-center justify-center shrink-0">
+                                    <div class="w-7 h-7 rounded-full {{ $user->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : ($user->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-navy-900 text-white') }} font-bold text-[11px] flex items-center justify-center shrink-0">
                                         {{ strtoupper(substr($user->name, 0, 2)) }}
                                     </div>
                                     <div class="font-bold text-slate-900">
@@ -427,6 +445,10 @@
                                 @if($user->role === 'superadmin')
                                     <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200/80">
                                         Super Admin
+                                    </span>
+                                @elseif($user->role === 'kepala_cabang')
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200/80">
+                                        Kepala Cabang
                                     </span>
                                 @elseif($user->role === 'admin_cabang')
                                     <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/80">
@@ -537,7 +559,7 @@
             <!-- Email -->
             <div>
                 <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">ALAMAT EMAIL</label>
-                <input type="email" name="email" required placeholder="budi@cabang.com" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
+                <input type="email" name="email" required placeholder="budi@ikhlas.com" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
             <!-- Password -->
@@ -553,6 +575,7 @@
                     <div class="relative">
                         <select name="role" id="createRole" onchange="toggleBranchField('create')" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
                             <option value="admin_cabang">Admin Cabang</option>
+                            <option value="kepala_cabang">Kepala Cabang</option>
                             <option value="superadmin">Super Admin</option>
                             <option value="viewer">Viewer (Read-Only)</option>
                         </select>
@@ -650,6 +673,7 @@
                     <div class="relative">
                         <select name="role" id="editRole" onchange="toggleBranchField('edit')" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
                             <option value="admin_cabang">Admin Cabang</option>
+                            <option value="kepala_cabang">Kepala Cabang</option>
                             <option value="superadmin">Super Admin</option>
                             <option value="viewer">Viewer (Read-Only)</option>
                         </select>
@@ -862,7 +886,7 @@
         const container = document.getElementById(type + 'BranchContainer');
         const branchSelect = document.getElementById(type + 'BranchId');
 
-        if (role === 'superadmin') {
+        if (role === 'superadmin' || role === 'kepala_cabang' || role === 'viewer') {
             container.style.opacity = '0.4';
             container.style.pointerEvents = 'none';
             if (branchSelect) {
