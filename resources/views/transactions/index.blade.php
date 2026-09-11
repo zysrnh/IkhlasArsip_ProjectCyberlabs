@@ -483,7 +483,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">JUMLAH (RP)</label>
-                    <input type="number" name="amount" step="1000" value="0" required class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                    <input type="text" inputmode="numeric" name="amount" id="createAmount" value="0" required oninput="formatRupiahInput(this)" class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
                 </div>
 
                 <div>
@@ -591,7 +591,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">JUMLAH (RP)</label>
-                    <input type="number" name="amount" id="editAmount" step="1000" required class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                    <input type="text" inputmode="numeric" name="amount" id="editAmount" required oninput="formatRupiahInput(this)" class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
                 </div>
 
                 <div>
@@ -692,8 +692,21 @@
 
 @push('scripts')
 <script>
+    function formatRupiahInput(input) {
+        let raw = input.value.replace(/[^0-9]/g, '');
+        if (!raw) {
+            input.value = '';
+            return;
+        }
+        input.value = new Intl.NumberFormat('id-ID').format(raw);
+    }
+
     function openCreateModal() {
         const modal = document.getElementById('createModal');
+        const amountInput = document.getElementById('createAmount');
+        if (amountInput && (!amountInput.value || amountInput.value === '0')) {
+            amountInput.value = '0';
+        }
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
@@ -714,7 +727,10 @@
         document.getElementById('editType').value = trx.type;
         document.getElementById('editCustomer').value = trx.customer_name;
         document.getElementById('editQty').value = trx.qty;
-        document.getElementById('editAmount').value = trx.amount;
+        
+        const rawAmount = Math.abs(Math.round(trx.amount || 0));
+        document.getElementById('editAmount').value = new Intl.NumberFormat('id-ID').format(rawAmount);
+        
         document.getElementById('editNotes').value = trx.notes || '';
 
         const branchSelect = document.getElementById('editBranchId');

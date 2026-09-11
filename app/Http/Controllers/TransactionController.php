@@ -113,6 +113,12 @@ class TransactionController extends Controller
         // Admin cabang hanya bisa input untuk cabangnya sendiri
         $branchId = $user->isAdminCabang() ? $user->branch_id : $request->branch_id;
 
+        // Bersihkan pemisah ribuan titik sebelum validasi
+        if ($request->filled('amount')) {
+            $cleanedAmount = preg_replace('/[^0-9\-]/', '', (string) $request->amount);
+            $request->merge(['amount' => $cleanedAmount]);
+        }
+
         $validated = $request->validate([
             'code' => ['nullable', 'string', 'max:50', 'unique:transactions,code'],
             'branch_id' => ['required', 'exists:branches,id'],
@@ -163,6 +169,12 @@ class TransactionController extends Controller
         }
 
         $branchId = $user->isAdminCabang() ? $user->branch_id : $request->branch_id;
+
+        // Bersihkan pemisah ribuan titik sebelum validasi
+        if ($request->filled('amount')) {
+            $cleanedAmount = preg_replace('/[^0-9\-]/', '', (string) $request->amount);
+            $request->merge(['amount' => $cleanedAmount]);
+        }
 
         $validated = $request->validate([
             'transaction_date' => ['required', 'date'],
