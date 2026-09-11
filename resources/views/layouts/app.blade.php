@@ -52,9 +52,6 @@
         * {
             -webkit-font-smoothing: antialiased;
         }
-        #sidebar {
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
         /* Custom SweetAlert2 Theme Ikhlas */
         .swal2-popup.ikhlas-toast {
             background-color: #0B192C !important;
@@ -77,11 +74,8 @@
 </head>
 <body class="bg-slate-100/90 text-slate-800 min-h-screen flex font-sans antialiased overflow-x-hidden selection:bg-tealBrand selection:text-white">
 
-    <!-- Mobile Overlay Backdrop -->
-    <div id="mobileBackdrop" onclick="toggleSidebarMobile()" class="fixed inset-0 bg-navy-950/70 z-40 hidden lg:hidden transition-opacity"></div>
-
-    <!-- Sidebar (Dark Navy Solid Sesuai Mockup) -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-navy-900 text-white flex flex-col justify-between -translate-x-full lg:translate-x-0 border-r border-navy-800 shadow-xl lg:shadow-none">
+    <!-- Sidebar Desktop (Dark Navy Solid Sesuai Mockup) -->
+    <aside id="sidebar" class="hidden lg:flex fixed inset-y-0 left-0 z-50 w-64 bg-navy-900 text-white flex-col justify-between border-r border-navy-800">
         
         <!-- Top Section -->
         <div>
@@ -98,11 +92,6 @@
                         <div class="text-[10px] text-teal-400/90 font-medium">Sales Management</div>
                     </div>
                 </div>
-                <button type="button" onclick="toggleSidebarMobile()" class="lg:hidden text-slate-400 hover:text-white p-1 rounded-lg transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
             </div>
 
             <!-- Navigation Menu -->
@@ -195,44 +184,121 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col min-w-0 lg:pl-64">
         
-        <!-- Top Mobile Header -->
-        <header class="lg:hidden bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sticky top-0 z-30 shadow-xs">
-            <div class="flex items-center space-x-3">
-                <button type="button" onclick="toggleSidebarMobile()" class="p-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        <!-- Top Mobile Header Bar -->
+        <header class="lg:hidden bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 sticky top-0 z-30 shadow-xs">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-7 h-7 bg-tealBrand flex items-center justify-center text-white shrink-0">
+                    <svg class="w-4 h-4 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-8 9 8M5 10v10a1 1 0 001 1h4v-5a1 1 0 011-1h2a1 1 0 011 1v5h4a1 1 0 001-1V10" />
                     </svg>
-                </button>
-                <span class="font-bold text-sm text-slate-900">Ikhlas Solusi</span>
+                </div>
+                <span class="font-extrabold text-sm text-slate-900 tracking-tight">Ikhlas Solusi</span>
             </div>
-            <div class="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
-                {{ auth()->user()->name }}
+            
+            <div class="flex items-center space-x-2">
+                <span class="text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full truncate max-w-[140px]">
+                    {{ auth()->user()->name }}
+                </span>
             </div>
         </header>
 
-        <!-- Main Body -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8">
+        <!-- Main Body (With Safe Padding for Mobile Bottom Bar) -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
             @yield('content')
         </main>
 
     </div>
 
-    <!-- Toggle Mobile Script & Global Toast Handlers -->
+    <!-- Mobile Bottom App Navigation Bar (Native Mobile App Style) -->
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-navy-900 border-t border-navy-800 text-white shadow-2xl px-2 py-1.5 flex items-center justify-around">
+        
+        <!-- Dashboard Item -->
+        <a 
+            href="{{ route('dashboard') }}" 
+            class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('dashboard') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+        >
+            <div class="relative">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                @if(request()->routeIs('dashboard'))
+                    <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
+                @endif
+            </div>
+            <span class="text-[10px] font-bold mt-1 leading-none">Dashboard</span>
+        </a>
+
+        <!-- Transaksi Item -->
+        <a 
+            href="{{ route('transactions.index') }}" 
+            class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('transactions.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+        >
+            <div class="relative">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                @if(request()->routeIs('transactions.*'))
+                    <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
+                @endif
+            </div>
+            <span class="text-[10px] font-bold mt-1 leading-none">Transaksi</span>
+        </a>
+
+        <!-- Menu Super Admin: Pengguna -->
+        @if(auth()->user()->isSuperAdmin())
+            <a 
+                href="{{ route('users.index') }}" 
+                class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('users.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+            >
+                <div class="relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    @if(request()->routeIs('users.*'))
+                        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
+                    @endif
+                </div>
+                <span class="text-[10px] font-bold mt-1 leading-none">Pengguna</span>
+            </a>
+
+            <!-- Menu Super Admin: Sampah -->
+            <a 
+                href="{{ route('trash.index') }}" 
+                class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('trash.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+            >
+                <div class="relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    @if(request()->routeIs('trash.*'))
+                        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
+                    @endif
+                </div>
+                <span class="text-[10px] font-bold mt-1 leading-none">Sampah</span>
+            </a>
+        @endif
+
+        <!-- Logout Item -->
+        <button 
+            type="button" 
+            onclick="confirmLogoutMobile()" 
+            class="flex-1 flex flex-col items-center py-1 px-1 text-slate-400 hover:text-rose-400 transition-colors"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span class="text-[10px] font-bold mt-1 leading-none">Keluar</span>
+        </button>
+
+    </nav>
+
+    <!-- Hidden Form for Mobile Logout -->
+    <form id="mobileLogoutForm" action="{{ route('logout') }}" method="POST" class="hidden">
+        @csrf
+    </form>
+
+    <!-- Global Toast & Modal Scripts -->
     <script>
-        const sidebar = document.getElementById('sidebar');
-        const mobileBackdrop = document.getElementById('mobileBackdrop');
-
-        function toggleSidebarMobile() {
-            const isHidden = sidebar.classList.contains('-translate-x-full');
-            if (isHidden) {
-                sidebar.classList.remove('-translate-x-full');
-                mobileBackdrop.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                mobileBackdrop.classList.add('hidden');
-            }
-        }
-
         // Custom SweetAlert2 Toast Khas Ikhlas Solusi
         const IkhlasToast = Swal.mixin({
             toast: true,
@@ -249,7 +315,7 @@
             }
         });
 
-        // Konfirmasi Logout Elegan
+        // Konfirmasi Logout Desktop
         function confirmLogout(form) {
             Swal.fire({
                 title: 'Keluar dari Sistem?',
@@ -274,6 +340,12 @@
                     form.submit();
                 }
             });
+        }
+
+        // Konfirmasi Logout Mobile
+        function confirmLogoutMobile() {
+            const form = document.getElementById('mobileLogoutForm');
+            confirmLogout(form);
         }
 
         // Tampilkan Toast Sukses jika ada session 'success'
