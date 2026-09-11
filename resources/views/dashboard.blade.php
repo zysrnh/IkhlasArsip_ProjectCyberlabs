@@ -88,69 +88,79 @@
         @endif
     </div>
 
-    <!-- 4 Summary Stat Cards (Sesuai Mockup) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <!-- Total Pendapatan -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-tealBrand flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-default group">
-            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-tealBrand transition-colors">
-                Total Pendapatan
-            </div>
-            <div class="my-2">
-                <div class="text-2xl font-extrabold text-slate-900 tracking-tight font-sans">
-                    Rp {{ number_format($totalIncome, 0, ',', '.') }}
+    <!-- 4 Summary Stat Cards (Carousel di Mobile, 4 Cols Grid di Desktop) -->
+    <div class="relative">
+        <div id="statCardsCarousel" class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none gap-3.5 -mx-4 px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 lg:pb-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible">
+            
+            <!-- Total Pendapatan -->
+            <div class="min-w-[78vw] sm:min-w-[42vw] lg:min-w-0 snap-center shrink-0 lg:shrink bg-white rounded-xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-tealBrand flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-default group">
+                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-tealBrand transition-colors">
+                    Total Pendapatan
+                </div>
+                <div class="my-2">
+                    <div class="text-2xl font-extrabold text-slate-900 tracking-tight font-sans">
+                        Rp {{ number_format($totalIncome, 0, ',', '.') }}
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">
+                    {{ $selectedBranchId ? 'Cabang terpilih' : 'Seluruh cabang' }}
                 </div>
             </div>
-            <div class="text-[11px] text-slate-400 font-medium">
-                {{ $selectedBranchId ? 'Cabang terpilih' : 'Seluruh cabang' }}
-            </div>
-        </div>
 
-        <!-- Total Transaksi -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-cyan-500 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-default group">
-            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-cyan-600 transition-colors">
-                Total Transaksi
-            </div>
-            <div class="my-2">
-                <div class="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    {{ $totalTransactions }}
+            <!-- Total Transaksi -->
+            <div class="min-w-[78vw] sm:min-w-[42vw] lg:min-w-0 snap-center shrink-0 lg:shrink bg-white rounded-xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-cyan-500 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-default group">
+                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-cyan-600 transition-colors">
+                    Total Transaksi
+                </div>
+                <div class="my-2">
+                    <div class="text-2xl font-extrabold text-slate-900 tracking-tight">
+                        {{ $totalTransactions }}
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">
+                    Entri data
                 </div>
             </div>
-            <div class="text-[11px] text-slate-400 font-medium">
-                Entri data
-            </div>
-        </div>
 
-        <!-- Total Qty -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-emerald-500 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-default group">
-            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
-                Total QTY
-            </div>
-            <div class="my-2">
-                <div class="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    {{ $totalQty }}
+            <!-- Total Qty -->
+            <div class="min-w-[78vw] sm:min-w-[42vw] lg:min-w-0 snap-center shrink-0 lg:shrink bg-white rounded-xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-emerald-500 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-default group">
+                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
+                    Total QTY
+                </div>
+                <div class="my-2">
+                    <div class="text-2xl font-extrabold text-slate-900 tracking-tight">
+                        {{ $totalQty }}
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">
+                    Unit terjual
                 </div>
             </div>
-            <div class="text-[11px] text-slate-400 font-medium">
-                Unit terjual
-            </div>
-        </div>
 
-        <!-- Cabang Aktif -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-amber-500 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-default group">
-            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-amber-600 transition-colors">
-                Cabang Aktif
-            </div>
-            <div class="my-2">
-                <div class="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    {{ $activeBranchesCount }}
+            <!-- Cabang Aktif -->
+            <div class="min-w-[78vw] sm:min-w-[42vw] lg:min-w-0 snap-center shrink-0 lg:shrink bg-white rounded-xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-amber-500 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-default group">
+                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-amber-600 transition-colors">
+                    Cabang Aktif
+                </div>
+                <div class="my-2">
+                    <div class="text-2xl font-extrabold text-slate-900 tracking-tight">
+                        {{ $activeBranchesCount }}
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">
+                    Terhubung ke sistem
                 </div>
             </div>
-            <div class="text-[11px] text-slate-400 font-medium">
-                Terhubung ke sistem
-            </div>
+
         </div>
 
+        <!-- Carousel Indicators (Mobile only) -->
+        <div class="flex items-center justify-center space-x-1.5 pt-2 lg:hidden" id="statCardsDots">
+            <button type="button" onclick="scrollStatCarousel(0)" class="w-6 h-1.5 rounded-full bg-tealBrand transition-all duration-300 stat-dot" data-index="0" aria-label="Slide 1"></button>
+            <button type="button" onclick="scrollStatCarousel(1)" class="w-1.5 h-1.5 rounded-full bg-slate-300 transition-all duration-300 stat-dot" data-index="1" aria-label="Slide 2"></button>
+            <button type="button" onclick="scrollStatCarousel(2)" class="w-1.5 h-1.5 rounded-full bg-slate-300 transition-all duration-300 stat-dot" data-index="2" aria-label="Slide 3"></button>
+            <button type="button" onclick="scrollStatCarousel(3)" class="w-1.5 h-1.5 rounded-full bg-slate-300 transition-all duration-300 stat-dot" data-index="3" aria-label="Slide 4"></button>
+        </div>
     </div>
 
     <!-- Middle Section: 2 Analytics Cards (Perbandingan Cabang & Jenis Transaksi) -->
@@ -306,6 +316,36 @@
 
 @push('scripts')
 <script>
+    function scrollStatCarousel(index) {
+        const carousel = document.getElementById('statCardsCarousel');
+        if (!carousel) return;
+        const cards = carousel.querySelectorAll('.snap-center');
+        if (cards[index]) {
+            cards[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }
+
+    const statCarousel = document.getElementById('statCardsCarousel');
+    if (statCarousel) {
+        statCarousel.addEventListener('scroll', function() {
+            const scrollLeft = statCarousel.scrollLeft;
+            const firstCard = statCarousel.querySelector('.snap-center');
+            const cardWidth = firstCard ? firstCard.offsetWidth : 280;
+            const activeIndex = Math.min(3, Math.max(0, Math.round(scrollLeft / (cardWidth + 14))));
+            
+            const dots = document.querySelectorAll('.stat-dot');
+            dots.forEach((dot, idx) => {
+                if (idx === activeIndex) {
+                    dot.classList.remove('w-1.5', 'bg-slate-300');
+                    dot.classList.add('w-6', 'bg-tealBrand');
+                } else {
+                    dot.classList.remove('w-6', 'bg-tealBrand');
+                    dot.classList.add('w-1.5', 'bg-slate-300');
+                }
+            });
+        }, { passive: true });
+    }
+
     function toggleDashboardBranchDropdown() {
         const menu = document.getElementById('dashboardBranchDropdownMenu');
         const chevron = document.getElementById('dashboardBranchChevron');
