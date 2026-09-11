@@ -87,7 +87,7 @@
                     <img 
                         src="{{ asset('images/logo.png') }}" 
                         alt="Ikhlas Solusi" 
-                        class="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 bg-white/5 p-1 rounded-lg border border-white/10 transition-transform duration-300 group-hover:scale-105"
+                        class="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 transition-transform duration-300 group-hover:scale-105"
                     >
                     <span class="font-bold text-sm sm:text-base tracking-tight text-white">Ikhlas Solusi</span>
                 </div>
@@ -159,7 +159,7 @@
                 <!-- Title & Subtitle -->
                 <div>
                     <div class="mb-3 lg:hidden">
-                        <img src="{{ asset('images/logo.png') }}" alt="Ikhlas Solusi" class="w-10 h-10 object-contain rounded-lg p-1.5 bg-slate-100 border border-slate-200 shadow-xs">
+                        <img src="{{ asset('images/logo.png') }}" alt="Ikhlas Solusi" class="w-10 h-10 object-contain">
                     </div>
                     <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
                         Masuk ke Sistem

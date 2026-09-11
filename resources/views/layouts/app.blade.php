@@ -188,7 +188,7 @@
                     <img 
                         src="{{ asset('images/logo.png') }}" 
                         alt="Ikhlas Solusi" 
-                        class="w-9 h-9 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105 rounded-lg bg-white/5 p-1 border border-white/10"
+                        class="w-9 h-9 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
                     >
                     <div class="sidebar-hide-on-collapse overflow-hidden">
                         <div class="font-extrabold text-sm tracking-tight text-white leading-tight truncate">Ikhlas Solusi</div>
