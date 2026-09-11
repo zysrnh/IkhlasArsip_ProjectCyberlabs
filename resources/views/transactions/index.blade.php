@@ -3,12 +3,12 @@
 @section('title', 'Data Transaksi')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-5 animate-fadeIn">
 
     <!-- Top Header & Branch Indicator -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5">
         <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Data Transaksi</h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Data Transaksi</h1>
             <p class="text-xs text-slate-500 mt-1 font-medium">
                 Manajemen resume transaksi, filtering laporan, bulk delete, dan export dokumen cabang.
             </p>
@@ -92,11 +92,11 @@
         @endif
     </div>
 
-    <!-- Search & Action Buttons Bar (Sesuai Mockup) -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <!-- Search & Action Buttons Bar -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         
         <!-- Search Input -->
-        <div class="flex-1 max-w-xl">
+        <div class="w-full lg:max-w-md">
             <form method="GET" action="{{ route('transactions.index') }}" class="relative">
                 <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
                 <input type="hidden" name="type" value="{{ request('type') }}">
@@ -113,74 +113,96 @@
                     type="text" 
                     name="search" 
                     value="{{ request('search') }}" 
-                    placeholder="Cari ID, deskripsi, atau customer..." 
+                    placeholder="Cari ID, deskripsi, customer..." 
                     class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-tealBrand focus:ring-1 focus:ring-tealBrand shadow-sm transition"
                 >
             </form>
         </div>
 
-        <!-- Action Buttons (Import Excel, Export PDF, + Tambah) -->
-        <div class="flex items-center space-x-2.5">
-            <!-- Import Excel -->
-            <button 
-                type="button" 
-                onclick="openImportModal()"
-                class="px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl shadow-sm inline-flex items-center space-x-2 transition-colors"
-            >
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                <span>Import Excel</span>
-            </button>
+        <!-- Action Buttons Layout -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <!-- Utility Buttons Group (Import, PDF, Excel) -->
+            <div class="grid grid-cols-3 sm:flex items-center gap-2">
+                <!-- Import Excel -->
+                <button 
+                    type="button" 
+                    onclick="openImportModal()"
+                    class="px-3 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl shadow-sm inline-flex items-center justify-center space-x-1.5 transition-colors"
+                    title="Import data transaksi dari file Excel"
+                >
+                    <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span class="truncate">Import</span>
+                </button>
 
-            <!-- Export PDF -->
-            <a 
-                href="{{ route('transactions.export-pdf', request()->query()) }}" 
-                class="px-3.5 py-2.5 bg-white hover:bg-rose-50 border border-rose-400 text-rose-600 text-xs font-bold rounded-xl shadow-sm inline-flex items-center space-x-1.5 transition-colors"
-                title="Download Laporan PDF Ber-KOP Resmi"
-            >
-                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <span>Export PDF</span>
-            </a>
+                <!-- Export PDF -->
+                <a 
+                    href="{{ route('transactions.export-pdf', request()->query()) }}" 
+                    class="px-3 py-2.5 bg-white hover:bg-rose-50 border border-rose-300 hover:border-rose-400 text-rose-600 text-xs font-bold rounded-xl shadow-sm inline-flex items-center justify-center space-x-1.5 transition-colors"
+                    title="Download Laporan PDF Ber-KOP Resmi"
+                >
+                    <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <span class="truncate">PDF</span>
+                </a>
 
-            <!-- Export Excel -->
-            <a 
-                href="{{ route('transactions.export-excel', request()->query()) }}" 
-                class="px-3.5 py-2.5 bg-white hover:bg-emerald-50 border border-emerald-500 text-emerald-600 text-xs font-bold rounded-xl shadow-sm inline-flex items-center space-x-1.5 transition-colors"
-                title="Download Laporan Format Excel (.xlsx)"
-            >
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>Export Excel</span>
-            </a>
+                <!-- Export Excel -->
+                <a 
+                    href="{{ route('transactions.export-excel', request()->query()) }}" 
+                    class="px-3 py-2.5 bg-white hover:bg-emerald-50 border border-emerald-300 hover:border-emerald-400 text-emerald-600 text-xs font-bold rounded-xl shadow-sm inline-flex items-center justify-center space-x-1.5 transition-colors"
+                    title="Download Laporan Format Excel (.xlsx)"
+                >
+                    <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span class="truncate">Excel</span>
+                </a>
+            </div>
 
-            <!-- + Tambah -->
+            <!-- Primary Action: + Tambah Transaksi -->
             <button 
                 type="button" 
                 onclick="openCreateModal()"
-                class="px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center space-x-1.5 transition-colors"
+                class="px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
             >
-                <span>+</span>
-                <span>Tambah</span>
+                <span class="text-sm leading-none">+</span>
+                <span>Tambah Transaksi</span>
             </button>
         </div>
 
     </div>
 
-    <!-- Filter & Sorting Card (Sesuai Mockup) -->
-    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-3">
+    <!-- Filter & Sorting Card -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
         
-        <div class="flex items-center space-x-2 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
-            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
-            <span>FILTER & SORTING</span>
+        <!-- Filter Header with Toggle for Mobile -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <span>FILTER & SORTING</span>
+                @if(request()->hasAny(['type', 'date_from', 'date_to', 'sort', 'branch_id']))
+                    <span class="w-2 h-2 rounded-full bg-tealBrand inline-block"></span>
+                @endif
+            </div>
+
+            <button 
+                type="button" 
+                onclick="toggleMobileFilterPanel()"
+                id="mobileFilterToggleBtn" 
+                class="sm:hidden text-xs font-bold text-tealBrand hover:text-tealBrand-hover inline-flex items-center space-x-1 cursor-pointer"
+            >
+                <span id="mobileFilterToggleText">Tutup Filter</span>
+                <svg id="mobileFilterToggleIcon" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
         </div>
 
-        <form id="filterFormMain" method="GET" action="{{ route('transactions.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <form id="filterFormMain" method="GET" action="{{ route('transactions.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
             <input type="hidden" name="search" value="{{ request('search') }}">
             <input type="hidden" name="branch_id" id="filterBranchInput" value="{{ $selectedBranchId }}">
             <input type="hidden" name="type" id="filterTypeInput" value="{{ request('type') }}">
@@ -191,7 +213,7 @@
                 <button 
                     type="button"
                     onclick="toggleCustomPopover('filterBranchMenu', 'filterBranchChevron')"
-                    class="w-full px-3.5 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-700 font-medium flex items-center justify-between transition-colors {{ !auth()->user()->canAccessAllBranches() ? 'cursor-not-allowed opacity-75' : 'cursor-pointer' }}"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-xl text-slate-700 font-medium flex items-center justify-between transition-colors {{ !auth()->user()->canAccessAllBranches() ? 'cursor-not-allowed opacity-75' : 'cursor-pointer' }}"
                     {{ !auth()->user()->canAccessAllBranches() ? 'disabled' : '' }}
                 >
                     <span class="truncate">
@@ -206,11 +228,11 @@
                     </svg>
                 </button>
 
-                <div id="filterBranchMenu" class="hidden absolute left-0 top-full mt-1 w-full min-w-[180px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 animate-fadeIn">
+                <div id="filterBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[200px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
                     <button 
                         type="button" 
                         onclick="selectFilterBranch('', 'Semua Cabang')"
-                        class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors {{ empty($selectedBranchId) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty($selectedBranchId) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
                     >
                         <span>Semua Cabang</span>
                         @if(empty($selectedBranchId))
@@ -221,7 +243,7 @@
                         <button 
                             type="button" 
                             onclick="selectFilterBranch('{{ $branch->id }}', '{{ $branch->name }}')"
-                            class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors {{ $selectedBranchId == $branch->id ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ $selectedBranchId == $branch->id ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
                         >
                             <span>{{ $branch->name }}</span>
                             @if($selectedBranchId == $branch->id)
@@ -237,7 +259,7 @@
                 <button 
                     type="button"
                     onclick="toggleCustomPopover('filterTypeMenu', 'filterTypeChevron')"
-                    class="w-full px-3.5 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-700 font-medium flex items-center justify-between transition-colors cursor-pointer"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-xl text-slate-700 font-medium flex items-center justify-between transition-colors cursor-pointer"
                 >
                     <span class="truncate">{{ request('type') ?: 'Semua Jenis' }}</span>
                     <svg id="filterTypeChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,7 +267,7 @@
                     </svg>
                 </button>
 
-                <div id="filterTypeMenu" class="hidden absolute left-0 top-full mt-1 w-full min-w-[180px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 animate-fadeIn">
+                <div id="filterTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[200px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
                     @php
                         $typesList = ['', 'Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
                     @endphp
@@ -253,7 +275,7 @@
                         <button 
                             type="button" 
                             onclick="selectFilterType('{{ $tOption }}')"
-                            class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors {{ request('type') === $tOption ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ request('type') === $tOption ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
                         >
                             <span>{{ $tOption ?: 'Semua Jenis' }}</span>
                             @if(request('type') === $tOption)
@@ -270,8 +292,9 @@
                     type="date" 
                     name="date_from" 
                     value="{{ request('date_from') }}" 
+                    title="Tanggal Dari"
                     onchange="document.getElementById('filterFormMain').submit()" 
-                    class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
                 >
             </div>
 
@@ -281,8 +304,9 @@
                     type="date" 
                     name="date_to" 
                     value="{{ request('date_to') }}" 
+                    title="Tanggal Sampai"
                     onchange="document.getElementById('filterFormMain').submit()" 
-                    class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
                 >
             </div>
 
@@ -291,7 +315,7 @@
                 <button 
                     type="button"
                     onclick="toggleCustomPopover('filterSortMenu', 'filterSortChevron')"
-                    class="w-full px-3.5 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-700 font-medium flex items-center justify-between transition-colors cursor-pointer"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-xl text-slate-700 font-medium flex items-center justify-between transition-colors cursor-pointer"
                 >
                     <span class="truncate">
                         @if(request('sort') === 'terlama')
@@ -309,7 +333,7 @@
                     </svg>
                 </button>
 
-                <div id="filterSortMenu" class="hidden absolute right-0 top-full mt-1 w-full min-w-[200px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 animate-fadeIn">
+                <div id="filterSortMenu" class="hidden absolute right-0 top-full mt-1.5 w-full min-w-[210px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
                     @php
                         $sortOptions = [
                             'terbaru' => 'Terbaru',
@@ -322,7 +346,7 @@
                         <button 
                             type="button" 
                             onclick="selectFilterSort('{{ $sKey }}')"
-                            class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors {{ request('sort', 'terbaru') === $sKey ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ request('sort', 'terbaru') === $sKey ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
                         >
                             <span>{{ $sLabel }}</span>
                             @if(request('sort', 'terbaru') === $sKey)
@@ -337,21 +361,20 @@
     </div>
 
     <!-- Bulk Action Toolbar (Muncul saat ada checkbox dicentang) -->
-    <div id="bulkTrxToolbar" class="hidden bg-navy-900 text-white p-3.5 rounded-xl shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fadeIn">
+    <div id="bulkTrxToolbar" class="hidden bg-slate-900 text-white p-3.5 rounded-xl shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fadeIn">
         <div class="flex items-center space-x-2 text-xs font-bold px-2">
             <span class="w-2 h-2 rounded-full bg-teal-400"></span>
             <span><span id="selectedTrxCount">0</span> transaksi dipilih</span>
         </div>
 
         <div class="flex items-center space-x-2">
-            <!-- Form Bulk Delete -->
             <form id="bulkDeleteForm" action="{{ route('transactions.bulk-delete') }}" method="POST" class="inline">
                 @csrf
                 <div id="bulkDeleteInputs"></div>
                 <button 
                     type="submit" 
                     onclick="return confirm('Apakah Anda yakin ingin memindahkan transaksi yang dipilih ke tempat sampah?');" 
-                    class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center space-x-1.5 shadow-sm"
+                    class="w-full sm:w-auto px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-sm cursor-pointer"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -363,27 +386,138 @@
     </div>
 
     <!-- Summary Info Bar -->
-    <div class="flex items-center justify-between text-xs px-1">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs px-1">
         <div class="text-slate-500 font-medium">
             Menampilkan <strong class="text-slate-800 font-bold">{{ $transactions->total() }}</strong> transaksi
             @if(request()->hasAny(['search', 'type', 'date_from', 'date_to', 'sort', 'branch_id']))
-                &bull; <a href="{{ route('transactions.index') }}" class="text-tealBrand hover:underline font-semibold">Reset Filter</a>
+                &bull; <a href="{{ route('transactions.index') }}" class="text-tealBrand hover:underline font-bold">Reset Filter</a>
             @endif
         </div>
-        <div class="text-sm font-bold text-slate-700">
+        <div class="text-xs sm:text-sm font-bold text-slate-700">
             Total : <span class="text-emerald-600 font-extrabold font-sans">Rp {{ number_format($totalAmount, 0, ',', '.') }}</span>
         </div>
     </div>
 
-    <!-- Data Table (Sesuai Mockup) -->
-    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+    <!-- Data Container: Mobile Card List + Desktop Table -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm overflow-hidden">
         
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Daftar Transaksi</h3>
+        <!-- Table & List Header -->
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Daftar Transaksi</h3>
+                <!-- Master Checkbox for Mobile -->
+                <label class="md:hidden flex items-center space-x-1.5 text-[11px] font-bold text-slate-500 cursor-pointer">
+                    <input type="checkbox" id="selectAllTrxMobile" onchange="toggleSelectAllTrx(this)" class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
+                    <span>Pilih Semua</span>
+                </label>
+            </div>
             <span class="text-xs text-slate-400 font-medium font-mono">Page {{ $transactions->currentPage() }} of {{ $transactions->lastPage() }}</span>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- 1. Mobile Cards View (< md) -->
+        <div class="block md:hidden space-y-3">
+            @forelse($transactions as $trx)
+                <div class="bg-slate-50/50 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 transition-all">
+                    
+                    <!-- Card Top Row: Checkbox, Code, Type Badge & Date -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            @if(auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id)
+                                <input type="checkbox" name="trx_ids[]" value="{{ $trx->id }}" onchange="updateTrxSelection()" class="trx-item-checkbox rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
+                            @endif
+                            <span class="font-mono text-[11px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded-md">
+                                {{ $trx->code }}
+                            </span>
+                        </div>
+                        
+                        <span class="text-[10px] text-slate-400 font-medium font-mono">
+                            {{ $trx->transaction_date ? $trx->transaction_date->format('d M Y') : '-' }}
+                        </span>
+                    </div>
+
+                    <!-- Card Body: Customer, Notes, Branch & Type -->
+                    <div class="space-y-1">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="font-bold text-xs text-slate-900 leading-tight">
+                                {{ $trx->customer_name }}
+                            </div>
+                            <!-- Type Badge -->
+                            <div>
+                                @if($trx->type === 'Penjualan Tunai')
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        Tunai
+                                    </span>
+                                @elseif($trx->type === 'Penjualan Kredit')
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">
+                                        Kredit
+                                    </span>
+                                @elseif($trx->type === 'Retur Penjualan')
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                        Retur
+                                    </span>
+                                @else
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                        Transfer
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="text-[11px] text-slate-500">
+                            {{ $trx->notes ?: 'Tidak ada deskripsi' }}
+                        </div>
+                        
+                        <div class="text-[10px] font-semibold text-slate-400 flex items-center space-x-1">
+                            <span>Cabang:</span>
+                            <span class="text-slate-700 font-bold">{{ $trx->branch->name ?? '-' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Card Bottom: QTY, Nominal & Action Buttons -->
+                    <div class="pt-2 border-t border-slate-200/70 flex items-center justify-between">
+                        <div class="text-xs">
+                            <span class="text-[10px] text-slate-400 font-bold mr-1">QTY: {{ $trx->qty }}</span>
+                            <span class="font-extrabold {{ $trx->amount < 0 ? 'text-rose-600' : 'text-slate-900' }}">
+                                {{ $trx->amount < 0 ? '-Rp ' . number_format(abs($trx->amount), 0, ',', '.') : 'Rp ' . number_format($trx->amount, 0, ',', '.') }}
+                            </span>
+                        </div>
+
+                        @if(auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id)
+                            <div class="flex items-center space-x-2">
+                                <button 
+                                    type="button" 
+                                    onclick="openEditModal({{ json_encode($trx) }})"
+                                    class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
+                                >
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    <span>Edit</span>
+                                </button>
+
+                                <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="return confirm('Pindahkan transaksi {{ $trx->code }} ke tempat sampah?');" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button 
+                                        type="submit" 
+                                        class="p-1 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                        title="Hapus Transaksi"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+
+                </div>
+            @empty
+                <div class="py-10 text-center text-slate-400 text-xs font-medium bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    Tidak ada transaksi yang sesuai dengan filter.
+                </div>
+            @endforelse
+        </div>
+
+        <!-- 2. Desktop Table View (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-700">
                 <thead class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                     <tr>
@@ -441,7 +575,7 @@
                                         Retur Penjualan
                                     </span>
                                 @else
-                                    <span class="inline-block px-3 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
                                         Transfer Cabang
                                     </span>
                                 @endif
@@ -467,14 +601,14 @@
                                 {{ $trx->amount < 0 ? '-Rp ' . number_format(abs($trx->amount), 0, ',', '.') : 'Rp ' . number_format($trx->amount, 0, ',', '.') }}
                             </td>
 
-                            <!-- Aksi (CRUD Sesuai Izin) -->
+                            <!-- Aksi (CRUD) -->
                             <td class="py-3 px-3 text-center">
                                 @if(auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id)
                                     <div class="flex items-center justify-center space-x-1.5">
                                         <button 
                                             type="button" 
                                             onclick="openEditModal({{ json_encode($trx) }})"
-                                            class="p-1 text-slate-400 hover:text-slate-800 transition-colors"
+                                            class="p-1 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
                                             title="Edit Transaksi"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -487,7 +621,7 @@
                                             @method('DELETE')
                                             <button 
                                                 type="submit" 
-                                                class="p-1 text-slate-400 hover:text-rose-600 transition-colors"
+                                                class="p-1 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                                                 title="Hapus Transaksi (Pindah ke Sampah)"
                                             >
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -524,40 +658,41 @@
 </div>
 
 <!-- Modal Tambah Transaksi -->
-<div id="createModal" class="fixed inset-0 z-50 bg-navy-950/70 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-[480px] shadow-2xl overflow-hidden animate-fadeIn">
+<div id="createModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-[480px] max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
         
-        <!-- Header: Clean White -->
-        <div class="px-5 py-3.5 bg-white border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-bold text-sm text-slate-800 tracking-tight">Input Transaksi Baru</h3>
-            <button type="button" onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-600 rounded-md p-1 transition-colors">
+        <!-- Header -->
+        <div class="px-5 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+            <h3 class="font-extrabold text-sm text-slate-900 tracking-tight">Input Transaksi Baru</h3>
+            <button type="button" onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
 
-        <form action="{{ route('transactions.store') }}" method="POST" class="p-5 space-y-3">
+        <!-- Scrollable Form Body -->
+        <form action="{{ route('transactions.store') }}" method="POST" class="p-5 space-y-3.5 overflow-y-auto">
             @csrf
             <input type="hidden" name="code" value="{{ $nextCode }}">
 
             <!-- Baris 1: Tanggal & Cabang -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">TANGGAL</label>
-                    <input type="date" name="transaction_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">TANGGAL</label>
+                    <input type="date" name="transaction_date" value="{{ date('Y-m-d') }}" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">CABANG</label>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">CABANG</label>
                     @if(auth()->user()->canAccessAllBranches())
                         <div class="relative">
-                            <select name="branch_id" required class="w-full appearance-none px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
+                            <select name="branch_id" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
                                 @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                                 @endforeach
                             </select>
-                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -565,22 +700,22 @@
                         </div>
                     @else
                         <input type="hidden" name="branch_id" value="{{ auth()->user()->branch_id }}">
-                        <input type="text" disabled value="{{ auth()->user()->branch->name ?? 'Cabang' }}" class="w-full px-3 py-2 text-xs bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-600 cursor-not-allowed">
+                        <input type="text" disabled value="{{ auth()->user()->branch->name ?? 'Cabang' }}" class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-600 cursor-not-allowed">
                     @endif
                 </div>
             </div>
 
             <!-- Baris 2: Jenis Transaksi -->
             <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">JENIS TRANSAKSI</label>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">JENIS TRANSAKSI</label>
                 <div class="relative">
-                    <select name="type" required class="w-full appearance-none px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
+                    <select name="type" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
                         <option value="Penjualan Tunai">Penjualan Tunai</option>
                         <option value="Penjualan Kredit">Penjualan Kredit</option>
                         <option value="Retur Penjualan">Retur Penjualan</option>
                         <option value="Transfer Cabang">Transfer Cabang</option>
                     </select>
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -590,41 +725,41 @@
 
             <!-- Baris 3: Deskripsi -->
             <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">DESKRIPSI</label>
-                <input type="text" name="notes" placeholder="Deskripsi Transaksi" class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
+                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">DESKRIPSI</label>
+                <input type="text" name="notes" placeholder="Deskripsi Transaksi" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
             <!-- Baris 4: Nama Customer / Vendor -->
             <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">NAMA CUSTOMER / VENDOR</label>
-                <input type="text" name="customer_name" required placeholder="PT / CV / UD" class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
+                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">NAMA CUSTOMER / VENDOR</label>
+                <input type="text" name="customer_name" required placeholder="PT / CV / Toko" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
             <!-- Baris 5: Jumlah (Rp) & Qty -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">JUMLAH (RP)</label>
-                    <input type="text" inputmode="numeric" name="amount" id="createAmount" value="0" required oninput="formatRupiahInput(this)" class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">JUMLAH (RP)</label>
+                    <input type="text" inputmode="numeric" name="amount" id="createAmount" value="0" required oninput="formatRupiahInput(this)" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">QTY</label>
-                    <input type="number" name="qty" min="1" value="1" required class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">QTY</label>
+                    <input type="number" name="qty" min="1" value="1" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
                 </div>
             </div>
 
             <!-- Baris 6: Dibuat Oleh -->
             <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">DIBUAT OLEH</label>
-                <input type="text" disabled value="{{ auth()->user()->name }}" class="w-full px-3 py-2 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold cursor-not-allowed">
+                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">DIBUAT OLEH</label>
+                <input type="text" disabled value="{{ auth()->user()->name }}" class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl text-slate-600 font-semibold cursor-not-allowed">
             </div>
 
             <!-- Footer Buttons -->
-            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2.5">
-                <button type="button" onclick="closeCreateModal()" class="w-full py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors text-center shadow-xs">
+            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2.5 shrink-0">
+                <button type="button" onclick="closeCreateModal()" class="w-full py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors text-center cursor-pointer">
                     Batal
                 </button>
-                <button type="submit" class="w-full py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-lg transition-colors text-center shadow-sm">
+                <button type="submit" class="w-full py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl transition-colors text-center cursor-pointer shadow-sm">
                     Simpan Transaksi
                 </button>
             </div>
@@ -633,62 +768,62 @@
 </div>
 
 <!-- Modal Edit Transaksi -->
-<div id="editModal" class="fixed inset-0 z-50 bg-navy-950/70 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-[480px] shadow-2xl overflow-hidden animate-fadeIn">
+<div id="editModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-[480px] max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
         
-        <!-- Header: Clean White -->
-        <div class="px-5 py-3.5 bg-white border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-bold text-sm text-slate-800 tracking-tight">Edit Transaksi <span id="editCodeDisplay" class="font-mono text-teal-600"></span></h3>
-            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 rounded-md p-1 transition-colors">
+        <!-- Header -->
+        <div class="px-5 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+            <h3 class="font-extrabold text-sm text-slate-900 tracking-tight">Edit Transaksi <span id="editCodeDisplay" class="font-mono text-tealBrand font-bold"></span></h3>
+            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
 
-        <form id="editForm" method="POST" class="p-5 space-y-3">
+        <form id="editForm" method="POST" class="p-5 space-y-3.5 overflow-y-auto">
             @csrf
             @method('PUT')
 
             <!-- Baris 1: Tanggal & Cabang -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">TANGGAL</label>
-                    <input type="date" name="transaction_date" id="editDate" required class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">TANGGAL</label>
+                    <input type="date" name="transaction_date" id="editDate" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">CABANG</label>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">CABANG</label>
                     @if(auth()->user()->canAccessAllBranches())
                         <div class="relative">
-                            <select name="branch_id" id="editBranchId" required class="w-full appearance-none px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
+                            <select name="branch_id" id="editBranchId" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
                                 @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                                 @endforeach
                             </select>
-                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
                         </div>
                     @else
-                        <input type="text" id="editBranchName" disabled class="w-full px-3 py-2 text-xs bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-600 cursor-not-allowed">
+                        <input type="text" id="editBranchName" disabled class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-600 cursor-not-allowed">
                     @endif
                 </div>
             </div>
 
             <!-- Baris 2: Jenis Transaksi -->
             <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">JENIS TRANSAKSI</label>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">JENIS TRANSAKSI</label>
                 <div class="relative">
-                    <select name="type" id="editType" required class="w-full appearance-none px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
+                    <select name="type" id="editType" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
                         <option value="Penjualan Tunai">Penjualan Tunai</option>
                         <option value="Penjualan Kredit">Penjualan Kredit</option>
                         <option value="Retur Penjualan">Retur Penjualan</option>
                         <option value="Transfer Cabang">Transfer Cabang</option>
                     </select>
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -698,35 +833,35 @@
 
             <!-- Baris 3: Deskripsi -->
             <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">DESKRIPSI</label>
-                <input type="text" name="notes" id="editNotes" placeholder="Deskripsi Transaksi" class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
+                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">DESKRIPSI</label>
+                <input type="text" name="notes" id="editNotes" placeholder="Deskripsi Transaksi" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
             <!-- Baris 4: Nama Customer / Vendor -->
             <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">NAMA CUSTOMER / VENDOR</label>
-                <input type="text" name="customer_name" id="editCustomer" required placeholder="PT / CV / UD" class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
+                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">NAMA CUSTOMER / VENDOR</label>
+                <input type="text" name="customer_name" id="editCustomer" required placeholder="PT / CV / Toko" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
             <!-- Baris 5: Jumlah (Rp) & Qty -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">JUMLAH (RP)</label>
-                    <input type="text" inputmode="numeric" name="amount" id="editAmount" required oninput="formatRupiahInput(this)" class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">JUMLAH (RP)</label>
+                    <input type="text" inputmode="numeric" name="amount" id="editAmount" required oninput="formatRupiahInput(this)" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">QTY</label>
-                    <input type="number" name="qty" id="editQty" min="1" required class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">QTY</label>
+                    <input type="number" name="qty" id="editQty" min="1" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition">
                 </div>
             </div>
 
             <!-- Footer Buttons -->
-            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2.5">
-                <button type="button" onclick="closeEditModal()" class="w-full py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors text-center shadow-xs">
+            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2.5 shrink-0">
+                <button type="button" onclick="closeEditModal()" class="w-full py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors text-center cursor-pointer">
                     Batal
                 </button>
-                <button type="submit" class="w-full py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-lg transition-colors text-center shadow-sm">
+                <button type="submit" class="w-full py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl transition-colors text-center cursor-pointer shadow-sm">
                     Perbarui Transaksi
                 </button>
             </div>
@@ -735,25 +870,25 @@
 </div>
 
 <!-- Modal Import Excel -->
-<div id="importModal" class="fixed inset-0 z-50 bg-navy-950/70 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-lg shadow-2xl overflow-hidden">
+<div id="importModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
         <!-- Header -->
-        <div class="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-extrabold text-base text-slate-800 tracking-tight">Import dari Excel</h3>
-            <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors">
+        <div class="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+            <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Import dari Excel</h3>
+            <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
 
-        <form action="{{ route('transactions.import-excel') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
+        <form action="{{ route('transactions.import-excel') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 overflow-y-auto">
             @csrf
 
             <!-- Amber Warning Notice -->
-            <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-3 text-amber-900">
+            <div class="p-4 bg-amber-50 border border-amber-200/80 rounded-xl flex items-start space-x-3 text-amber-900">
                 <div class="shrink-0 mt-0.5">
-                    <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                     </svg>
                 </div>
@@ -762,8 +897,8 @@
                 </div>
             </div>
 
-            <!-- Drag and Drop Dropzone -->
-            <div id="dropzoneContainer" onclick="document.getElementById('importFileInput').click()" class="border-2 border-dashed border-slate-200 hover:border-tealBrand rounded-2xl p-7 text-center transition-all bg-slate-50/60 hover:bg-teal-50/20 cursor-pointer group">
+            <!-- Dropzone -->
+            <div id="dropzoneContainer" onclick="document.getElementById('importFileInput').click()" class="border-2 border-dashed border-slate-200 hover:border-tealBrand rounded-2xl p-6 text-center transition-all bg-slate-50/60 hover:bg-teal-50/20 cursor-pointer group">
                 <input type="file" id="importFileInput" name="file" required accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileSelect(this)">
                 
                 <div class="w-12 h-12 mx-auto mb-3 bg-emerald-100 text-emerald-600 group-hover:scale-105 rounded-full flex items-center justify-center transition-transform">
@@ -775,7 +910,7 @@
                     Pilih File Excel / CSV
                 </div>
                 <div class="text-[11px] text-slate-400 font-medium mb-1">
-                    Drag and drop berkas ke sini, atau klik untuk memilih (.xlsx, .xls, .csv)
+                    Drag & drop berkas ke sini, atau klik untuk memilih (.xlsx, .xls, .csv)
                 </div>
                 <div id="selectedFileName" class="hidden mt-2.5 inline-flex items-center px-3 py-1 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold">
                     <svg class="w-3.5 h-3.5 mr-1.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -796,11 +931,11 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2.5">
-                <button type="button" onclick="closeImportModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors">
+            <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2.5 shrink-0">
+                <button type="button" onclick="closeImportModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer">
                     Batal
                 </button>
-                <button type="submit" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center">
+                <button type="submit" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center cursor-pointer">
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
@@ -813,6 +948,24 @@
 
 @push('scripts')
 <script>
+    function toggleMobileFilterPanel() {
+        const form = document.getElementById('filterFormMain');
+        const text = document.getElementById('mobileFilterToggleText');
+        const icon = document.getElementById('mobileFilterToggleIcon');
+        if (!form) return;
+
+        const isHidden = form.classList.contains('hidden');
+        if (isHidden) {
+            form.classList.remove('hidden');
+            if (text) text.textContent = 'Tutup Filter';
+            if (icon) icon.classList.remove('rotate-180');
+        } else {
+            form.classList.add('hidden');
+            if (text) text.textContent = 'Buka Filter';
+            if (icon) icon.classList.add('rotate-180');
+        }
+    }
+
     function formatRupiahInput(input) {
         let raw = input.value.replace(/[^0-9]/g, '');
         if (!raw) {
@@ -893,10 +1046,16 @@
         }
     }
 
-    // Bulk Action Checkboxes
+    // Bulk Action Checkboxes Sync
     function toggleSelectAllTrx(master) {
         const checkboxes = document.querySelectorAll('.trx-item-checkbox:not(:disabled)');
         checkboxes.forEach(cb => cb.checked = master.checked);
+        
+        const masterDesktop = document.getElementById('selectAllTrx');
+        const masterMobile = document.getElementById('selectAllTrxMobile');
+        if (masterDesktop) masterDesktop.checked = master.checked;
+        if (masterMobile) masterMobile.checked = master.checked;
+
         updateTrxSelection();
     }
 
@@ -912,18 +1071,25 @@
             toolbar.classList.remove('hidden');
 
             deleteContainer.innerHTML = '';
+            const selectedIds = new Set();
             checkboxes.forEach(cb => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'ids[]';
-                input.value = cb.value;
-                deleteContainer.appendChild(input);
+                if (!selectedIds.has(cb.value)) {
+                    selectedIds.add(cb.value);
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = cb.value;
+                    deleteContainer.appendChild(input);
+                }
             });
+            countText.textContent = selectedIds.size;
         } else {
             toolbar.classList.add('hidden');
             deleteContainer.innerHTML = '';
-            const master = document.getElementById('selectAllTrx');
-            if (master) master.checked = false;
+            const masterDesktop = document.getElementById('selectAllTrx');
+            const masterMobile = document.getElementById('selectAllTrxMobile');
+            if (masterDesktop) masterDesktop.checked = false;
+            if (masterMobile) masterMobile.checked = false;
         }
     }
 
