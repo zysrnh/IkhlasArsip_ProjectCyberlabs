@@ -203,7 +203,7 @@
         
         <div class="flex items-center justify-between mb-5">
             <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Transaksi Terkini</h3>
-            <a href="{{ route('dashboard') }}" class="text-xs font-bold text-tealBrand hover:text-tealBrand-hover inline-flex items-center space-x-1">
+            <a href="{{ route('transactions.index') }}" class="text-xs font-bold text-tealBrand hover:text-tealBrand-hover inline-flex items-center space-x-1">
                 <span>Lihat Semua</span>
                 <span>&rarr;</span>
             </a>
