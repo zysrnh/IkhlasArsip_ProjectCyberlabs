@@ -3,59 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') &bull; {{ config('app.name', 'Ikhlas Solusi') }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                    },
-                    colors: {
-                        navy: {
-                            950: '#06101c',
-                            900: '#0B192C',
-                            850: '#0E223D',
-                            800: '#142C4E',
-                        },
-                        tealBrand: {
-                            DEFAULT: '#0A97B0',
-                            hover: '#088395',
-                            dark: '#066F7F',
-                            light: '#E0F7FA',
-                        }
-                    },
-                    animation: {
-                        fadeIn: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        slideUp: 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(8px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(14px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <title>@yield('title', 'Ikhlas Solusi') - Sales Management</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <!-- Flatpickr Datepicker CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Flatpickr Datepicker JS & Indonesian Locale -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+
     <style>
-        * {
-            -webkit-font-smoothing: antialiased;
+        /* Custom Keyframe Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        /* Custom SweetAlert2 Theme Ikhlas */
+        .animate-fadeIn {
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Hide scrollbar for clean UI */
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Custom SweetAlert2 Toast Theme */
         .swal2-popup.ikhlas-toast {
             background-color: #0B192C !important;
             color: #ffffff !important;
@@ -179,8 +157,8 @@
                     <span>Transaksi</span>
                 </a>
 
-                <!-- Menu Khusus Super Admin -->
-                @if(auth()->user()->isSuperAdmin())
+                <!-- Menu Khusus Super Admin & Kepala Cabang: Kelola Pengguna -->
+                @if(auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang())
                     <a 
                         href="{{ route('users.index') }}" 
                         class="mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-all duration-150 {{ request()->routeIs('users.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
@@ -189,6 +167,19 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                         <span>Kelola Pengguna</span>
+                    </a>
+                @endif
+
+                <!-- Menu Khusus Super Admin: Cabang & Sampah -->
+                @if(auth()->user()->isSuperAdmin())
+                    <a 
+                        href="{{ route('branches.index') }}" 
+                        class="mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-all duration-150 {{ request()->routeIs('branches.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
+                    >
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span>Kelola Cabang</span>
                     </a>
 
                     <a 
@@ -301,8 +292,8 @@
             <span class="text-[10px] font-bold mt-1 leading-none">Transaksi</span>
         </a>
 
-        <!-- Menu Super Admin: Pengguna -->
-        @if(auth()->user()->isSuperAdmin())
+        <!-- Pengguna Item (Super Admin & Kepala Cabang) -->
+        @if(auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang())
             <a 
                 href="{{ route('users.index') }}" 
                 class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('users.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
@@ -317,8 +308,25 @@
                 </div>
                 <span class="text-[10px] font-bold mt-1 leading-none">Pengguna</span>
             </a>
+        @endif
 
-            <!-- Menu Super Admin: Sampah -->
+        <!-- Menu Super Admin: Cabang -->
+        @if(auth()->user()->isSuperAdmin())
+            <a 
+                href="{{ route('branches.index') }}" 
+                class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('branches.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+            >
+                <div class="relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    @if(request()->routeIs('branches.*'))
+                        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
+                    @endif
+                </div>
+                <span class="text-[10px] font-bold mt-1 leading-none">Cabang</span>
+            </a>
+
             <a 
                 href="{{ route('trash.index') }}" 
                 class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('trash.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
@@ -339,7 +347,7 @@
         <button 
             type="button" 
             onclick="confirmLogoutMobile()" 
-            class="flex-1 flex flex-col items-center py-1 px-1 text-slate-400 hover:text-rose-400 transition-colors"
+            class="flex-1 flex flex-col items-center py-1 px-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
         >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

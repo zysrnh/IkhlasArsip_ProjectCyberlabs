@@ -13,11 +13,41 @@ use Illuminate\View\View;
 class UserController extends Controller
 {
     /**
+     * Pastikan hanya Super Admin dan Kepala Cabang yang berhak mengakses
+     */
+    private function authorizeUserManagement(): void
+    {
+        if (!auth()->check() || (!auth()->user()->isSuperAdmin() && !auth()->user()->isKepalaCabang())) {
+            abort(403, 'Akses Terbatas: Anda tidak memiliki izin untuk mengelola pengguna.');
+        }
+    }
+
+    /**
      * Tampilkan daftar user
      */
     public function index(Request $request): View
     {
+        $this->authorizeUserManagement();
+
+        $currentUser = auth()->user();
         $query = User::with('branch')->latest();
+
+        // Scoping jika login sebagai Kepala Cabang
+        if ($currentUser->isKepalaCabang()) {
+            // Hanya menampilkan role Admin Cabang dan Viewer
+            $query->whereIn('role', [User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER]);
+
+            // Jika kepala cabang memegang cabang tertentu
+            if ($currentUser->branch_id) {
+                $query->where('branch_id', $currentUser->branch_id);
+                $branches = Branch::where('id', $currentUser->branch_id)->where('status', 'active')->get();
+            } else {
+                $branches = Branch::where('status', 'active')->orderBy('name')->get();
+            }
+        } else {
+            // Super Admin melihat semua cabang aktif
+            $branches = Branch::where('status', 'active')->orderBy('name')->get();
+        }
 
         // Filter pencarian
         if ($request->filled('search')) {
@@ -44,7 +74,6 @@ class UserController extends Controller
         }
 
         $users = $query->paginate(10)->withQueryString();
-        $branches = Branch::where('status', 'active')->orderBy('name')->get();
 
         return view('users.index', compact('users', 'branches'));
     }
@@ -54,11 +83,20 @@ class UserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $this->authorizeUserManagement();
+
+        $currentUser = auth()->user();
+
+        // Aturan role yang diizinkan untuk dibuat
+        $allowedRoles = $currentUser->isSuperAdmin()
+            ? [User::ROLE_SUPERADMIN, User::ROLE_KEPALA_CABANG, User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER]
+            : [User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER];
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
-            'role' => ['required', 'string', Rule::in([User::ROLE_SUPERADMIN, User::ROLE_KEPALA_CABANG, User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER])],
+            'role' => ['required', 'string', Rule::in($allowedRoles)],
             'branch_id' => ['nullable', 'required_if:role,' . User::ROLE_ADMIN_CABANG, 'exists:branches,id'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
@@ -68,6 +106,7 @@ class UserController extends Controller
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 6 karakter.',
             'role.required' => 'Role wajib dipilih.',
+            'role.in' => 'Role yang dipilih tidak diizinkan untuk akun Anda.',
             'branch_id.required_if' => 'Cabang wajib dipilih untuk Admin Cabang.',
             'branch_id.exists' => 'Cabang yang dipilih tidak valid.',
             'status.required' => 'Status wajib dipilih.',
@@ -75,7 +114,12 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
 
-        // Jika bukan admin cabang (superadmin / kepala cabang / viewer), branch_id null
+        // Jika Kepala Cabang memiliki penempatan cabang tertentu, kunci branch_id
+        if ($currentUser->isKepalaCabang() && $currentUser->branch_id) {
+            $validated['branch_id'] = $currentUser->branch_id;
+        }
+
+        // Jika bukan admin cabang, branch_id null
         if ($validated['role'] !== User::ROLE_ADMIN_CABANG) {
             $validated['branch_id'] = null;
         }
@@ -90,11 +134,30 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user): RedirectResponse
     {
+        $this->authorizeUserManagement();
+
+        $currentUser = auth()->user();
+
+        // Proteksi: Kepala Cabang tidak boleh mengedit akun Super Admin atau sesama Kepala Cabang
+        if ($currentUser->isKepalaCabang()) {
+            if ($user->isSuperAdmin() || ($user->isKepalaCabang() && $user->id !== $currentUser->id)) {
+                abort(403, 'Anda tidak memiliki hak untuk mengedit user ini.');
+            }
+
+            if ($currentUser->branch_id && $user->branch_id !== $currentUser->branch_id && $user->id !== $currentUser->id) {
+                abort(403, 'Anda hanya dapat mengelola pengguna di cabang Anda sendiri.');
+            }
+        }
+
+        $allowedRoles = $currentUser->isSuperAdmin()
+            ? [User::ROLE_SUPERADMIN, User::ROLE_KEPALA_CABANG, User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER]
+            : [User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER];
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6'],
-            'role' => ['required', 'string', Rule::in([User::ROLE_SUPERADMIN, User::ROLE_KEPALA_CABANG, User::ROLE_ADMIN_CABANG, User::ROLE_VIEWER])],
+            'role' => ['required', 'string', Rule::in($allowedRoles)],
             'branch_id' => ['nullable', 'required_if:role,' . User::ROLE_ADMIN_CABANG, 'exists:branches,id'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
@@ -103,6 +166,7 @@ class UserController extends Controller
             'email.unique' => 'Email sudah digunakan oleh user lain.',
             'password.min' => 'Password baru minimal 6 karakter jika diisi.',
             'role.required' => 'Role wajib dipilih.',
+            'role.in' => 'Role yang dipilih tidak diizinkan untuk akun Anda.',
             'branch_id.required_if' => 'Cabang wajib dipilih untuk Admin Cabang.',
             'branch_id.exists' => 'Cabang yang dipilih tidak valid.',
             'status.required' => 'Status wajib dipilih.',
@@ -119,6 +183,10 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
+        if ($currentUser->isKepalaCabang() && $currentUser->branch_id) {
+            $validated['branch_id'] = $currentUser->branch_id;
+        }
+
         if ($validated['role'] !== User::ROLE_ADMIN_CABANG) {
             $validated['branch_id'] = null;
         }
@@ -133,8 +201,23 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
+        $this->authorizeUserManagement();
+
+        $currentUser = auth()->user();
+
         if ($user->id === auth()->id()) {
             return back()->withErrors(['error' => 'Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif.']);
+        }
+
+        // Proteksi: Kepala Cabang tidak boleh menghapus akun Super Admin atau sesama Kepala Cabang
+        if ($currentUser->isKepalaCabang()) {
+            if ($user->isSuperAdmin() || $user->isKepalaCabang()) {
+                abort(403, 'Anda tidak memiliki hak untuk menghapus user ini.');
+            }
+
+            if ($currentUser->branch_id && $user->branch_id !== $currentUser->branch_id) {
+                abort(403, 'Anda hanya dapat menghapus pengguna di cabang Anda sendiri.');
+            }
         }
 
         $user->delete();

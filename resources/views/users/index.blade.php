@@ -9,7 +9,13 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5 pb-2">
         <div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Manajemen Pengguna</h1>
-            <p class="text-xs text-slate-500 mt-1 font-medium">Kelola akun, hak akses role cabang, dan status pengguna sistem.</p>
+            <p class="text-xs text-slate-500 mt-1 font-medium">
+                @if(auth()->user()->isKepalaCabang())
+                    Kelola akun Admin Cabang dan staf operasional di wilayah cabang Anda.
+                @else
+                    Kelola akun, hak akses role cabang, dan status pengguna sistem.
+                @endif
+            </p>
         </div>
         <button 
             type="button" 
@@ -42,10 +48,10 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Kepala Cabang</span>
-                    <span class="text-[9px] font-extrabold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200/80">ALL BRANCHES</span>
+                    <span class="text-[9px] font-extrabold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200/80">SUPERVISI</span>
                 </div>
                 <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
-                    Memantau statistik analitik seluruh cabang, filtering laporan komparasi, dan export berkas PDF/Excel.
+                    Memantau statistik cabang, membuat akun admin cabang, dan mengunduh laporan berkas.
                 </p>
             </div>
         </div>
@@ -175,13 +181,19 @@
 
                 <div id="userRoleMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[200px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
                     @php
-                        $roleOptions = [
-                            '' => 'Semua Role',
-                            'superadmin' => 'Super Admin',
-                            'kepala_cabang' => 'Kepala Cabang',
-                            'admin_cabang' => 'Admin Cabang',
-                            'viewer' => 'Viewer (Read-Only)'
-                        ];
+                        $roleOptions = auth()->user()->isSuperAdmin()
+                            ? [
+                                '' => 'Semua Role',
+                                'superadmin' => 'Super Admin',
+                                'kepala_cabang' => 'Kepala Cabang',
+                                'admin_cabang' => 'Admin Cabang',
+                                'viewer' => 'Viewer (Read-Only)'
+                            ]
+                            : [
+                                '' => 'Semua Role',
+                                'admin_cabang' => 'Admin Cabang',
+                                'viewer' => 'Viewer (Read-Only)'
+                            ];
                     @endphp
                     @foreach($roleOptions as $rKey => $rLabel)
                         <button 
@@ -373,16 +385,18 @@
 
                     <!-- Action Buttons -->
                     <div class="pt-2 border-t border-slate-200/60 flex items-center justify-end space-x-2">
-                        <button 
-                            type="button" 
-                            onclick="openEditModal({{ json_encode($user) }})"
-                            class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
-                        >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                            <span>Edit</span>
-                        </button>
+                        @if(auth()->user()->isSuperAdmin() || (!in_array($user->role, ['superadmin', 'kepala_cabang']) || $user->id === auth()->id()))
+                            <button 
+                                type="button" 
+                                onclick="openEditModal({{ json_encode($user) }})"
+                                class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                <span>Edit</span>
+                            </button>
+                        @endif
 
-                        @if($user->id !== auth()->id())
+                        @if($user->id !== auth()->id() && (auth()->user()->isSuperAdmin() || !in_array($user->role, ['superadmin', 'kepala_cabang'])))
                             <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user {{ $user->name }}? Data tidak dapat dipulihkan.');" class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -480,18 +494,20 @@
                             </td>
                             <td class="py-3 px-3.5 text-center">
                                 <div class="flex items-center justify-center space-x-1.5">
-                                    <button 
-                                        type="button" 
-                                        onclick="openEditModal({{ json_encode($user) }})"
-                                        class="p-1 text-slate-400 hover:text-tealBrand transition-colors cursor-pointer"
-                                        title="Edit Pengguna"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                    </button>
+                                    @if(auth()->user()->isSuperAdmin() || (!in_array($user->role, ['superadmin', 'kepala_cabang']) || $user->id === auth()->id()))
+                                        <button 
+                                            type="button" 
+                                            onclick="openEditModal({{ json_encode($user) }})"
+                                            class="p-1 text-slate-400 hover:text-tealBrand transition-colors cursor-pointer"
+                                            title="Edit Pengguna"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                    @endif
 
-                                    @if($user->id !== auth()->id())
+                                    @if($user->id !== auth()->id() && (auth()->user()->isSuperAdmin() || !in_array($user->role, ['superadmin', 'kepala_cabang'])))
                                         <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user {{ $user->name }}? Data tidak dapat dipulihkan.');" class="inline">
                                             @csrf
                                             @method('DELETE')
@@ -586,12 +602,17 @@
 
                         <div id="createRoleMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
                             @php
-                                $modalRoles = [
-                                    'admin_cabang' => 'Admin Cabang',
-                                    'kepala_cabang' => 'Kepala Cabang',
-                                    'superadmin' => 'Super Admin',
-                                    'viewer' => 'Viewer (Read-Only)'
-                                ];
+                                $modalRoles = auth()->user()->isSuperAdmin()
+                                    ? [
+                                        'admin_cabang' => 'Admin Cabang',
+                                        'kepala_cabang' => 'Kepala Cabang',
+                                        'superadmin' => 'Super Admin',
+                                        'viewer' => 'Viewer (Read-Only)'
+                                    ]
+                                    : [
+                                        'admin_cabang' => 'Admin Cabang',
+                                        'viewer' => 'Viewer (Read-Only)'
+                                    ];
                             @endphp
                             @foreach($modalRoles as $mRoleKey => $mRoleLabel)
                                 <button 
@@ -612,29 +633,37 @@
                 <div id="createBranchContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">PILIH CABANG</label>
                     <div class="relative" id="createBranchDropdownContainer">
-                        <input type="hidden" name="branch_id" id="createBranchId" value="">
+                        <input type="hidden" name="branch_id" id="createBranchId" value="{{ auth()->user()->isKepalaCabang() && auth()->user()->branch_id ? auth()->user()->branch_id : '' }}">
                         <button 
                             type="button"
                             id="createBranchTrigger"
                             onclick="toggleModalDropdown('createBranch')"
                             class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
                         >
-                            <span id="createBranchLabel" class="truncate">-- Pilih Cabang --</span>
+                            <span id="createBranchLabel" class="truncate">
+                                @if(auth()->user()->isKepalaCabang() && auth()->user()->branch_id)
+                                    {{ auth()->user()->branch->name ?? '-- Pilih Cabang --' }}
+                                @else
+                                    -- Pilih Cabang --
+                                @endif
+                            </span>
                             <svg id="createBranchChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
 
                         <div id="createBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
-                            <button 
-                                type="button"
-                                id="createBranchOpt_"
-                                onclick="selectModalDropdown('create', 'Branch', '', '-- Pilih Cabang --')"
-                                class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
-                            >
-                                <span>-- Pilih Cabang --</span>
-                                <svg id="createBranchCheck_" class="w-3.5 h-3.5 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            </button>
+                            @if(!auth()->user()->isKepalaCabang() || !auth()->user()->branch_id)
+                                <button 
+                                    type="button"
+                                    id="createBranchOpt_"
+                                    onclick="selectModalDropdown('create', 'Branch', '', '-- Pilih Cabang --')"
+                                    class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
+                                >
+                                    <span>-- Pilih Cabang --</span>
+                                    <svg id="createBranchCheck_" class="w-3.5 h-3.5 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </button>
+                            @endif
                             @foreach($branches as $branch)
                                 <button 
                                     type="button"
@@ -795,15 +824,17 @@
                         </button>
 
                         <div id="editBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
-                            <button 
-                                type="button"
-                                id="editBranchOpt_"
-                                onclick="selectModalDropdown('edit', 'Branch', '', '-- Pilih Cabang --')"
-                                class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
-                            >
-                                <span>-- Pilih Cabang --</span>
-                                <svg id="editBranchCheck_" class="w-3.5 h-3.5 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            </button>
+                            @if(!auth()->user()->isKepalaCabang() || !auth()->user()->branch_id)
+                                <button 
+                                    type="button"
+                                    id="editBranchOpt_"
+                                    onclick="selectModalDropdown('edit', 'Branch', '', '-- Pilih Cabang --')"
+                                    class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
+                                >
+                                    <span>-- Pilih Cabang --</span>
+                                    <svg id="editBranchCheck_" class="w-3.5 h-3.5 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </button>
+                            @endif
                             @foreach($branches as $branch)
                                 <button 
                                     type="button"
@@ -875,6 +906,9 @@
 
 @push('scripts')
 <script>
+    const isUserKepalaCabang = {{ auth()->user()->isKepalaCabang() ? 'true' : 'false' }};
+    const userDefaultBranchId = '{{ auth()->user()->branch_id ?? "" }}';
+
     const branchesMap = {
         @foreach($branches as $b)
         '{{ $b->id }}': '{{ addslashes($b->name) }}',
@@ -1093,10 +1127,17 @@
                 container.style.opacity = '1';
                 container.style.pointerEvents = 'auto';
             }
-            const branchInput = document.getElementById(type + 'BranchId');
-            const curVal = branchInput ? branchInput.value : '';
-            const curLabel = curVal && branchesMap[curVal] ? branchesMap[curVal] : '-- Pilih Cabang --';
-            setModalDropdownValue(type, 'Branch', curVal, curLabel);
+            
+            // If Kepala Cabang has specific branch, enforce it
+            if (isUserKepalaCabang && userDefaultBranchId) {
+                const branchName = branchesMap[userDefaultBranchId] || '-- Pilih Cabang --';
+                setModalDropdownValue(type, 'Branch', userDefaultBranchId, branchName);
+            } else {
+                const branchInput = document.getElementById(type + 'BranchId');
+                const curVal = branchInput ? branchInput.value : '';
+                const curLabel = curVal && branchesMap[curVal] ? branchesMap[curVal] : '-- Pilih Cabang --';
+                setModalDropdownValue(type, 'Branch', curVal, curLabel);
+            }
         }
     }
 
@@ -1153,7 +1194,14 @@
         modal.classList.add('flex');
         
         setModalDropdownValue('create', 'Role', 'admin_cabang', 'Admin Cabang');
-        setModalDropdownValue('create', 'Branch', '', '-- Pilih Cabang --');
+        
+        if (isUserKepalaCabang && userDefaultBranchId) {
+            const branchName = branchesMap[userDefaultBranchId] || '-- Pilih Cabang --';
+            setModalDropdownValue('create', 'Branch', userDefaultBranchId, branchName);
+        } else {
+            setModalDropdownValue('create', 'Branch', '', '-- Pilih Cabang --');
+        }
+
         setModalDropdownValue('create', 'Status', 'active', 'Aktif');
         toggleBranchField('create');
     }

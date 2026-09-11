@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TrashController;
@@ -30,10 +31,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/bulk-delete', [TransactionController::class, 'bulkDelete'])->name('transactions.bulk-delete');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);
 
+    // Modul Manajemen User (Super Admin & Kepala Cabang)
+    Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
+
     // Khusus Super Admin
     Route::middleware('superadmin')->group(function () {
-        // Modul Manajemen User
-        Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
+        // Modul Manajemen Cabang
+        Route::resource('branches', BranchController::class)->except(['create', 'show', 'edit']);
 
         // Modul Sampah / Recycle Bin
         Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
