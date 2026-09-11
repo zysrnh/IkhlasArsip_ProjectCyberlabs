@@ -15,38 +15,77 @@
         </div>
 
         @if(auth()->user()->canAccessAllBranches())
-            <div>
-                <form method="GET" action="{{ route('transactions.index') }}" class="inline-block">
+            <div class="relative w-full sm:w-auto" id="trxHeaderBranchDropdownContainer">
+                <form id="trxHeaderBranchForm" method="GET" action="{{ route('transactions.index') }}" class="hidden">
                     <input type="hidden" name="search" value="{{ request('search') }}">
                     <input type="hidden" name="type" value="{{ request('type') }}">
                     <input type="hidden" name="date_from" value="{{ request('date_from') }}">
                     <input type="hidden" name="date_to" value="{{ request('date_to') }}">
                     <input type="hidden" name="sort" value="{{ request('sort') }}">
-
-                    <div class="relative">
-                        <select 
-                            name="branch_id" 
-                            onchange="this.form.submit()" 
-                            class="appearance-none bg-white border border-slate-200 rounded-full py-2 pl-8 pr-8 text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:border-tealBrand cursor-pointer"
-                        >
-                            <option value="">Semua Cabang</option>
-                            @foreach($branches as $branch)
-                                <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>
-                                    {{ $branch->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-tealBrand pointer-events-none"></div>
-                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                    </div>
+                    <input type="hidden" name="branch_id" id="trxHeaderBranchInput" value="{{ $selectedBranchId }}">
                 </form>
+
+                <button 
+                    type="button" 
+                    id="trxHeaderBranchBtn"
+                    onclick="toggleCustomPopover('trxHeaderBranchMenu', 'trxHeaderBranchChevron')"
+                    class="w-full sm:w-auto flex items-center justify-between space-x-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-full py-2 pl-4 pr-3.5 text-xs font-bold text-slate-700 shadow-sm transition-all duration-150 cursor-pointer"
+                >
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-tealBrand shrink-0"></span>
+                        <span id="trxHeaderBranchLabel">
+                            @if($selectedBranchId)
+                                {{ $branches->firstWhere('id', $selectedBranchId)->name ?? 'Semua Cabang' }}
+                            @else
+                                Semua Cabang
+                            @endif
+                        </span>
+                    </div>
+                    <svg id="trxHeaderBranchChevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Dropdown Popover Menu -->
+                <div 
+                    id="trxHeaderBranchMenu" 
+                    class="hidden absolute right-0 top-full mt-1.5 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn"
+                >
+                    <div class="px-3 py-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                        Pilih Cabang
+                    </div>
+                    
+                    <button 
+                        type="button" 
+                        onclick="selectTrxHeaderBranch('', 'Semua Cabang')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty($selectedBranchId) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Cabang</span>
+                        @if(empty($selectedBranchId))
+                            <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        @endif
+                    </button>
+
+                    @foreach($branches as $branch)
+                        <button 
+                            type="button" 
+                            onclick="selectTrxHeaderBranch('{{ $branch->id }}', '{{ $branch->name }}')"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ $selectedBranchId == $branch->id ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        >
+                            <span>{{ $branch->name }}</span>
+                            @if($selectedBranchId == $branch->id)
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
             </div>
         @else
-            <div class="inline-flex items-center space-x-2 bg-white border border-slate-200 rounded-full px-4 py-1.5 shadow-sm text-xs font-bold text-slate-700">
+            <div class="inline-flex items-center space-x-2 bg-white border border-slate-200 rounded-full px-4 py-2 shadow-sm text-xs font-bold text-slate-700">
                 <span class="w-2 h-2 rounded-full bg-tealBrand"></span>
                 <span>{{ auth()->user()->branch->name ?? 'Cabang' }}</span>
             </div>
@@ -141,39 +180,88 @@
             <span>FILTER & SORTING</span>
         </div>
 
-        <form method="GET" action="{{ route('transactions.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <form id="filterFormMain" method="GET" action="{{ route('transactions.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <input type="hidden" name="search" value="{{ request('search') }}">
+            <input type="hidden" name="branch_id" id="filterBranchInput" value="{{ $selectedBranchId }}">
+            <input type="hidden" name="type" id="filterTypeInput" value="{{ request('type') }}">
+            <input type="hidden" name="sort" id="filterSortInput" value="{{ request('sort', 'terbaru') }}">
 
-            <!-- Filter Cabang -->
-            <div>
-                <select 
-                    name="branch_id" 
-                    onchange="this.form.submit()" 
-                    class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
+            <!-- Filter Cabang Custom Dropdown -->
+            <div class="relative" id="filterBranchDropdownContainer">
+                <button 
+                    type="button"
+                    onclick="toggleCustomPopover('filterBranchMenu', 'filterBranchChevron')"
+                    class="w-full px-3.5 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-700 font-medium flex items-center justify-between transition-colors {{ !auth()->user()->canAccessAllBranches() ? 'cursor-not-allowed opacity-75' : 'cursor-pointer' }}"
                     {{ !auth()->user()->canAccessAllBranches() ? 'disabled' : '' }}
                 >
-                    <option value="">Semua Cabang</option>
+                    <span class="truncate">
+                        @if($selectedBranchId)
+                            {{ $branches->firstWhere('id', $selectedBranchId)->name ?? 'Semua Cabang' }}
+                        @else
+                            Semua Cabang
+                        @endif
+                    </span>
+                    <svg id="filterBranchChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div id="filterBranchMenu" class="hidden absolute left-0 top-full mt-1 w-full min-w-[180px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectFilterBranch('', 'Semua Cabang')"
+                        class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors {{ empty($selectedBranchId) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Cabang</span>
+                        @if(empty($selectedBranchId))
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
                     @foreach($branches as $branch)
-                        <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>
-                            {{ $branch->name }}
-                        </option>
+                        <button 
+                            type="button" 
+                            onclick="selectFilterBranch('{{ $branch->id }}', '{{ $branch->name }}')"
+                            class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors {{ $selectedBranchId == $branch->id ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        >
+                            <span>{{ $branch->name }}</span>
+                            @if($selectedBranchId == $branch->id)
+                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
                     @endforeach
-                </select>
+                </div>
             </div>
 
-            <!-- Filter Jenis -->
-            <div>
-                <select 
-                    name="type" 
-                    onchange="this.form.submit()" 
-                    class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
+            <!-- Filter Jenis Custom Dropdown -->
+            <div class="relative" id="filterTypeDropdownContainer">
+                <button 
+                    type="button"
+                    onclick="toggleCustomPopover('filterTypeMenu', 'filterTypeChevron')"
+                    class="w-full px-3.5 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-700 font-medium flex items-center justify-between transition-colors cursor-pointer"
                 >
-                    <option value="">Semua Jenis</option>
-                    <option value="Penjualan Tunai" {{ request('type') === 'Penjualan Tunai' ? 'selected' : '' }}>Penjualan Tunai</option>
-                    <option value="Penjualan Kredit" {{ request('type') === 'Penjualan Kredit' ? 'selected' : '' }}>Penjualan Kredit</option>
-                    <option value="Retur Penjualan" {{ request('type') === 'Retur Penjualan' ? 'selected' : '' }}>Retur Penjualan</option>
-                    <option value="Transfer Cabang" {{ request('type') === 'Transfer Cabang' ? 'selected' : '' }}>Transfer Cabang</option>
-                </select>
+                    <span class="truncate">{{ request('type') ?: 'Semua Jenis' }}</span>
+                    <svg id="filterTypeChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div id="filterTypeMenu" class="hidden absolute left-0 top-full mt-1 w-full min-w-[180px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 animate-fadeIn">
+                    @php
+                        $typesList = ['', 'Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
+                    @endphp
+                    @foreach($typesList as $tOption)
+                        <button 
+                            type="button" 
+                            onclick="selectFilterType('{{ $tOption }}')"
+                            class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors {{ request('type') === $tOption ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        >
+                            <span>{{ $tOption ?: 'Semua Jenis' }}</span>
+                            @if(request('type') === $tOption)
+                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
             </div>
 
             <!-- Tanggal Dari -->
@@ -182,7 +270,7 @@
                     type="date" 
                     name="date_from" 
                     value="{{ request('date_from') }}" 
-                    onchange="this.form.submit()" 
+                    onchange="document.getElementById('filterFormMain').submit()" 
                     class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
                 >
             </div>
@@ -193,23 +281,56 @@
                     type="date" 
                     name="date_to" 
                     value="{{ request('date_to') }}" 
-                    onchange="this.form.submit()" 
+                    onchange="document.getElementById('filterFormMain').submit()" 
                     class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
                 >
             </div>
 
-            <!-- Sorting (Sesuai Brief) -->
-            <div>
-                <select 
-                    name="sort" 
-                    onchange="this.form.submit()" 
-                    class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
+            <!-- Sorting Custom Dropdown -->
+            <div class="relative" id="filterSortDropdownContainer">
+                <button 
+                    type="button"
+                    onclick="toggleCustomPopover('filterSortMenu', 'filterSortChevron')"
+                    class="w-full px-3.5 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-700 font-medium flex items-center justify-between transition-colors cursor-pointer"
                 >
-                    <option value="terbaru" {{ request('sort') === 'terbaru' ? 'selected' : '' }}>Terbaru</option>
-                    <option value="terlama" {{ request('sort') === 'terlama' ? 'selected' : '' }}>Terlama</option>
-                    <option value="terbanyak" {{ request('sort') === 'terbanyak' ? 'selected' : '' }}>Transaksi Terbanyak (Nominal)</option>
-                    <option value="tersedikit" {{ request('sort') === 'tersedikit' ? 'selected' : '' }}>Transaksi Paling Sedikit</option>
-                </select>
+                    <span class="truncate">
+                        @if(request('sort') === 'terlama')
+                            Terlama
+                        @elseif(request('sort') === 'terbanyak')
+                            Transaksi Terbanyak
+                        @elseif(request('sort') === 'tersedikit')
+                            Transaksi Paling Sedikit
+                        @else
+                            Terbaru
+                        @endif
+                    </span>
+                    <svg id="filterSortChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div id="filterSortMenu" class="hidden absolute right-0 top-full mt-1 w-full min-w-[200px] bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 animate-fadeIn">
+                    @php
+                        $sortOptions = [
+                            'terbaru' => 'Terbaru',
+                            'terlama' => 'Terlama',
+                            'terbanyak' => 'Transaksi Terbanyak (Nominal)',
+                            'tersedikit' => 'Transaksi Paling Sedikit',
+                        ];
+                    @endphp
+                    @foreach($sortOptions as $sKey => $sLabel)
+                        <button 
+                            type="button" 
+                            onclick="selectFilterSort('{{ $sKey }}')"
+                            class="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors {{ request('sort', 'terbaru') === $sKey ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        >
+                            <span>{{ $sLabel }}</span>
+                            @if(request('sort', 'terbaru') === $sKey)
+                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
             </div>
         </form>
 
@@ -834,6 +955,79 @@
                     input.files = files;
                     handleFileSelect(input);
                 }
+            });
+        }
+    });
+
+    // Custom Popover Dropdown Handlers
+    function toggleCustomPopover(menuId, chevronId) {
+        const menu = document.getElementById(menuId);
+        const chevron = document.getElementById(chevronId);
+        if (!menu) return;
+
+        const allPopovers = ['trxHeaderBranchMenu', 'filterBranchMenu', 'filterTypeMenu', 'filterSortMenu'];
+        const allChevrons = ['trxHeaderBranchChevron', 'filterBranchChevron', 'filterTypeChevron', 'filterSortChevron'];
+
+        allPopovers.forEach((id, idx) => {
+            if (id !== menuId) {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+                const ch = document.getElementById(allChevrons[idx]);
+                if (ch) ch.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            menu.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
+    function selectTrxHeaderBranch(branchId, branchName) {
+        document.getElementById('trxHeaderBranchInput').value = branchId;
+        document.getElementById('trxHeaderBranchLabel').textContent = branchName;
+        document.getElementById('trxHeaderBranchForm').submit();
+    }
+
+    function selectFilterBranch(branchId, branchName) {
+        document.getElementById('filterBranchInput').value = branchId;
+        document.getElementById('filterFormMain').submit();
+    }
+
+    function selectFilterType(type) {
+        document.getElementById('filterTypeInput').value = type;
+        document.getElementById('filterFormMain').submit();
+    }
+
+    function selectFilterSort(sort) {
+        document.getElementById('filterSortInput').value = sort;
+        document.getElementById('filterFormMain').submit();
+    }
+
+    document.addEventListener('click', function(e) {
+        const containers = [
+            'trxHeaderBranchDropdownContainer',
+            'filterBranchDropdownContainer',
+            'filterTypeDropdownContainer',
+            'filterSortDropdownContainer'
+        ];
+        const isInsideAny = containers.some(id => {
+            const el = document.getElementById(id);
+            return el && el.contains(e.target);
+        });
+
+        if (!isInsideAny) {
+            ['trxHeaderBranchMenu', 'filterBranchMenu', 'filterTypeMenu', 'filterSortMenu'].forEach((id, idx) => {
+                const menu = document.getElementById(id);
+                if (menu) menu.classList.add('hidden');
+            });
+            ['trxHeaderBranchChevron', 'filterBranchChevron', 'filterTypeChevron', 'filterSortChevron'].forEach(id => {
+                const ch = document.getElementById(id);
+                if (ch) ch.classList.remove('rotate-180');
             });
         }
     });

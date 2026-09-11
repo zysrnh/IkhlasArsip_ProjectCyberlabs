@@ -14,33 +14,71 @@
             </p>
         </div>
 
-        <!-- Filter Cabang Dropdown Pill -->
+        <!-- Filter Cabang Custom Dropdown Pill -->
         @if(auth()->user()->canAccessAllBranches())
-            <div class="w-full sm:w-auto">
-                <form method="GET" action="{{ route('dashboard') }}" class="w-full sm:w-auto">
-                    <div class="relative w-full sm:w-auto">
-                        <select 
-                            name="branch_id" 
-                            onchange="this.form.submit()" 
-                            class="appearance-none w-full sm:w-auto bg-white border border-slate-200 rounded-full py-2 pl-8 pr-9 text-xs font-bold text-slate-700 shadow-sm hover:border-tealBrand focus:outline-none focus:border-tealBrand cursor-pointer transition-colors"
-                        >
-                            <option value="">Semua Cabang</option>
-                            @foreach($allBranches as $branch)
-                                <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>
-                                    {{ $branch->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <!-- Teal Indicator Dot -->
-                        <div class="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-tealBrand pointer-events-none"></div>
-                        <!-- Caret Icon -->
-                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                    </div>
+            <div class="relative w-full sm:w-auto" id="dashboardBranchDropdownContainer">
+                <form id="dashboardBranchFilterForm" method="GET" action="{{ route('dashboard') }}" class="hidden">
+                    <input type="hidden" name="branch_id" id="selectedBranchInput" value="{{ $selectedBranchId }}">
                 </form>
+
+                <button 
+                    type="button" 
+                    id="dashboardBranchDropdownBtn"
+                    onclick="toggleDashboardBranchDropdown()"
+                    class="w-full sm:w-auto flex items-center justify-between space-x-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-full py-2 pl-4 pr-3.5 text-xs font-bold text-slate-700 shadow-sm transition-all duration-150 cursor-pointer"
+                >
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-tealBrand shrink-0"></span>
+                        <span id="dashboardCurrentBranchLabel">
+                            @if($selectedBranchId)
+                                {{ $allBranches->firstWhere('id', $selectedBranchId)->name ?? 'Semua Cabang' }}
+                            @else
+                                Semua Cabang
+                            @endif
+                        </span>
+                    </div>
+                    <svg id="dashboardBranchChevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Dropdown Popover Menu -->
+                <div 
+                    id="dashboardBranchDropdownMenu" 
+                    class="hidden absolute right-0 top-full mt-1.5 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn"
+                >
+                    <div class="px-3 py-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                        Pilih Cabang
+                    </div>
+                    
+                    <button 
+                        type="button" 
+                        onclick="selectDashboardBranchOption('', 'Semua Cabang')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty($selectedBranchId) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Cabang</span>
+                        @if(empty($selectedBranchId))
+                            <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        @endif
+                    </button>
+
+                    @foreach($allBranches as $branch)
+                        <button 
+                            type="button" 
+                            onclick="selectDashboardBranchOption('{{ $branch->id }}', '{{ $branch->name }}')"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ $selectedBranchId == $branch->id ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        >
+                            <span>{{ $branch->name }}</span>
+                            @if($selectedBranchId == $branch->id)
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
             </div>
         @else
             <div class="inline-flex items-center space-x-2 bg-white border border-slate-200 rounded-full px-4 py-2 shadow-sm text-xs font-bold text-slate-700 w-fit">
@@ -265,4 +303,38 @@
     </div>
 
 </div>
+
+@push('scripts')
+<script>
+    function toggleDashboardBranchDropdown() {
+        const menu = document.getElementById('dashboardBranchDropdownMenu');
+        const chevron = document.getElementById('dashboardBranchChevron');
+        if (!menu) return;
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            menu.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
+    function selectDashboardBranchOption(branchId, branchName) {
+        document.getElementById('selectedBranchInput').value = branchId;
+        document.getElementById('dashboardCurrentBranchLabel').textContent = branchName;
+        document.getElementById('dashboardBranchFilterForm').submit();
+    }
+
+    document.addEventListener('click', function(event) {
+        const container = document.getElementById('dashboardBranchDropdownContainer');
+        const menu = document.getElementById('dashboardBranchDropdownMenu');
+        const chevron = document.getElementById('dashboardBranchChevron');
+        if (container && menu && !container.contains(event.target)) {
+            menu.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    });
+</script>
+@endpush
 @endsection
