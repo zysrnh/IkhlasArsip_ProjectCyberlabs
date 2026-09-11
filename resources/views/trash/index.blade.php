@@ -5,18 +5,17 @@
 @section('content')
 <div class="space-y-5 animate-fadeIn">
 
-    <!-- Top Header -->
+    <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5 pb-2">
         <div>
             <div class="flex items-center space-x-2">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-200 uppercase tracking-wider">
                     Recycle Bin
                 </span>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Sampah Transaksi</h1>
+                <span class="text-xs text-slate-400 font-mono font-medium">Auto-purge safe</span>
             </div>
-            <p class="text-xs text-slate-500 mt-1 font-medium">
-                Daftar transaksi yang dihapus sementara (Soft Delete). Khusus Super Admin untuk memulihkan atau menghapus permanen.
-            </p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Sampah Transaksi</h1>
+            <p class="text-xs text-slate-500 mt-0.5 font-medium">Daftar transaksi yang telah dihapus sementara. Anda dapat memulihkannya kembali atau menghapusnya secara permanen.</p>
         </div>
 
         <div class="flex items-center space-x-2.5">
@@ -31,7 +30,7 @@
             </a>
 
             @if($transactions->total() > 0)
-                <form action="{{ route('trash.empty') }}" method="POST" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin mengosongkan tempat sampah? Semua data transaksi yang terhapus akan DIMUSNAHKAN PERMANEN dan tidak dapat dikembalikan lagi!');" class="inline">
+                <form action="{{ route('trash.empty') }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Kosongkan Tempat Sampah?', text: 'PERINGATAN: Semua data transaksi yang terhapus akan DIMUSNAHKAN PERMANEN dan tidak dapat dikembalikan lagi!', icon: 'warning', danger: true, confirmButtonText: 'Ya, Kosongkan Permanen', form: this });" class="inline">
                     @csrf
                     @method('DELETE')
                     <button 
@@ -150,8 +149,8 @@
                 @csrf
                 <div id="bulkRestoreInputs"></div>
                 <button 
-                    type="submit" 
-                    onclick="return confirm('Apakah Anda yakin ingin memulihkan transaksi yang dipilih?');" 
+                    type="button" 
+                    onclick="confirmCustomAction({ title: 'Pulihkan Transaksi Terpilih?', text: 'Transaksi yang dipilih akan dikembalikan ke daftar transaksi aktif.', icon: 'question', confirmButtonText: 'Ya, Pulihkan', form: document.getElementById('bulkRestoreForm') });" 
                     class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center space-x-1.5 shadow-sm cursor-pointer"
                 >
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,8 +165,8 @@
                 @csrf
                 <div id="bulkForceInputs"></div>
                 <button 
-                    type="submit" 
-                    onclick="return confirm('PERINGATAN: Apakah Anda yakin ingin MENGHAPUS PERMANEN transaksi yang dipilih? Data ini TIDAK BISA dikembalikan lagi.');" 
+                    type="button" 
+                    onclick="confirmCustomAction({ title: 'Hapus Permanen Terpilih?', text: 'PERINGATAN: Data transaksi yang dipilih akan DIHAPUS PERMANEN dan TIDAK BISA dikembalikan lagi.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus Permanen', form: document.getElementById('bulkForceForm') });" 
                     class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center space-x-1.5 shadow-sm cursor-pointer"
                 >
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,64 +178,81 @@
         </div>
     </div>
 
-    <!-- Summary Info Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs px-1">
+    <!-- Summary Info -->
+    <div class="flex items-center justify-between text-xs px-1">
         <div class="text-slate-500 font-medium">
-            Terdapat <strong class="text-slate-800 font-bold">{{ $transactions->total() }}</strong> transaksi di tempat sampah
+            Menampilkan <strong class="text-slate-800 font-bold">{{ $transactions->total() }}</strong> arsip di tempat sampah
             @if(request()->hasAny(['search', 'branch_id']))
                 &bull; <a href="{{ route('trash.index') }}" class="text-tealBrand hover:underline font-bold">Reset Filter</a>
             @endif
         </div>
-        <div class="text-xs sm:text-sm font-bold text-slate-700">
-            Total Nominal Sampah : <span class="text-rose-600 font-extrabold font-sans">Rp {{ number_format($totalTrashedAmount, 0, ',', '.') }}</span>
+        <div class="text-xs text-slate-400 font-mono font-medium">
+            Total nominal: Rp {{ number_format($transactions->sum('amount'), 0, ',', '.') }}
         </div>
     </div>
 
-    <!-- Data Container: Mobile Card List + Desktop Table -->
+    <!-- Container: Mobile Cards List + Desktop Table -->
     <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm overflow-hidden">
         
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-            <div class="flex items-center space-x-3">
-                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Daftar Sampah</h3>
-                <label class="md:hidden flex items-center space-x-1.5 text-[11px] font-bold text-slate-500 cursor-pointer">
-                    <input type="checkbox" id="selectAllTrashMobile" onchange="toggleSelectAllTrash(this)" class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
-                    <span>Pilih Semua</span>
-                </label>
-            </div>
+            <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Daftar Transaksi Dihapus</h3>
             <span class="text-xs text-slate-400 font-medium font-mono">Page {{ $transactions->currentPage() }} of {{ $transactions->lastPage() }}</span>
         </div>
 
         <!-- 1. Mobile Cards View (< md) -->
         <div class="block md:hidden space-y-3">
+            
+            <!-- Mobile Select All Bar -->
+            @if($transactions->count() > 0)
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-center justify-between text-xs font-semibold text-slate-700">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="selectAllTrashMobile" onchange="toggleSelectAllTrash(this)" class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
+                        <span>Pilih Semua Halaman Ini</span>
+                    </label>
+                    <span class="text-[11px] text-slate-400 font-mono">{{ $transactions->count() }} item</span>
+                </div>
+            @endif
+
             @forelse($transactions as $trx)
-                <div class="bg-rose-50/20 hover:bg-rose-50/40 border border-rose-200/80 rounded-xl p-3.5 space-y-2.5 transition-all">
+                <div class="bg-rose-50/30 hover:bg-rose-50/50 border border-rose-200/80 rounded-xl p-3.5 space-y-2.5 transition-all">
                     
-                    <!-- Top Row: Checkbox, Code, Type & Deleted Date -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <input type="checkbox" name="trash_ids[]" value="{{ $trx->id }}" onchange="updateTrashSelection()" class="trash-item-checkbox rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
-                            <span class="font-mono text-[11px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded-md">
-                                {{ $trx->code }}
-                            </span>
+                    <!-- Top Row: Checkbox, Code, Deleted Date -->
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center space-x-2.5">
+                            <input 
+                                type="checkbox" 
+                                name="trash_ids[]" 
+                                value="{{ $trx->id }}" 
+                                onchange="updateTrashSelection()"
+                                class="trash-item-checkbox rounded border-slate-300 text-tealBrand focus:ring-tealBrand mt-0.5 cursor-pointer"
+                            >
+                            <div>
+                                <span class="font-mono text-xs font-extrabold text-rose-800">{{ $trx->code }}</span>
+                                <div class="text-[11px] text-slate-400 font-mono mt-0.5">
+                                    {{ $trx->transaction_date ? $trx->transaction_date->format('d M Y') : '-' }}
+                                </div>
+                            </div>
                         </div>
-                        
-                        <span class="text-[10px] text-rose-600 font-bold font-mono">
-                            Dihapus: {{ $trx->deleted_at ? $trx->deleted_at->format('d M, H:i') : '-' }}
+
+                        <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                            Dihapus {{ $trx->deleted_at ? $trx->deleted_at->diffForHumans() : '' }}
                         </span>
                     </div>
 
-                    <!-- Body -->
-                    <div class="space-y-1">
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="font-bold text-xs text-slate-900">
-                                {{ $trx->customer_name }}
-                            </div>
-                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    <!-- Middle: Customer, Type, Branch -->
+                    <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-rose-200/60">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase font-bold block">Customer:</span>
+                            <span class="font-bold text-slate-800 truncate block">{{ $trx->customer_name }}</span>
+                            <span class="text-[10px] text-slate-500 font-mono">{{ $trx->customer_phone ?? '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase font-bold block">Jenis:</span>
+                            <span class="inline-block px-2 py-0.2 rounded text-[10px] font-bold bg-white text-slate-700 border border-slate-200 mt-0.5">
                                 {{ $trx->type }}
                             </span>
                         </div>
-
-                        <div class="text-[10px] text-slate-500 flex items-center space-x-1">
+                        <div class="col-span-2 text-[11px] text-slate-500">
                             <span>Cabang:</span>
                             <span class="text-slate-700 font-bold">{{ $trx->branch->name ?? '-' }}</span>
                         </div>
@@ -253,7 +269,7 @@
 
                         <div class="flex items-center space-x-2">
                             <!-- Restore Button -->
-                            <form action="{{ route('trash.restore', $trx->id) }}" method="POST" onsubmit="return confirm('Pulihkan transaksi {{ $trx->code }} kembali ke daftar aktif?');" class="inline">
+                            <form action="{{ route('trash.restore', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Pulihkan Transaksi?', text: 'Kembalikan transaksi {{ $trx->code }} ke daftar transaksi aktif.', icon: 'question', confirmButtonText: 'Ya, Pulihkan', form: this });" class="inline">
                                 @csrf
                                 <button 
                                     type="submit" 
@@ -265,7 +281,7 @@
                             </form>
 
                             <!-- Force Delete Button -->
-                            <form action="{{ route('trash.force-delete', $trx->id) }}" method="POST" onsubmit="return confirm('PERINGATAN: Hapus permanen transaksi {{ $trx->code }}? Data tidak dapat dikembalikan lagi!');" class="inline">
+                            <form action="{{ route('trash.force-delete', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Permanen Transaksi?', text: 'PERINGATAN: Transaksi {{ $trx->code }} akan dimusnahkan permanen dari database dan tidak dapat dipulihkan lagi.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus Permanen', form: this });" class="inline">
                                 @csrf
                                 @method('DELETE')
                                 <button 
@@ -339,7 +355,7 @@
                             <td class="py-3 px-3 text-center">
                                 <div class="flex items-center justify-center space-x-2">
                                     <!-- Restore Button -->
-                                    <form action="{{ route('trash.restore', $trx->id) }}" method="POST" onsubmit="return confirm('Pulihkan transaksi {{ $trx->code }} kembali ke daftar aktif?');" class="inline">
+                                    <form action="{{ route('trash.restore', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Pulihkan Transaksi?', text: 'Kembalikan transaksi {{ $trx->code }} ke daftar transaksi aktif.', icon: 'question', confirmButtonText: 'Ya, Pulihkan', form: this });" class="inline">
                                         @csrf
                                         <button 
                                             type="submit" 
@@ -353,7 +369,7 @@
                                     </form>
 
                                     <!-- Force Delete Button -->
-                                    <form action="{{ route('trash.force-delete', $trx->id) }}" method="POST" onsubmit="return confirm('PERINGATAN: Hapus permanen transaksi {{ $trx->code }}? Data tidak dapat dikembalikan lagi!');" class="inline">
+                                    <form action="{{ route('trash.force-delete', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Permanen Transaksi?', text: 'PERINGATAN: Transaksi {{ $trx->code }} akan dimusnahkan permanen dari database dan tidak dapat dipulihkan lagi.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus Permanen', form: this });" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button 
@@ -386,7 +402,6 @@
                 {{ $transactions->links() }}
             </div>
         @endif
-
     </div>
 
 </div>

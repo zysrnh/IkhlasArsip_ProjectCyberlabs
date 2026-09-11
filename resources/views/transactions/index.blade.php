@@ -404,8 +404,8 @@
                 @csrf
                 <div id="bulkDeleteInputs"></div>
                 <button 
-                    type="submit" 
-                    onclick="return confirm('Apakah Anda yakin ingin memindahkan transaksi yang dipilih ke tempat sampah?');" 
+                    type="button" 
+                    onclick="confirmCustomAction({ title: 'Pindahkan Transaksi Terpilih?', text: 'Semua transaksi yang dipilih akan dipindahkan ke tempat sampah.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Pindahkan ke Sampah', form: document.getElementById('bulkDeleteForm') });" 
                     class="w-full sm:w-auto px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-sm cursor-pointer"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -525,7 +525,7 @@
                                     <span>Edit</span>
                                 </button>
 
-                                <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="return confirm('Pindahkan transaksi {{ $trx->code }} ke tempat sampah?');" class="inline">
+                                <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Transaksi?', text: 'Transaksi {{ $trx->code }} akan dipindahkan ke tempat sampah.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Pindahkan', form: this });" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button 
@@ -648,7 +648,7 @@
                                             </svg>
                                         </button>
 
-                                        <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="return confirm('Pindahkan transaksi {{ $trx->code }} ke tempat sampah?');" class="inline">
+                                        <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Transaksi?', text: 'Transaksi {{ $trx->code }} akan dipindahkan ke tempat sampah.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Pindahkan', form: this });" class="inline">
                                             @csrf
                                             @method('DELETE')
                                             <button 

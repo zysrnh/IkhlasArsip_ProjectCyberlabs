@@ -215,7 +215,7 @@
                             <span>Edit</span>
                         </button>
 
-                        <form action="{{ route('branches.destroy', $branch->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus cabang {{ $branch->name }}?');" class="inline">
+                        <form action="{{ route('branches.destroy', $branch->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Cabang?', text: 'Cabang {{ $branch->name }} akan dihapus. Pastikan tidak ada transaksi aktif yang tertaut.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus Cabang', form: this });" class="inline">
                             @csrf
                             @method('DELETE')
                             <button 
@@ -301,7 +301,7 @@
                                         </svg>
                                     </button>
 
-                                    <form action="{{ route('branches.destroy', $branch->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus cabang {{ $branch->name }}?');" class="inline">
+                                    <form action="{{ route('branches.destroy', $branch->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Cabang?', text: 'Cabang {{ $branch->name }} akan dihapus. Pastikan tidak ada transaksi aktif yang tertaut.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus Cabang', form: this });" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button 

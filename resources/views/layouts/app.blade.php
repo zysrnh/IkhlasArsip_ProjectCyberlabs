@@ -570,30 +570,58 @@
             }
         });
 
-        // Konfirmasi Logout Desktop
-        function confirmLogout(form) {
+        // Custom SweetAlert2 Action Confirmation
+        function confirmCustomAction(options) {
+            const {
+                title = 'Konfirmasi Tindakan',
+                text = 'Apakah Anda yakin ingin melanjutkan tindakan ini?',
+                icon = 'warning',
+                confirmButtonText = 'Ya, Lanjutkan',
+                cancelButtonText = 'Batal',
+                danger = false,
+                form = null,
+                onConfirm = null
+            } = options;
+
             Swal.fire({
-                title: 'Keluar dari Sistem?',
-                text: 'Sesi akun Anda akan diakhiri dan dialihkan ke halaman login.',
-                icon: 'question',
-                iconColor: '#0A97B0',
+                title: title,
+                text: text,
+                icon: icon,
+                iconColor: danger ? '#f43f5e' : (icon === 'question' ? '#0A97B0' : '#f59e0b'),
                 showCancelButton: true,
-                confirmButtonColor: '#0A97B0',
+                confirmButtonColor: danger ? '#f43f5e' : '#0A97B0',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Keluar',
-                cancelButtonText: 'Batal',
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: cancelButtonText,
+                reverseButtons: true,
                 background: '#ffffff',
                 customClass: {
-                    popup: 'rounded-xl border border-slate-200 shadow-2xl p-6',
-                    title: 'text-base font-bold text-slate-900',
-                    htmlContainer: 'text-xs text-slate-500 font-medium',
-                    confirmButton: 'px-5 py-2.5 rounded-lg text-xs font-bold shadow-sm',
-                    cancelButton: 'px-5 py-2.5 rounded-lg text-xs font-bold'
+                    popup: 'rounded-2xl border border-slate-200 shadow-2xl p-6 animate-fadeIn',
+                    title: 'text-base sm:text-lg font-extrabold text-slate-900 tracking-tight',
+                    htmlContainer: 'text-xs text-slate-500 font-medium leading-relaxed mt-1',
+                    confirmButton: 'px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-transform active:scale-95 cursor-pointer',
+                    cancelButton: 'px-5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer'
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    form.submit();
+                    if (form) {
+                        form.submit();
+                    } else if (typeof onConfirm === 'function') {
+                        onConfirm();
+                    }
                 }
+            });
+        }
+
+        // Konfirmasi Logout Desktop
+        function confirmLogout(form) {
+            confirmCustomAction({
+                title: 'Keluar dari Sistem?',
+                text: 'Sesi akun Anda akan diakhiri dan dialihkan ke halaman login.',
+                icon: 'question',
+                confirmButtonText: 'Ya, Keluar',
+                cancelButtonText: 'Batal',
+                form: form
             });
         }
 

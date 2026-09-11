@@ -401,7 +401,7 @@
                         @endif
 
                         @if($user->id !== auth()->id() && (auth()->user()->isSuperAdmin() || !in_array($user->role, ['superadmin', 'kepala_cabang'])))
-                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user {{ $user->name }}? Data tidak dapat dipulihkan.');" class="inline">
+                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Pengguna?', text: 'Pengguna {{ $user->name }} akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus Permanen', form: this });" class="inline">
                                 @csrf
                                 @method('DELETE')
                                 <button 
@@ -516,7 +516,7 @@
                                     @endif
 
                                     @if($user->id !== auth()->id() && (auth()->user()->isSuperAdmin() || !in_array($user->role, ['superadmin', 'kepala_cabang'])))
-                                        <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user {{ $user->name }}? Data tidak dapat dipulihkan.');" class="inline">
+                                        <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Pengguna?', text: 'Pengguna {{ $user->name }} akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus Permanen', form: this });" class="inline">
                                             @csrf
                                             @method('DELETE')
                                             <button 
