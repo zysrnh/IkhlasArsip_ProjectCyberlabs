@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     // Modul Data Transaksi & Laporan
     Route::get('/transactions/download-template', [TransactionController::class, 'downloadTemplate'])->name('transactions.download-template');
     Route::get('/transactions/export-pdf', [TransactionController::class, 'exportPdf'])->name('transactions.export-pdf');
+    Route::get('/transactions/export-excel', [TransactionController::class, 'exportExcel'])->name('transactions.export-excel');
     Route::post('/transactions/import-excel', [TransactionController::class, 'importExcel'])->name('transactions.import-excel');
     Route::post('/transactions/bulk-delete', [TransactionController::class, 'bulkDelete'])->name('transactions.bulk-delete');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);

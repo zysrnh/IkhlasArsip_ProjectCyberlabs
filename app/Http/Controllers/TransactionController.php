@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -307,6 +306,184 @@ class TransactionController extends Controller
         $fileName = 'Laporan_Transaksi_' . ($selectedBranch ? str_replace(' ', '_', $selectedBranch->name) : 'Semua_Cabang') . '_' . date('Ymd_His') . '.pdf';
 
         return $pdf->download($fileName);
+    }
+
+    /**
+     * Export Laporan Excel (.xlsx) Resmi & Rapi Sesuai Filter
+     */
+    public function exportExcel(Request $request): StreamedResponse
+    {
+        $user = auth()->user();
+        $query = Transaction::with(['branch', 'user']);
+
+        // Otorisasi & Filter
+        if ($user->isAdminCabang()) {
+            $query->where('branch_id', $user->branch_id);
+            $selectedBranch = $user->branch;
+        } else {
+            if ($request->filled('branch_id')) {
+                $query->where('branch_id', $request->branch_id);
+                $selectedBranch = Branch::find($request->branch_id);
+            } else {
+                $selectedBranch = null; // Semua Cabang
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('transaction_date', '<=', $request->date_to);
+        }
+
+        $sort = $request->get('sort', 'terbaru');
+        switch ($sort) {
+            case 'terlama':
+                $query->oldest('transaction_date')->oldest('id');
+                break;
+            case 'terbanyak':
+                $query->orderByDesc('amount');
+                break;
+            case 'tersedikit':
+                $query->orderBy('amount');
+                break;
+            case 'terbaru':
+            default:
+                $query->latest('transaction_date')->latest('id');
+                break;
+        }
+
+        $transactions = $query->get();
+        $totalAmount = $transactions->sum('amount');
+        $totalQty = $transactions->sum('qty');
+
+        $branchTitle = $selectedBranch ? $selectedBranch->name : 'Semua Cabang';
+        $fileName = 'Laporan_Transaksi_' . ($selectedBranch ? str_replace(' ', '_', $selectedBranch->name) : 'Semua_Cabang') . '_' . date('Ymd_His') . '.xlsx';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($transactions, $branchTitle, $totalAmount, $totalQty, $user, $request) {
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Laporan Transaksi');
+
+            // 1. Header KOP Laporan
+            $sheet->setCellValue('A1', 'IKHLAS SOLUSI — SALES & ARCHIVING MANAGEMENT');
+            $sheet->getStyle('A1')->getFont()->setSize(14)->setBold(true)->getColor()->setRGB('0B192C');
+
+            $sheet->setCellValue('A2', 'LAPORAN DATA RESUME TRANSAKSI');
+            $sheet->getStyle('A2')->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('0A97B0');
+
+            // 2. Metadata Info
+            $periodeText = ($request->filled('date_from') || $request->filled('date_to')) 
+                ? (($request->date_from ?: 'Awal') . ' s/d ' . ($request->date_to ?: 'Sekarang'))
+                : 'Semua Periode';
+            
+            $sheet->setCellValue('A4', 'Cabang');
+            $sheet->setCellValue('B4', ': ' . $branchTitle);
+            $sheet->setCellValue('D4', 'Dicetak Oleh');
+            $sheet->setCellValue('E4', ': ' . $user->name);
+
+            $sheet->setCellValue('A5', 'Periode');
+            $sheet->setCellValue('B5', ': ' . $periodeText);
+            $sheet->setCellValue('D5', 'Waktu Cetak');
+            $sheet->setCellValue('E5', ': ' . now()->translatedFormat('d F Y, H:i'));
+
+            $sheet->getStyle('A4:A5')->getFont()->setBold(true)->getColor()->setRGB('475569');
+            $sheet->getStyle('D4:D5')->getFont()->setBold(true)->getColor()->setRGB('475569');
+
+            // 3. Table Headers
+            $columns = ['ID', 'Tanggal', 'Cabang', 'Jenis', 'Deskripsi', 'Customer', 'Qty', 'Jumlah'];
+            $colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+            for ($i = 0; $i < count($columns); $i++) {
+                $cellRef = $colLetters[$i] . '7';
+                $sheet->setCellValue($cellRef, $columns[$i]);
+            }
+
+            $sheet->getStyle('A7:H7')->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A7:H7')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0B192C');
+            $sheet->getStyle('A7:H7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getRowDimension(7)->setRowHeight(28);
+
+            // 4. Data Rows
+            $currencyFormat = '"Rp"\ #,##0;[Red]"-Rp"\ #,##0;"Rp"\ 0';
+            $startRow = 8;
+            $currentRow = $startRow;
+
+            foreach ($transactions as $trx) {
+                $sheet->setCellValue("A{$currentRow}", $trx->code);
+                $sheet->setCellValue("B{$currentRow}", $trx->transaction_date ? $trx->transaction_date->format('Y-m-d') : '-');
+                $sheet->setCellValue("C{$currentRow}", $trx->branch->name ?? '-');
+                $sheet->setCellValue("D{$currentRow}", $trx->type);
+                $sheet->setCellValue("E{$currentRow}", $trx->notes ?: '-');
+                $sheet->setCellValue("F{$currentRow}", $trx->customer_name);
+                $sheet->setCellValue("G{$currentRow}", $trx->qty);
+                $sheet->setCellValue("H{$currentRow}", $trx->amount);
+
+                $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("G{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("H{$currentRow}")->getNumberFormat()->setFormatCode($currencyFormat);
+
+                // Alternating row background
+                if ($currentRow % 2 == 1) {
+                    $sheet->getStyle("A{$currentRow}:H{$currentRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
+                }
+
+                $currentRow++;
+            }
+
+            // 5. Total Row
+            $sheet->setCellValue("A{$currentRow}", 'TOTAL KESELURUHAN');
+            $sheet->mergeCells("A{$currentRow}:F{$currentRow}");
+            $sheet->setCellValue("G{$currentRow}", $totalQty);
+            $sheet->setCellValue("H{$currentRow}", $totalAmount);
+
+            $sheet->getStyle("A{$currentRow}:H{$currentRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("G{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("H{$currentRow}")->getNumberFormat()->setFormatCode($currencyFormat);
+            $sheet->getStyle("A{$currentRow}:H{$currentRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E2E8F0');
+            $sheet->getRowDimension($currentRow)->setRowHeight(24);
+
+            // 6. Borders
+            $sheet->getStyle("A7:H{$currentRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+
+            // 7. Auto-width Column Dimensions
+            $sheet->getColumnDimension('A')->setWidth(14);
+            $sheet->getColumnDimension('B')->setWidth(15);
+            $sheet->getColumnDimension('C')->setWidth(18);
+            $sheet->getColumnDimension('D')->setWidth(18);
+            $sheet->getColumnDimension('E')->setWidth(30);
+            $sheet->getColumnDimension('F')->setWidth(22);
+            $sheet->getColumnDimension('G')->setWidth(10);
+            $sheet->getColumnDimension('H')->setWidth(22);
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**
