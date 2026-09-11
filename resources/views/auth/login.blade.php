@@ -31,17 +31,16 @@
                         }
                     },
                     animation: {
-                        fadeIn: 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        slideUp: 'slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        pulseSlow: 'pulse 3s infinite',
+                        fadeIn: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        slideUp: 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
                         fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '0%': { opacity: '0', transform: 'translateY(8px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
                         },
                         slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(18px)' },
+                            '0%': { opacity: '0', transform: 'translateY(14px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
                         }
                     }
@@ -72,70 +71,76 @@
         }
     </style>
 </head>
-<body class="bg-white text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-tealBrand selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-tealBrand selection:text-white">
 
     <div class="min-h-screen flex flex-col lg:flex-row w-full">
         
         <!-- SISI KIRI: Branding & Informasi Sistem (Dark Navy Solid) -->
-        <div class="w-full lg:w-1/2 bg-navy-900 text-white flex flex-col justify-between p-8 sm:p-12 lg:p-16 relative overflow-hidden animate-fadeIn">
+        <div class="w-full lg:w-1/2 bg-navy-900 text-white flex flex-col justify-between px-6 py-6 sm:px-10 sm:py-8 lg:p-16 relative overflow-hidden shrink-0 animate-fadeIn">
             
             <!-- Top: Brand Header -->
-            <div class="flex items-center space-x-3 group cursor-default">
-                <div class="w-9 h-9 bg-tealBrand flex items-center justify-center text-white shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
+            <div class="flex items-center justify-between lg:justify-start space-x-3">
+                <div class="flex items-center space-x-3 group cursor-default">
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 bg-tealBrand flex items-center justify-center text-white shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </div>
+                    <span class="font-bold text-sm sm:text-base tracking-tight text-white">Ikhlas Solusi</span>
                 </div>
-                <span class="font-bold text-base tracking-tight text-white">Ikhlas Solusi</span>
+
+                <div class="lg:hidden text-[11px] font-bold text-tealBrand uppercase tracking-wider">
+                    Sales Management
+                </div>
             </div>
 
             <!-- Middle: Main Headline & Statistics -->
-            <div class="py-12 lg:py-0">
+            <div class="py-4 sm:py-6 lg:py-0">
                 <!-- Headline -->
-                <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight animate-slideUp">
-                    Satu Sistem.<br>
+                <h1 class="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight mt-3 sm:mt-5 lg:mt-0 animate-slideUp">
+                    Satu Sistem. <br class="hidden sm:inline">
                     <span class="text-tealBrand">Semua Cabang.</span>
                 </h1>
 
                 <!-- Tagline -->
-                <p class="text-slate-400 text-sm max-w-md leading-relaxed mt-5">
+                <p class="text-slate-400 text-xs sm:text-sm max-w-md leading-relaxed mt-2 sm:mt-4 hidden sm:block">
                     Platform manajemen resume penjualan terpusat untuk kepala cabang dan admin cabang Anda.
                 </p>
 
                 <!-- Statistics Section (Dinamis dari Database) -->
-                <div class="flex items-center gap-8 sm:gap-12 mt-12 pt-8 border-t border-navy-800">
+                <div class="grid grid-cols-3 gap-2 sm:gap-6 lg:flex lg:items-center lg:gap-12 mt-4 sm:mt-8 lg:mt-12 pt-4 sm:pt-6 lg:pt-8 border-t border-navy-800 text-center lg:text-left">
                     <div class="group cursor-default">
-                        <div class="text-2xl sm:text-3xl font-extrabold text-white transition-transform group-hover:scale-105">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white transition-transform group-hover:scale-105">
                             {{ $activeBranchesCount ?? 3 }}
                         </div>
-                        <div class="text-xs text-slate-400 mt-1 font-medium flex items-center gap-1.5">
+                        <div class="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 font-medium flex items-center justify-center lg:justify-start gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span>Cabang Aktif</span>
+                            <span>Cabang</span>
                         </div>
                     </div>
                     <div class="group cursor-default">
-                        <div class="text-2xl sm:text-3xl font-extrabold text-white transition-transform group-hover:scale-105">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white transition-transform group-hover:scale-105">
                             {{ $totalTransactionsCount ?? 0 }}
                         </div>
-                        <div class="text-xs text-slate-400 mt-1 font-medium flex items-center gap-1.5">
+                        <div class="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 font-medium flex items-center justify-center lg:justify-start gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-                            <span>Transaksi Terinput</span>
+                            <span>Transaksi</span>
                         </div>
                     </div>
                     <div class="group cursor-default">
-                        <div class="text-2xl sm:text-3xl font-extrabold text-white transition-transform group-hover:scale-105">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white transition-transform group-hover:scale-105">
                             100%
                         </div>
-                        <div class="text-xs text-slate-400 mt-1 font-medium flex items-center gap-1.5">
+                        <div class="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 font-medium flex items-center justify-center lg:justify-start gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-tealBrand"></span>
-                            <span>Data Terpusat</span>
+                            <span>Terpusat</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Bottom: Slider Indicator (Flat) -->
-            <div class="flex items-center space-x-2 pt-4">
+            <!-- Bottom: Slider Indicator (Desktop Only) -->
+            <div class="hidden lg:flex items-center space-x-2 pt-4">
                 <div class="w-8 h-1 bg-tealBrand transition-all duration-300"></div>
                 <div class="w-1.5 h-1.5 bg-white/40 rounded-full hover:bg-white transition-colors cursor-pointer"></div>
                 <div class="w-1.5 h-1.5 bg-white/40 rounded-full hover:bg-white transition-colors cursor-pointer"></div>
@@ -144,27 +149,27 @@
         </div>
 
         <!-- SISI KANAN: Form Login (Clean White) -->
-        <div class="w-full lg:w-1/2 bg-white flex items-center justify-center p-8 sm:p-12 lg:p-20">
+        <div class="w-full lg:w-1/2 bg-white flex items-center justify-center px-6 py-8 sm:px-10 sm:py-12 lg:p-20 flex-1">
             
-            <div class="w-full max-w-md space-y-8 animate-slideUp">
+            <div class="w-full max-w-md space-y-6 sm:space-y-8 animate-slideUp">
                 
                 <!-- Title & Subtitle -->
                 <div>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                    <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
                         Masuk ke Sistem
                     </h2>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-1.5">
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1 sm:mt-1.5">
                         Masukkan akun dan kata sandi Anda untuk melanjutkan.
                     </p>
                 </div>
 
                 <!-- Login Form -->
-                <form action="{{ route('login') }}" method="POST" class="space-y-5">
+                <form action="{{ route('login') }}" method="POST" class="space-y-4 sm:space-y-5">
                     @csrf
 
                     <!-- Username / Email Input -->
                     <div>
-                        <label for="email" class="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        <label for="email" class="block text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                             Username / Email
                         </label>
                         <input 
@@ -176,14 +181,14 @@
                             autofocus
                             autocomplete="username"
                             placeholder="Masukkan Username atau Email" 
-                            class="w-full px-4 py-3 bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-tealBrand transition-all"
+                            class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:border-tealBrand transition-all"
                         >
                     </div>
 
                     <!-- Password Input -->
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <label for="password" class="block text-[11px] font-bold uppercase tracking-wider text-slate-700">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="password" class="block text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-700">
                                 Password
                             </label>
                         </div>
@@ -195,12 +200,12 @@
                                 required 
                                 autocomplete="current-password"
                                 placeholder="Masukan Password" 
-                                class="w-full px-4 py-3 bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-tealBrand transition-all pr-14"
+                                class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:border-tealBrand transition-all pr-14"
                             >
                             <button 
                                 type="button" 
                                 id="togglePassword" 
-                                class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-700 text-xs font-semibold select-none"
+                                class="absolute inset-y-0 right-0 pr-3.5 sm:pr-4 flex items-center text-slate-400 hover:text-slate-700 text-xs font-semibold select-none"
                                 onclick="togglePasswordVisibility()"
                             >
                                 Lihat
@@ -209,7 +214,7 @@
                     </div>
 
                     <!-- Remember Me -->
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between pt-1">
                         <label class="inline-flex items-center cursor-pointer select-none">
                             <input 
                                 type="checkbox" 
@@ -223,10 +228,10 @@
                     </div>
 
                     <!-- Submit Button (Solid Teal) -->
-                    <div>
+                    <div class="pt-2">
                         <button 
                             type="submit" 
-                            class="w-full py-3.5 px-4 bg-tealBrand hover:bg-tealBrand-hover text-white font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center space-x-2 active:bg-tealBrand-dark shadow-sm hover:shadow"
+                            class="w-full py-3 sm:py-3.5 px-4 bg-tealBrand hover:bg-tealBrand-hover text-white font-bold text-xs sm:text-sm tracking-wide transition-all duration-200 flex items-center justify-center space-x-2 active:bg-tealBrand-dark shadow-sm hover:shadow"
                         >
                             <span>Masuk Sekarang</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,7 +242,7 @@
                 </form>
 
                 <!-- Footer Text -->
-                <div class="pt-4 text-center text-xs text-slate-400">
+                <div class="pt-2 sm:pt-4 text-center text-[11px] sm:text-xs text-slate-400">
                     &copy; {{ date('Y') }} Ikhlas Solusi &bull; Seluruh hak cipta dilindungi.
                 </div>
 
