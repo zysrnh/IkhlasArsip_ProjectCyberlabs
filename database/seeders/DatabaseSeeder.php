@@ -18,36 +18,36 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
+        Transaction::truncate();
+        User::truncate();
+        Branch::truncate();
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+
         // 1. Seed 3 Cabang Utama
-        $jkt = Branch::updateOrCreate(
-            ['code' => 'CAB-JKT-01'],
-            [
-                'name' => 'Jakarta Pusat',
-                'address' => 'Jl. Thamrin No. 10, Jakarta Pusat',
-                'phone' => '021-3901234',
-                'status' => 'active',
-            ]
-        );
+        $jkt = Branch::create([
+            'code' => 'CAB-JKT-01',
+            'name' => 'Jakarta Pusat',
+            'address' => 'Jl. Thamrin No. 10, Jakarta Pusat',
+            'phone' => '021-3901234',
+            'status' => 'active',
+        ]);
 
-        $bdg = Branch::updateOrCreate(
-            ['code' => 'CAB-BDG-02'],
-            [
-                'name' => 'Bandung',
-                'address' => 'Jl. Asia Afrika No. 45, Bandung',
-                'phone' => '022-4201234',
-                'status' => 'active',
-            ]
-        );
+        $bdg = Branch::create([
+            'code' => 'CAB-BDG-02',
+            'name' => 'Bandung',
+            'address' => 'Jl. Asia Afrika No. 45, Bandung',
+            'phone' => '022-4201234',
+            'status' => 'active',
+        ]);
 
-        $sby = Branch::updateOrCreate(
-            ['code' => 'CAB-SBY-03'],
-            [
-                'name' => 'Surabaya',
-                'address' => 'Jl. Pemuda No. 88, Surabaya',
-                'phone' => '031-5341234',
-                'status' => 'active',
-            ]
-        );
+        $sby = Branch::create([
+            'code' => 'CAB-SBY-03',
+            'name' => 'Surabaya',
+            'address' => 'Jl. Pemuda No. 88, Surabaya',
+            'phone' => '031-5341234',
+            'status' => 'active',
+        ]);
 
         // 2. Seed Users Sesuai Brief & Mockup
         // Kepala Cabang (Membawahi semua cabang)

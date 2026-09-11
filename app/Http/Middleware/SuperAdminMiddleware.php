@@ -13,8 +13,8 @@ class SuperAdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || !auth()->user()->isSuperAdmin()) {
-            abort(403, 'Akses Terbatas: Halaman ini hanya dapat diakses oleh Super Administrator.');
+        if (!auth()->check() || !auth()->user()->canAccessAllBranches()) {
+            abort(403, 'Akses Terbatas: Halaman ini hanya dapat diakses oleh Kepala Cabang / Super Administrator.');
         }
 
         return $next($request);
