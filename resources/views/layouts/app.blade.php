@@ -4,7 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Ikhlas Solusi') - Sales Management</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <!-- Google Fonts Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#071220',
+                            900: '#0B192C',
+                            850: '#0F223D',
+                            800: '#142B4D',
+                        },
+                        tealBrand: {
+                            DEFAULT: '#0A97B0',
+                            hover: '#088395',
+                            dark: '#056371',
+                            light: '#E0F7FA',
+                        }
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(6px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     
     <!-- Flatpickr Datepicker CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -15,13 +56,8 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
 
     <style>
-        /* Custom Keyframe Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        * {
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Hide scrollbar for clean UI */
@@ -218,7 +254,7 @@
             <!-- Logout Button with SweetAlert2 Confirmation -->
             <form action="{{ route('logout') }}" method="POST" onsubmit="event.preventDefault(); confirmLogout(this);">
                 @csrf
-                <button type="submit" class="w-full flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-rose-400 py-1.5 transition-colors group">
+                <button type="submit" class="w-full flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-rose-400 py-1.5 transition-colors group cursor-pointer">
                     <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
