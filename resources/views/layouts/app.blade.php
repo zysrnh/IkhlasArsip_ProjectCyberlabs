@@ -15,6 +15,17 @@
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Zero-Latency Sidebar State to Prevent Flicker -->
+    <script>
+        (function() {
+            try {
+                if (window.innerWidth >= 1024 && localStorage.getItem('ikhlas_sidebar_collapsed') === 'true') {
+                    document.documentElement.classList.add('sidebar-is-collapsed');
+                }
+            } catch(e) {}
+        })();
+    </script>
     <script>
         tailwind.config = {
             theme: {
@@ -144,26 +155,29 @@
             font-weight: 800 !important;
         }
 
-        /* Collapsed Sidebar Styles */
-        .sidebar-collapsed {
+        /* Zero-Latency Initial & Collapsed Sidebar Styles */
+        html.sidebar-is-collapsed #sidebar, .sidebar-collapsed {
             width: 5rem !important;
         }
-        .sidebar-collapsed .sidebar-hide-on-collapse {
+        html.sidebar-is-collapsed #mainWrapper {
+            padding-left: 5rem !important;
+        }
+        html.sidebar-is-collapsed .sidebar-hide-on-collapse, .sidebar-collapsed .sidebar-hide-on-collapse {
             display: none !important;
         }
-        .sidebar-collapsed .sidebar-nav-item {
+        html.sidebar-is-collapsed .sidebar-nav-item, .sidebar-collapsed .sidebar-nav-item {
             justify-content: center !important;
             padding-left: 0.5rem !important;
             padding-right: 0.5rem !important;
             margin-left: 0.5rem !important;
             margin-right: 0.5rem !important;
         }
-        .sidebar-collapsed .brand-container {
+        html.sidebar-is-collapsed .brand-container, .sidebar-collapsed .brand-container {
             justify-content: center !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
         }
-        .sidebar-collapsed .sidebar-profile-container {
+        html.sidebar-is-collapsed .sidebar-profile-container, .sidebar-collapsed .sidebar-profile-container {
             justify-content: center !important;
         }
     </style>
@@ -355,6 +369,7 @@
         <header class="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-xs">
             <!-- Left: Toggle Sidebar on Mobile / Info on Desktop -->
             <div class="flex items-center space-x-3">
+                <!-- Mobile Sidebar Toggle -->
                 <button 
                     type="button" 
                     onclick="toggleSidebarMobile()" 
@@ -362,6 +377,18 @@
                 >
                     <svg class="w-5 h-5 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Desktop Sidebar Toggle Button (Selalu ada di Topbar untuk Buka/Tutup) -->
+                <button 
+                    type="button" 
+                    onclick="toggleSidebarDesktop()" 
+                    class="hidden lg:flex p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                    title="Buka / Tutup Sidebar"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
                     </svg>
                 </button>
                 
@@ -526,11 +553,13 @@
 
         function applyDesktopSidebarCollapse(collapse) {
             if (collapse) {
+                document.documentElement.classList.add('sidebar-is-collapsed');
                 sidebarEl.classList.add('sidebar-collapsed');
                 mainWrapperEl.classList.remove('lg:pl-64');
                 mainWrapperEl.classList.add('lg:pl-20');
                 if (desktopToggleIcon) desktopToggleIcon.classList.add('rotate-180');
             } else {
+                document.documentElement.classList.remove('sidebar-is-collapsed');
                 sidebarEl.classList.remove('sidebar-collapsed');
                 mainWrapperEl.classList.remove('lg:pl-20');
                 mainWrapperEl.classList.add('lg:pl-64');

@@ -60,7 +60,7 @@ class User extends Authenticatable
      */
     public function canAccessAllBranches(): bool
     {
-        return in_array($this->role, [self::ROLE_SUPERADMIN, self::ROLE_KEPALA_CABANG]);
+        return $this->role === self::ROLE_SUPERADMIN;
     }
 
     /**

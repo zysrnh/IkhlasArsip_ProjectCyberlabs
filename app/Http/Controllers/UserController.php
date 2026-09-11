@@ -97,7 +97,7 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'string', Rule::in($allowedRoles)],
-            'branch_id' => ['nullable', 'required_if:role,' . User::ROLE_ADMIN_CABANG, 'exists:branches,id'],
+            'branch_id' => ['nullable', Rule::requiredIf(fn() => in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_KEPALA_CABANG])), 'exists:branches,id'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
             'name.required' => 'Nama user wajib diisi.',
@@ -107,7 +107,7 @@ class UserController extends Controller
             'password.min' => 'Password minimal 6 karakter.',
             'role.required' => 'Role wajib dipilih.',
             'role.in' => 'Role yang dipilih tidak diizinkan untuk akun Anda.',
-            'branch_id.required_if' => 'Cabang wajib dipilih untuk Admin Cabang.',
+            'branch_id.required' => 'Cabang wajib dipilih untuk Kepala Cabang & Admin Cabang.',
             'branch_id.exists' => 'Cabang yang dipilih tidak valid.',
             'status.required' => 'Status wajib dipilih.',
         ]);
@@ -119,8 +119,8 @@ class UserController extends Controller
             $validated['branch_id'] = $currentUser->branch_id;
         }
 
-        // Jika bukan admin cabang, branch_id null
-        if ($validated['role'] !== User::ROLE_ADMIN_CABANG) {
+        // Jika superadmin atau role global, kosongkan branch_id
+        if (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_KEPALA_CABANG])) {
             $validated['branch_id'] = null;
         }
 
@@ -158,7 +158,7 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6'],
             'role' => ['required', 'string', Rule::in($allowedRoles)],
-            'branch_id' => ['nullable', 'required_if:role,' . User::ROLE_ADMIN_CABANG, 'exists:branches,id'],
+            'branch_id' => ['nullable', Rule::requiredIf(fn() => in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_KEPALA_CABANG])), 'exists:branches,id'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
             'name.required' => 'Nama user wajib diisi.',
@@ -167,7 +167,7 @@ class UserController extends Controller
             'password.min' => 'Password baru minimal 6 karakter jika diisi.',
             'role.required' => 'Role wajib dipilih.',
             'role.in' => 'Role yang dipilih tidak diizinkan untuk akun Anda.',
-            'branch_id.required_if' => 'Cabang wajib dipilih untuk Admin Cabang.',
+            'branch_id.required' => 'Cabang wajib dipilih untuk Kepala Cabang & Admin Cabang.',
             'branch_id.exists' => 'Cabang yang dipilih tidak valid.',
             'status.required' => 'Status wajib dipilih.',
         ]);
@@ -187,7 +187,8 @@ class UserController extends Controller
             $validated['branch_id'] = $currentUser->branch_id;
         }
 
-        if ($validated['role'] !== User::ROLE_ADMIN_CABANG) {
+        // Jika bukan admin cabang atau kepala cabang, kosongkan branch_id
+        if (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_KEPALA_CABANG])) {
             $validated['branch_id'] = null;
         }
 

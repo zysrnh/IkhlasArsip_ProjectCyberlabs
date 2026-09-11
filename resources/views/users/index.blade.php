@@ -1124,7 +1124,7 @@
         const role = roleInput ? roleInput.value : 'admin_cabang';
         const container = document.getElementById(type + 'BranchContainer');
 
-        if (role === 'superadmin' || role === 'kepala_cabang' || role === 'viewer') {
+        if (role === 'superadmin') {
             if (container) {
                 container.style.opacity = '0.4';
                 container.style.pointerEvents = 'none';
@@ -1136,7 +1136,7 @@
                 container.style.pointerEvents = 'auto';
             }
             
-            // If Kepala Cabang has specific branch, enforce it
+            // If logged in as Kepala Cabang, lock to their branch
             if (isUserKepalaCabang && userDefaultBranchId) {
                 const branchName = branchesMap[userDefaultBranchId] || '-- Pilih Cabang --';
                 setModalDropdownValue(type, 'Branch', userDefaultBranchId, branchName);
