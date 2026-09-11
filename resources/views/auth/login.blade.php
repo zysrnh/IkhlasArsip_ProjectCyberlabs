@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masuk ke Sistem &bull; {{ config('app.name', 'Ikhlas Solusi') }}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -81,11 +84,11 @@
             <!-- Top: Brand Header -->
             <div class="flex items-center justify-between lg:justify-start space-x-3">
                 <div class="flex items-center space-x-3 group cursor-default">
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 bg-tealBrand flex items-center justify-center text-white shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
+                    <img 
+                        src="{{ asset('images/logo.png') }}" 
+                        alt="Ikhlas Solusi" 
+                        class="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 bg-white/5 p-1 rounded-lg border border-white/10 transition-transform duration-300 group-hover:scale-105"
+                    >
                     <span class="font-bold text-sm sm:text-base tracking-tight text-white">Ikhlas Solusi</span>
                 </div>
 
@@ -155,6 +158,9 @@
                 
                 <!-- Title & Subtitle -->
                 <div>
+                    <div class="mb-3">
+                        <img src="{{ asset('images/logo.png') }}" alt="Ikhlas Solusi" class="w-10 h-10 object-contain rounded-lg p-1.5 bg-slate-100 border border-slate-200 shadow-xs">
+                    </div>
                     <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
                         Masuk ke Sistem
                     </h2>

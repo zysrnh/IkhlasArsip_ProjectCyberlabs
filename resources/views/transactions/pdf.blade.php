@@ -115,11 +115,20 @@
 </head>
 <body>
 
+@php
+    $logoPath = public_path('images/logo.png');
+    $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : null;
+@endphp
+
     <!-- KOP Surat Resmi -->
     <table class="kop-table">
         <tr>
-            <td style="width: 50px;">
-                <div class="kop-logo">IS</div>
+            <td style="width: 55px; vertical-align: middle;">
+                @if($logoBase64)
+                    <img src="{{ $logoBase64 }}" style="width: 50px; height: 50px; object-fit: contain;">
+                @else
+                    <div class="kop-logo">IS</div>
+                @endif
             </td>
             <td class="kop-text">
                 <div class="company-name">IKHLAS SOLUSI</div>

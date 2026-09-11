@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Ikhlas Solusi') - Sales Management</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    
     <!-- Google Fonts Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -182,11 +185,11 @@
             <!-- Brand Header & Desktop Collapse Toggle -->
             <div class="h-20 flex items-center justify-between px-4 sm:px-5 border-b border-navy-800/80 brand-container">
                 <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 group cursor-pointer overflow-hidden">
-                    <div class="w-9 h-9 bg-tealBrand flex items-center justify-center text-white shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105 rounded-lg">
-                        <svg class="w-5 h-5 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-8 9 8M5 10v10a1 1 0 001 1h4v-5a1 1 0 011-1h2a1 1 0 011 1v5h4a1 1 0 001-1V10" />
-                        </svg>
-                    </div>
+                    <img 
+                        src="{{ asset('images/logo.png') }}" 
+                        alt="Ikhlas Solusi" 
+                        class="w-9 h-9 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105 rounded-lg bg-white/5 p-1 border border-white/10"
+                    >
                     <div class="sidebar-hide-on-collapse overflow-hidden">
                         <div class="font-extrabold text-sm tracking-tight text-white leading-tight truncate">Ikhlas Solusi</div>
                         <div class="text-[10px] text-teal-400/90 font-medium truncate">Sales Management</div>
@@ -373,7 +376,10 @@
                     </svg>
                 </button>
                 
-                <span class="font-extrabold text-sm text-slate-900 tracking-tight lg:hidden">Ikhlas Solusi</span>
+                <div class="flex items-center space-x-2 lg:hidden">
+                    <img src="{{ asset('images/logo.png') }}" alt="Ikhlas Solusi" class="w-6 h-6 object-contain rounded">
+                    <span class="font-extrabold text-sm text-slate-900 tracking-tight">Ikhlas Solusi</span>
+                </div>
             </div>
             
             <!-- Right: User Avatar Link to Profile -->
