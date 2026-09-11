@@ -10,9 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use ZipArchive;
-use SimpleXMLElement;
 
 class TransactionController extends Controller
 {
@@ -305,139 +310,121 @@ class TransactionController extends Controller
     }
 
     /**
-     * Download Template Resmi Excel (.xls / SpreadsheetML) dengan Format Otomatis Rp
+     * Download Template Resmi Native XLSX (.xlsx) dengan Format Rupiah Otomatis
      */
     public function downloadTemplate(): StreamedResponse
     {
         $headers = [
-            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="template_import_transaksi_ikhlas.xls"',
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="template_import_transaksi_ikhlas.xlsx"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0',
         ];
 
         $callback = function () {
-            echo "\xEF\xBB\xBF"; // UTF-8 BOM
-            ?>
-            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-            <head>
-                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                <!--[if gte mso 9]>
-                <xml>
-                <x:ExcelWorkbook>
-                    <x:ExcelWorksheets>
-                        <x:ExcelWorksheet>
-                            <x:Name>Template Transaksi</x:Name>
-                            <x:WorksheetOptions>
-                                <x:DisplayGridlines/>
-                            </x:WorksheetOptions>
-                        </x:ExcelWorksheet>
-                    </x:ExcelWorksheets>
-                </x:ExcelWorkbook>
-                </xml>
-                <![endif]-->
-                <style>
-                    body { font-family: Calibri, Arial, sans-serif; }
-                    .header-title { font-size: 14pt; font-weight: bold; color: #0B192C; }
-                    .header-subtitle { font-size: 9pt; color: #64748B; font-style: italic; }
-                    .guide-title { font-size: 10pt; font-weight: bold; color: #92400E; background-color: #FEF3C7; border: 1px solid #FCD34D; padding: 6px; }
-                    .guide-desc { font-size: 9pt; color: #78350F; background-color: #FFFBEB; border: 1px solid #FCD34D; padding: 6px; }
-                    .th-cell { background-color: #0B192C; color: #FFFFFF; font-weight: bold; font-size: 10pt; text-align: center; height: 32px; vertical-align: middle; border: 1px solid #334155; }
-                    .td-text { font-size: 10pt; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\@"; }
-                    .td-date { font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "yyyy-mm-dd"; }
-                    .td-qty { font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\#\,\#\#0"; }
-                    .td-amount { font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #CBD5E1; padding: 5px; mso-number-format: "\"Rp\"\ \#\,\#\#0\;\(\"Rp\"\ \#\,\#\#0\)\;\"Rp\"\ 0"; }
-                </style>
-            </head>
-            <body>
-                <table border="0" cellpadding="0" cellspacing="0">
-                    <!-- Title -->
-                    <tr>
-                        <td colspan="7" class="header-title">TEMPLATE RESUME TRANSAKSI — IKHLAS SOLUSI</td>
-                    </tr>
-                    <tr>
-                        <td colspan="7" class="header-subtitle">Silakan isi data mulai baris tabel di bawah ini. Jangan mengubah susunan nama kolom pada Header.</td>
-                    </tr>
-                    <tr><td colspan="7" height="8"></td></tr>
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Data Transaksi');
 
-                    <!-- Petunjuk Pengisian (Di Bagian Atas) -->
-                    <tr>
-                        <td colspan="7" class="guide-title">
-                            <strong>PETUNJUK PENGISIAN IMPORT TRANSAKSI:</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="7" class="guide-desc">
-                            1. <strong>Tanggal</strong>: Gunakan format standar YYYY-MM-DD (Contoh: 2026-09-11).<br>
-                            2. <strong>Cabang</strong>: Diisi nama cabang resmi (Contoh: Jakarta Pusat, Bandung, Surabaya).<br>
-                            3. <strong>Jenis Transaksi</strong>: Pilih salah satu dari: [Penjualan Tunai, Penjualan Kredit, Retur Penjualan, Transfer Cabang].<br>
-                            4. <strong>Customer</strong>: Diisi nama customer / pembeli / cabang tujuan transfer.<br>
-                            5. <strong>Qty</strong>: Jumlah kuantitas unit barang (Angka bulat).<br>
-                            6. <strong>Jumlah</strong>: Cukup ketik angkanya saja (misal: 16700000), Excel akan otomatis memformat menjadi <strong>Rp 16.700.000</strong>. Untuk Retur Penjualan boleh diberi tanda minus (-).
-                        </td>
-                    </tr>
-                    <tr><td colspan="7" height="12"></td></tr>
-                    
-                    <!-- Table Header (Data Dimulai Di Bawah Ini, Bebas Ditambah Berapapun Baris Ke Bawah) -->
-                    <tr>
-                        <th class="th-cell" style="width: 130px;">Tanggal</th>
-                        <th class="th-cell" style="width: 160px;">Cabang</th>
-                        <th class="th-cell" style="width: 170px;">Jenis</th>
-                        <th class="th-cell" style="width: 280px;">Deskripsi</th>
-                        <th class="th-cell" style="width: 200px;">Customer</th>
-                        <th class="th-cell" style="width: 80px;">Qty</th>
-                        <th class="th-cell" style="width: 170px;">Jumlah</th>
-                    </tr>
+            // 1. Header Judul
+            $sheet->setCellValue('A1', 'TEMPLATE RESUME TRANSAKSI — IKHLAS SOLUSI');
+            $sheet->getStyle('A1')->getFont()->setSize(14)->setBold(true)->getColor()->setRGB('0B192C');
 
-                    <!-- Sample Data Rows (Otomatis Format Rp) -->
-                    <tr>
-                        <td class="td-date">2026-09-11</td>
-                        <td class="td-text">Jakarta Pusat</td>
-                        <td class="td-text">Penjualan Tunai</td>
-                        <td class="td-text">Penjualan Produk Grosir A</td>
-                        <td class="td-text">CV Bumi Pertiwi</td>
-                        <td class="td-qty">15</td>
-                        <td class="td-amount">16700000</td>
-                    </tr>
-                    <tr>
-                        <td class="td-date">2026-09-11</td>
-                        <td class="td-text">Bandung</td>
-                        <td class="td-text">Penjualan Kredit</td>
-                        <td class="td-text">Penjualan Invoice Tempo 30 Hari</td>
-                        <td class="td-text">PT Makmur Jaya</td>
-                        <td class="td-qty">20</td>
-                        <td class="td-amount">25000000</td>
-                    </tr>
-                    <tr>
-                        <td class="td-date">2026-09-11</td>
-                        <td class="td-text">Bandung</td>
-                        <td class="td-text">Retur Penjualan</td>
-                        <td class="td-text">Retur Barang Cacat Produksi</td>
-                        <td class="td-text">CV Bumi Pertiwi</td>
-                        <td class="td-qty">5</td>
-                        <td class="td-amount">-3900000</td>
-                    </tr>
-                    <tr>
-                        <td class="td-date">2026-09-11</td>
-                        <td class="td-text">Surabaya</td>
-                        <td class="td-text">Transfer Cabang</td>
-                        <td class="td-text">Transfer Stok Barang Antar Cabang</td>
-                        <td class="td-text">Cabang Bandung</td>
-                        <td class="td-qty">10</td>
-                        <td class="td-amount">12500000</td>
-                    </tr>
-                </table>
-            </body>
-            </html>
-            <?php
+            $sheet->setCellValue('A2', 'Silakan isi data transaksi mulai baris ke-12. Jangan mengubah susunan nama kolom pada baris ke-11.');
+            $sheet->getStyle('A2')->getFont()->setSize(9)->setItalic(true)->getColor()->setRGB('64748B');
+
+            // 2. Petunjuk Pengisian di Atas (Baris 4 - 9)
+            $sheet->setCellValue('A4', 'PETUNJUK PENGISIAN IMPORT TRANSAKSI:');
+            $sheet->mergeCells('A4:G4');
+            $sheet->getStyle('A4')->getFont()->setSize(10)->setBold(true)->getColor()->setRGB('92400E');
+            $sheet->getStyle('A4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FEF3C7');
+
+            $guideLines = [
+                '1. Tanggal: Gunakan format standar YYYY-MM-DD (Contoh: 2026-09-11).',
+                '2. Cabang: Diisi nama cabang resmi (Contoh: Jakarta Pusat, Bandung, Surabaya).',
+                '3. Jenis Transaksi: Pilih salah satu dari: [Penjualan Tunai, Penjualan Kredit, Retur Penjualan, Transfer Cabang].',
+                '4. Customer: Diisi nama customer / pembeli / cabang tujuan transfer.',
+                '5. Qty: Jumlah kuantitas unit barang (Angka bulat).',
+                '6. Jumlah: Cukup ketik angkanya saja (misal: 16700000), Excel akan otomatis memformat menjadi Rp 16.700.000. Untuk Retur Penjualan boleh diberi tanda minus (-).',
+            ];
+
+            for ($g = 0; $g < count($guideLines); $g++) {
+                $rowNum = 5 + $g;
+                $sheet->setCellValue("A{$rowNum}", $guideLines[$g]);
+                $sheet->mergeCells("A{$rowNum}:G{$rowNum}");
+                $sheet->getStyle("A{$rowNum}")->getFont()->setSize(9)->getColor()->setRGB('78350F');
+                $sheet->getStyle("A{$rowNum}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFFBEB');
+            }
+
+            // Border untuk box petunjuk
+            $sheet->getStyle('A4:G10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('FCD34D');
+
+            // 3. Table Header Kolom (Baris 11)
+            $columns = ['Tanggal', 'Cabang', 'Jenis', 'Deskripsi', 'Customer', 'Qty', 'Jumlah'];
+            $colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+            for ($i = 0; $i < count($columns); $i++) {
+                $cellRef = $colLetters[$i] . '11';
+                $sheet->setCellValue($cellRef, $columns[$i]);
+            }
+
+            $sheet->getStyle('A11:G11')->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A11:G11')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0B192C');
+            $sheet->getStyle('A11:G11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getRowDimension(11)->setRowHeight(28);
+
+            // 4. Sample Data Rows (Baris 12 - 15)
+            $sampleData = [
+                ['2026-09-11', 'Jakarta Pusat', 'Penjualan Tunai', 'Penjualan Produk Grosir A', 'CV Bumi Pertiwi', 15, 16700000],
+                ['2026-09-11', 'Bandung', 'Penjualan Kredit', 'Penjualan Invoice Tempo 30 Hari', 'PT Makmur Jaya', 20, 25000000],
+                ['2026-09-11', 'Bandung', 'Retur Penjualan', 'Retur Barang Cacat Produksi', 'CV Bumi Pertiwi', 5, -3900000],
+                ['2026-09-11', 'Surabaya', 'Transfer Cabang', 'Transfer Stok Barang Antar Cabang', 'Cabang Bandung', 10, 12500000],
+            ];
+
+            $currencyFormat = '"Rp"\ #,##0;[Red]"-Rp"\ #,##0;"Rp"\ 0';
+
+            foreach ($sampleData as $idx => $row) {
+                $rowIdx = 12 + $idx;
+                $sheet->setCellValue("A{$rowIdx}", $row[0]);
+                $sheet->setCellValue("B{$rowIdx}", $row[1]);
+                $sheet->setCellValue("C{$rowIdx}", $row[2]);
+                $sheet->setCellValue("D{$rowIdx}", $row[3]);
+                $sheet->setCellValue("E{$rowIdx}", $row[4]);
+                $sheet->setCellValue("F{$rowIdx}", $row[5]);
+                $sheet->setCellValue("G{$rowIdx}", $row[6]);
+
+                $sheet->getStyle("A{$rowIdx}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("F{$rowIdx}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("G{$rowIdx}")->getNumberFormat()->setFormatCode($currencyFormat);
+            }
+
+            // Set Format Otomatis Rp untuk 1000 baris ke bawah pada kolom G
+            $sheet->getStyle('G12:G1000')->getNumberFormat()->setFormatCode($currencyFormat);
+            $sheet->getStyle('A12:A1000')->getNumberFormat()->setFormatCode('@');
+            $sheet->getStyle('F12:F1000')->getNumberFormat()->setFormatCode('#,##0');
+
+            // Borders untuk tabel sample
+            $sheet->getStyle('A11:G15')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+
+            // Auto-width kolom
+            $sheet->getColumnDimension('A')->setWidth(16);
+            $sheet->getColumnDimension('B')->setWidth(20);
+            $sheet->getColumnDimension('C')->setWidth(22);
+            $sheet->getColumnDimension('D')->setWidth(35);
+            $sheet->getColumnDimension('E')->setWidth(25);
+            $sheet->getColumnDimension('F')->setWidth(12);
+            $sheet->getColumnDimension('G')->setWidth(24);
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
         };
 
         return response()->stream($callback, 200, $headers);
     }
 
     /**
-     * Import Data Transaksi dari Berkas Excel (.xlsx, .xls, .csv)
+     * Import Data Transaksi dari Berkas Excel (.xlsx, .xls binary/html, .csv) Menggunakan PhpSpreadsheet Engine
      */
     public function importExcel(Request $request): RedirectResponse
     {
@@ -452,6 +439,15 @@ class TransactionController extends Controller
         $importedCount = 0;
         $realPath = $file->getRealPath();
 
+        try {
+            // Muat file menggunakan IOFactory (Mendukung .xlsx, .xls binary BIFF8, HTML .xls, CSV, dll.)
+            $spreadsheet = IOFactory::load($realPath);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rawRows = $sheet->toArray(null, true, true, false);
+        } catch (\Exception $e) {
+            return redirect()->route('transactions.index')->with('error', 'Gagal membaca berkas Excel: ' . $e->getMessage());
+        }
+
         // Ambil semua cabang untuk mapping nama -> ID
         $branchesMap = Branch::all()->keyBy(function ($item) {
             return strtolower(trim($item->name));
@@ -461,97 +457,41 @@ class TransactionController extends Controller
         $lastTrx = Transaction::withTrashed()->latest('id')->first();
         $nextNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
 
-        $rawRows = [];
-
-        // 1. Cek apakah file adalah XLSX murni (Zip container PK\x03\x04)
-        $fileHeader = file_get_contents($realPath, false, null, 0, 4);
-        if ($fileHeader === "PK\x03\x04") {
-            $rawRows = $this->parseXlsxFile($realPath);
-        } else {
-            // Cek apakah format HTML/XML (.xls) atau CSV murni
-            $content = file_get_contents($realPath);
-            if (str_contains($content, '<table') || str_contains($content, '<tr')) {
-                $dom = new \DOMDocument();
-                @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
-                $trList = $dom->getElementsByTagName('tr');
-
-                foreach ($trList as $tr) {
-                    $cells = [];
-                    foreach ($tr->getElementsByTagName('td') as $td) {
-                        $cells[] = trim($td->textContent);
-                    }
-                    if (empty($cells)) {
-                        foreach ($tr->getElementsByTagName('th') as $th) {
-                            $cells[] = trim($th->textContent);
-                        }
-                    }
-                    if (!empty($cells)) {
-                        $rawRows[] = $cells;
-                    }
-                }
-            } else {
-                // CSV murni
-                if (($handle = fopen($realPath, 'r')) !== false) {
-                    $bom = fread($handle, 3);
-                    if ($bom !== "\xEF\xBB\xBF") {
-                        rewind($handle);
-                    }
-
-                    $firstLine = fgets($handle);
-                    rewind($handle);
-                    if ($bom === "\xEF\xBB\xBF") {
-                        fread($handle, 3);
-                    }
-                    $delimiter = (strpos($firstLine, ';') !== false && strpos($firstLine, ',') === false) ? ';' : ',';
-
-                    while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
-                        if (!empty($row)) {
-                            $rawRows[] = $row;
-                        }
-                    }
-                    fclose($handle);
-                }
-            }
-        }
-
-        // Proses baris-baris data yang berhasil diekstrak
         $isHeaderPassed = false;
+
         foreach ($rawRows as $cells) {
             if (empty($cells) || count($cells) < 4) {
                 continue;
             }
 
-            // Cari baris Header: Tanggal & Cabang
-            if (stripos($cells[0], 'Tanggal') !== false && stripos($cells[1] ?? '', 'Cabang') !== false) {
+            // Normalisasi array
+            $col0 = trim((string)($cells[0] ?? ''));
+            $col1 = trim((string)($cells[1] ?? ''));
+            $col2 = trim((string)($cells[2] ?? ''));
+            $col3 = trim((string)($cells[3] ?? ''));
+            $col4 = trim((string)($cells[4] ?? ''));
+            $col5 = trim((string)($cells[5] ?? ''));
+            $col6 = trim((string)($cells[6] ?? ''));
+
+            // Deteksi Header: Tanggal & Cabang
+            if (stripos($col0, 'Tanggal') !== false && stripos($col1, 'Cabang') !== false) {
                 $isHeaderPassed = true;
                 continue;
             }
 
-            // Lewati judul/petunjuk sebelum header
-            if (!$isHeaderPassed || stripos($cells[0], 'TEMPLATE') !== false || stripos($cells[0], 'PETUNJUK') !== false) {
+            // Abaikan baris sebelum header (judul atau box petunjuk)
+            if (!$isHeaderPassed || stripos($col0, 'TEMPLATE') !== false || stripos($col0, 'PETUNJUK') !== false) {
                 continue;
             }
 
-            $dateRaw = trim($cells[0] ?? '');
-            $branchRaw = trim($cells[1] ?? '');
-            $typeRaw = trim($cells[2] ?? 'Penjualan Tunai');
-            $notesRaw = trim($cells[3] ?? '');
-            $customerRaw = trim($cells[4] ?? 'Umum');
-            $qtyRaw = isset($cells[5]) ? intval(preg_replace('/[^0-9]/', '', $cells[5])) : 1;
-            
-            // Bersihkan format nominal Rp, titik, koma, spasi
-            $cleanAmountStr = str_ireplace(['Rp', ' ', '.', ','], ['', '', '', '.'], (string)($cells[6] ?? '0'));
-            // Ambil hanya karakter angka dan minus
-            preg_match('/-?[0-9]+(\.[0-9]+)?/', $cleanAmountStr, $amountMatches);
-            $amountRaw = isset($amountMatches[0]) ? floatval($amountMatches[0]) : 0;
-
-            if (empty($dateRaw) || empty($customerRaw) || stripos($dateRaw, 'PETUNJUK') !== false) {
+            // Jika baris kosong
+            if (empty($col0) || empty($col4)) {
                 continue;
             }
 
-            // Parsing tanggal (termasuk jika berupa serial number Excel)
+            // 1. Parsing Tanggal
+            $dateRaw = $col0;
             if (is_numeric($dateRaw) && intval($dateRaw) > 30000) {
-                // Excel serial date to YYYY-MM-DD
                 $unixTimestamp = ($dateRaw - 25569) * 86400;
                 $parsedDate = gmdate('Y-m-d', $unixTimestamp);
             } else {
@@ -562,20 +502,39 @@ class TransactionController extends Controller
                 }
             }
 
+            // 2. Tentukan Cabang
             if ($user->isAdminCabang()) {
                 $branchId = $user->branch_id;
             } else {
-                $matchedBranch = $branchesMap->get(strtolower($branchRaw));
+                $matchedBranch = $branchesMap->get(strtolower($col1));
                 $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
             }
 
+            // 3. Normalisasi Jenis Transaksi
             $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
             $matchedType = 'Penjualan Tunai';
             foreach ($validTypes as $vt) {
-                if (stripos($typeRaw, $vt) !== false) {
+                if (stripos($col2, $vt) !== false) {
                     $matchedType = $vt;
                     break;
                 }
+            }
+
+            // 4. QTY & Notes & Customer
+            $qtyRaw = intval(preg_replace('/[^0-9]/', '', $col5));
+            $qty = max(1, $qtyRaw);
+            $notes = $col3;
+            $customer = $col4;
+
+            // 5. Normalisasi Nominal Jumlah (mendukung format "Rp 16.700.000", "(Rp 3,900,000)", "-Rp 3.900.000")
+            $isNegative = str_contains($col6, '-') || (str_starts_with($col6, '(') && str_ends_with($col6, ')'));
+            $cleanAmountStr = str_ireplace(['Rp', ' ', '.', ',', '(', ')'], '', $col6);
+            $amountVal = floatval($cleanAmountStr);
+
+            if ($isNegative || $matchedType === 'Retur Penjualan') {
+                $amount = -abs($amountVal);
+            } else {
+                $amount = abs($amountVal);
             }
 
             $code = 'TRX-' . str_pad($nextNumber++, 3, '0', STR_PAD_LEFT);
@@ -586,10 +545,10 @@ class TransactionController extends Controller
                 'user_id' => $user->id,
                 'transaction_date' => $parsedDate,
                 'type' => $matchedType,
-                'customer_name' => $customerRaw,
-                'qty' => max(1, $qtyRaw),
-                'amount' => ($matchedType === 'Retur Penjualan' && $amountRaw > 0) ? -$amountRaw : $amountRaw,
-                'notes' => $notesRaw,
+                'customer_name' => $customer,
+                'qty' => $qty,
+                'amount' => $amount,
+                'notes' => $notes,
             ]);
 
             $importedCount++;
@@ -600,96 +559,5 @@ class TransactionController extends Controller
         }
 
         return redirect()->route('transactions.index')->with('success', 'File template Excel berhasil diterima dan diverifikasi.');
-    }
-
-    /**
-     * Helper Parser Berkas XLSX (OpenXML) Tanpa Dependensi Tambahan
-     */
-    private function parseXlsxFile(string $filePath): array
-    {
-        $rows = [];
-        $zip = new ZipArchive();
-        if ($zip->open($filePath) !== true) {
-            return $rows;
-        }
-
-        // 1. Baca shared strings table
-        $sharedStrings = [];
-        if (($index = $zip->locateName('xl/sharedStrings.xml')) !== false) {
-            $xmlString = $zip->getFromIndex($index);
-            $xml = simplexml_load_string($xmlString);
-            if ($xml && isset($xml->si)) {
-                foreach ($xml->si as $si) {
-                    if (isset($si->t)) {
-                        $sharedStrings[] = (string) $si->t;
-                    } elseif (isset($si->r)) {
-                        $text = '';
-                        foreach ($si->r as $r) {
-                            $text .= (string) $r->t;
-                        }
-                        $sharedStrings[] = $text;
-                    } else {
-                        $sharedStrings[] = '';
-                    }
-                }
-            }
-        }
-
-        // 2. Baca worksheet sheet1.xml
-        $sheetXmlContent = $zip->getFromName('xl/worksheets/sheet1.xml');
-        if (!$sheetXmlContent) {
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $filename = $zip->getNameIndex($i);
-                if (str_starts_with($filename, 'xl/worksheets/sheet') && str_ends_with($filename, '.xml')) {
-                    $sheetXmlContent = $zip->getFromIndex($i);
-                    break;
-                }
-            }
-        }
-
-        if ($sheetXmlContent) {
-            $sheetXml = simplexml_load_string($sheetXmlContent);
-            if ($sheetXml && isset($sheetXml->sheetData->row)) {
-                foreach ($sheetXml->sheetData->row as $row) {
-                    $rowData = [];
-                    foreach ($row->c as $c) {
-                        $cellRef = (string) $c['r'];
-                        preg_match('/^([A-Z]+)(\d+)$/', $cellRef, $matches);
-                        $colLetters = $matches[1] ?? 'A';
-                        
-                        $colIdx = 0;
-                        for ($k = 0; $k < strlen($colLetters); $k++) {
-                            $colIdx = $colIdx * 26 + (ord($colLetters[$k]) - ord('A') + 1);
-                        }
-                        $colIdx -= 1;
-
-                        $type = (string) $c['t'];
-                        $val = '';
-                        if ($type === 's') {
-                            $idx = (int) $c->v;
-                            $val = $sharedStrings[$idx] ?? '';
-                        } elseif ($type === 'inlineStr') {
-                            $val = (string) $c->is->t;
-                        } else {
-                            $val = (string) $c->v;
-                        }
-
-                        $rowData[$colIdx] = trim($val);
-                    }
-
-                    if (!empty($rowData)) {
-                        $maxKey = max(array_keys($rowData));
-                        $normalizedRow = [];
-                        for ($j = 0; $j <= $maxKey; $j++) {
-                            $normalizedRow[$j] = $rowData[$j] ?? '';
-                        }
-                        $rows[] = $normalizedRow;
-                    }
-                }
-            }
-        }
-
-        $zip->close();
-        return $rows;
     }
 }
