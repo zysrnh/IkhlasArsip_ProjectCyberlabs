@@ -95,27 +95,49 @@
     <!-- Search & Action Buttons Bar -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         
-        <!-- Search Input -->
+        <!-- Search Input with Live Auto-Search & Clear Button -->
         <div class="w-full lg:max-w-md">
-            <form method="GET" action="{{ route('transactions.index') }}" class="relative">
+            <form id="trxSearchForm" method="GET" action="{{ route('transactions.index') }}" class="relative">
                 <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
                 <input type="hidden" name="type" value="{{ request('type') }}">
                 <input type="hidden" name="date_from" value="{{ request('date_from') }}">
                 <input type="hidden" name="date_to" value="{{ request('date_to') }}">
                 <input type="hidden" name="sort" value="{{ request('sort') }}">
 
+                <!-- Search Icon / Live Spinner -->
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="searchStaticIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
+                    <svg id="searchLoadingIcon" class="w-4 h-4 text-tealBrand animate-spin hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
                 </div>
+
                 <input 
                     type="text" 
+                    id="mainSearchInput"
                     name="search" 
                     value="{{ request('search') }}" 
-                    placeholder="Cari ID, deskripsi, customer..." 
-                    class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-tealBrand focus:ring-1 focus:ring-tealBrand shadow-sm transition"
+                    placeholder="Cari ID, deskripsi, customer... (otomatis)" 
+                    autocomplete="off"
+                    oninput="handleSearchDebounce(this)"
+                    class="w-full pl-10 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-tealBrand focus:ring-1 focus:ring-tealBrand shadow-sm transition"
                 >
+
+                <!-- Clear Search Button -->
+                <button 
+                    type="button" 
+                    id="searchClearBtn"
+                    onclick="clearSearchInput()"
+                    class="{{ request('search') ? '' : 'hidden' }} absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-rose-500 cursor-pointer transition-colors"
+                    title="Hapus pencarian"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </form>
         </div>
 
@@ -286,27 +308,37 @@
                 </div>
             </div>
 
-            <!-- Tanggal Dari -->
+            <!-- Tanggal Dari (Flatpickr) -->
             <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 z-10">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
                 <input 
-                    type="date" 
+                    type="text" 
+                    id="filterDateFrom"
                     name="date_from" 
                     value="{{ request('date_from') }}" 
-                    title="Tanggal Dari"
-                    onchange="document.getElementById('filterFormMain').submit()" 
-                    class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
+                    placeholder="Tanggal Dari"
+                    class="w-full pl-9 pr-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:border-tealBrand cursor-pointer"
                 >
             </div>
 
-            <!-- Tanggal Sampai -->
+            <!-- Tanggal Sampai (Flatpickr) -->
             <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 z-10">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
                 <input 
-                    type="date" 
+                    type="text" 
+                    id="filterDateTo"
                     name="date_to" 
                     value="{{ request('date_to') }}" 
-                    title="Tanggal Sampai"
-                    onchange="document.getElementById('filterFormMain').submit()" 
-                    class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:border-tealBrand"
+                    placeholder="Tanggal Sampai"
+                    class="w-full pl-9 pr-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:border-tealBrand cursor-pointer"
                 >
             </div>
 
@@ -680,7 +712,14 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">TANGGAL</label>
-                    <input type="date" name="transaction_date" value="{{ date('Y-m-d') }}" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 z-10">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <input type="text" name="transaction_date" id="createDateInput" value="{{ date('Y-m-d') }}" required class="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
+                    </div>
                 </div>
 
                 <div>
@@ -789,7 +828,14 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">TANGGAL</label>
-                    <input type="date" name="transaction_date" id="editDate" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 z-10">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <input type="text" name="transaction_date" id="editDate" required class="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
+                    </div>
                 </div>
 
                 <div>
@@ -948,6 +994,100 @@
 
 @push('scripts')
 <script>
+    // Live Search Debounce
+    let searchDebounceTimer = null;
+    function handleSearchDebounce(input) {
+        const clearBtn = document.getElementById('searchClearBtn');
+        const staticIcon = document.getElementById('searchStaticIcon');
+        const loadingIcon = document.getElementById('searchLoadingIcon');
+
+        if (input.value.trim().length > 0) {
+            if (clearBtn) clearBtn.classList.remove('hidden');
+        } else {
+            if (clearBtn) clearBtn.classList.add('hidden');
+        }
+
+        clearTimeout(searchDebounceTimer);
+        
+        if (staticIcon && loadingIcon) {
+            staticIcon.classList.add('hidden');
+            loadingIcon.classList.remove('hidden');
+        }
+
+        searchDebounceTimer = setTimeout(() => {
+            document.getElementById('trxSearchForm').submit();
+        }, 450);
+    }
+
+    function clearSearchInput() {
+        const input = document.getElementById('mainSearchInput');
+        if (input) input.value = '';
+        const clearBtn = document.getElementById('searchClearBtn');
+        if (clearBtn) clearBtn.classList.add('hidden');
+        document.getElementById('trxSearchForm').submit();
+    }
+
+    // Flatpickr Instances
+    let editFlatpickr = null;
+    let createFlatpickr = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Filter Date From
+        flatpickr("#filterDateFrom", {
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d M Y",
+            allowInput: false,
+            onChange: function(selectedDates, dateStr) {
+                document.getElementById('filterFormMain').submit();
+            }
+        });
+
+        // Filter Date To
+        flatpickr("#filterDateTo", {
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d M Y",
+            allowInput: false,
+            onChange: function(selectedDates, dateStr) {
+                document.getElementById('filterFormMain').submit();
+            }
+        });
+
+        // Create Modal Date
+        createFlatpickr = flatpickr("#createDateInput", {
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d M Y",
+            defaultDate: "{{ date('Y-m-d') }}",
+            allowInput: false
+        });
+
+        // Edit Modal Date
+        editFlatpickr = flatpickr("#editDate", {
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d M Y",
+            allowInput: false
+        });
+
+        // Shortcut '/' to focus search input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                const searchInput = document.getElementById('mainSearchInput');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+        });
+    });
+
     function toggleMobileFilterPanel() {
         const form = document.getElementById('filterFormMain');
         const text = document.getElementById('mobileFilterToggleText');
@@ -997,7 +1137,13 @@
         
         form.action = `/transactions/${trx.id}`;
         document.getElementById('editCodeDisplay').textContent = `(${trx.code})`;
-        document.getElementById('editDate').value = trx.transaction_date ? trx.transaction_date.substring(0, 10) : '';
+        
+        if (editFlatpickr && trx.transaction_date) {
+            editFlatpickr.setDate(trx.transaction_date.substring(0, 10));
+        } else if (document.getElementById('editDate')) {
+            document.getElementById('editDate').value = trx.transaction_date ? trx.transaction_date.substring(0, 10) : '';
+        }
+
         document.getElementById('editType').value = trx.type;
         document.getElementById('editCustomer').value = trx.customer_name;
         document.getElementById('editQty').value = trx.qty;

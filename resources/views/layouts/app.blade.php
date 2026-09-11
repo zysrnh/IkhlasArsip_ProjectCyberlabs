@@ -48,6 +48,9 @@
             }
         }
     </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
     <style>
         * {
             -webkit-font-smoothing: antialiased;
@@ -68,6 +71,60 @@
         }
         .swal2-popup.ikhlas-toast .swal2-timer-progress-bar {
             background: #0A97B0 !important;
+        }
+
+        /* Custom Flatpickr Ikhlas Theme */
+        .flatpickr-calendar {
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 14px !important;
+            box-shadow: 0 15px 30px -5px rgba(11, 25, 44, 0.15) !important;
+            font-family: inherit !important;
+            padding: 8px !important;
+        }
+        .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after {
+            border-bottom-color: #ffffff !important;
+        }
+        .flatpickr-months {
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 6px;
+        }
+        .flatpickr-current-month {
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            color: #0B192C !important;
+        }
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            font-weight: 800 !important;
+        }
+        span.flatpickr-weekday {
+            color: #94a3b8 !important;
+            font-size: 10px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+        }
+        .flatpickr-day {
+            border-radius: 8px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #334155 !important;
+            height: 34px !important;
+            line-height: 34px !important;
+        }
+        .flatpickr-day:hover {
+            background: #f1f5f9 !important;
+            border-color: #f1f5f9 !important;
+        }
+        .flatpickr-day.today {
+            border-color: #0A97B0 !important;
+            color: #0A97B0 !important;
+            background: #f0fdfa !important;
+        }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+            background: #0A97B0 !important;
+            border-color: #0A97B0 !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
         }
     </style>
     @stack('styles')
