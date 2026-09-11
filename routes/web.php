@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TrashController;
 use App\Http\Controllers\UserController;
@@ -22,6 +23,11 @@ Route::middleware('auth')->group(function () {
     
     // Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Modul Kelola Profil Pengguna
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
     // Modul Data Transaksi & Laporan
     Route::get('/transactions/download-template', [TransactionController::class, 'downloadTemplate'])->name('transactions.download-template');

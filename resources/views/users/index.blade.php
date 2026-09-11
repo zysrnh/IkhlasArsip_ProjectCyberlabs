@@ -332,10 +332,14 @@
                     <!-- Top Row: Avatar & Name + Status -->
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center space-x-2.5">
-                            <!-- Initials Avatar -->
-                            <div class="w-8 h-8 rounded-full {{ $user->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : ($user->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-navy-900 text-white') }} font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-                                {{ strtoupper(substr($user->name, 0, 2)) }}
-                            </div>
+                            <!-- Avatar Image / Initials -->
+                            @if($user->avatar_url)
+                                <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover shrink-0 shadow-xs">
+                            @else
+                                <div class="w-8 h-8 rounded-full {{ $user->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : ($user->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-navy-900 text-white') }} font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                                    {{ $user->initials }}
+                                </div>
+                            @endif
                             <div>
                                 <div class="font-bold text-xs text-slate-900 leading-tight">
                                     {{ $user->name }}
@@ -441,9 +445,13 @@
                             </td>
                             <td class="py-3 px-3.5">
                                 <div class="flex items-center space-x-2.5">
-                                    <div class="w-7 h-7 rounded-full {{ $user->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : ($user->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-navy-900 text-white') }} font-bold text-[11px] flex items-center justify-center shrink-0">
-                                        {{ strtoupper(substr($user->name, 0, 2)) }}
-                                    </div>
+                                    @if($user->avatar_url)
+                                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-7 h-7 rounded-full object-cover shrink-0 shadow-xs">
+                                    @else
+                                        <div class="w-7 h-7 rounded-full {{ $user->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : ($user->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-navy-900 text-white') }} font-bold text-[11px] flex items-center justify-center shrink-0">
+                                            {{ $user->initials }}
+                                        </div>
+                                    @endif
                                     <div class="font-bold text-slate-900">
                                         {{ $user->name }}
                                         @if($user->id === auth()->id())

@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'password', 'role', 'branch_id', 'status'])]
+#[Fillable(['name', 'email', 'password', 'avatar', 'role', 'branch_id', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -100,5 +101,29 @@ class User extends Authenticatable
     public function isViewer(): bool
     {
         return $this->role === self::ROLE_VIEWER;
+    }
+
+    /**
+     * Dapatkan URL avatar jika ada
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if ($this->avatar && Storage::disk('public')->exists($this->avatar)) {
+            return asset('storage/' . $this->avatar);
+        }
+        return null;
+    }
+
+    /**
+     * Inisial nama user untuk fallback avatar
+     */
+    public function getInitialsAttribute(): string
+    {
+        $words = explode(' ', trim($this->name));
+        $initials = '';
+        foreach (array_slice($words, 0, 2) as $w) {
+            $initials .= mb_substr($w, 0, 1);
+        }
+        return strtoupper($initials ?: 'U');
     }
 }
