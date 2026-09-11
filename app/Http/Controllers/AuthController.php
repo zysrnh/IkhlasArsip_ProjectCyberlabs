@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
+use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +20,11 @@ class AuthController extends Controller
             return redirect()->route('dashboard');
         }
 
-        return view('auth.login');
+        $activeBranchesCount = Branch::where('status', 'active')->count();
+        $totalTransactionsCount = Transaction::count();
+        $totalIncome = Transaction::sum('amount');
+
+        return view('auth.login', compact('activeBranchesCount', 'totalTransactionsCount', 'totalIncome'));
     }
 
     /**
