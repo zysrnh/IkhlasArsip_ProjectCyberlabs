@@ -660,23 +660,26 @@
                 icon: icon,
                 iconColor: danger ? '#f43f5e' : (icon === 'question' ? '#0A97B0' : '#f59e0b'),
                 showCancelButton: true,
-                confirmButtonColor: danger ? '#f43f5e' : '#0A97B0',
-                cancelButtonColor: '#64748b',
+                buttonsStyling: false,
                 confirmButtonText: confirmButtonText,
                 cancelButtonText: cancelButtonText,
                 reverseButtons: true,
                 background: '#ffffff',
                 customClass: {
-                    popup: 'rounded-2xl border border-slate-200 shadow-2xl p-6 animate-fadeIn',
+                    container: 'z-[99999]',
+                    popup: 'rounded-2xl border border-slate-200 shadow-2xl p-6 bg-white',
                     title: 'text-base sm:text-lg font-extrabold text-slate-900 tracking-tight',
-                    htmlContainer: 'text-xs text-slate-500 font-medium leading-relaxed mt-1',
-                    confirmButton: 'px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-transform active:scale-95 cursor-pointer',
-                    cancelButton: 'px-5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer'
+                    htmlContainer: 'text-xs text-slate-500 font-medium leading-relaxed mt-2',
+                    actions: 'flex items-center justify-center gap-3 mt-5 w-full',
+                    confirmButton: danger 
+                        ? 'px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition active:scale-95 cursor-pointer' 
+                        : 'px-5 py-2.5 rounded-xl text-xs font-bold bg-tealBrand hover:bg-tealBrand-hover text-white shadow-sm transition active:scale-95 cursor-pointer',
+                    cancelButton: 'px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer'
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
                     if (form) {
-                        form.submit();
+                        HTMLFormElement.prototype.submit.call(form);
                     } else if (typeof onConfirm === 'function') {
                         onConfirm();
                     }

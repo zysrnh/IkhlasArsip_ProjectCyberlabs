@@ -92,7 +92,7 @@ class DatabaseBackupService
     }
 
     /**
-     * Dump Database MySQL secara terstruktur & chunked
+     * Dump Database MySQL secara terstruktur, cepat & efisien
      */
     protected function dumpMySql($handle): void
     {
@@ -112,48 +112,46 @@ class DatabaseBackupService
                 fwrite($handle, $createTableRow[1] . ";\n\n");
             }
 
-            // Dump data baris tabel
-            $countStmt = $pdo->query("SELECT COUNT(*) FROM `{$table}`");
-            $rowCount = (int) $countStmt->fetchColumn();
+            // Stream seluruh baris tabel dalam satu query cepat (tanpa LIMIT OFFSET berulang)
+            $rowsStmt = $pdo->query("SELECT * FROM `{$table}`");
+            $rowCount = 0;
+            $batchSize = 500;
+            $valuesList = [];
+            $columnNames = null;
 
-            if ($rowCount > 0) {
-                fwrite($handle, "-- Data Tabel: `{$table}` ({$rowCount} Baris)\n");
-
-                $chunkSize = 250;
-                $offset = 0;
-
-                while ($offset < $rowCount) {
-                    $rowsStmt = $pdo->query("SELECT * FROM `{$table}` LIMIT {$chunkSize} OFFSET {$offset}");
-                    $rows = $rowsStmt->fetchAll(\PDO::FETCH_ASSOC);
-
-                    if (!empty($rows)) {
-                        $columnNames = array_map(function ($col) {
-                            return "`" . str_replace("`", "``", $col) . "`";
-                        }, array_keys($rows[0]));
-
-                        $insertHeader = "INSERT INTO `{$table}` (" . implode(', ', $columnNames) . ") VALUES\n";
-                        $valuesList = [];
-
-                        foreach ($rows as $row) {
-                            $rowValues = [];
-                            foreach ($row as $val) {
-                                if (is_null($val)) {
-                                    $rowValues[] = 'NULL';
-                                } elseif (is_numeric($val) && !is_string($val)) {
-                                    $rowValues[] = $val;
-                                } else {
-                                    $rowValues[] = $pdo->quote($val);
-                                }
-                            }
-                            $valuesList[] = "  (" . implode(', ', $rowValues) . ")";
-                        }
-
-                        fwrite($handle, $insertHeader . implode(",\n", $valuesList) . ";\n");
-                    }
-
-                    $offset += $chunkSize;
+            while ($row = $rowsStmt->fetch(\PDO::FETCH_ASSOC)) {
+                $rowCount++;
+                if ($columnNames === null) {
+                    $columnNames = array_map(function ($col) {
+                        return "`" . str_replace("`", "``", $col) . "`";
+                    }, array_keys($row));
                 }
 
+                $rowValues = [];
+                foreach ($row as $val) {
+                    if (is_null($val)) {
+                        $rowValues[] = 'NULL';
+                    } elseif (is_numeric($val) && !is_string($val)) {
+                        $rowValues[] = $val;
+                    } else {
+                        $rowValues[] = $pdo->quote($val);
+                    }
+                }
+                $valuesList[] = "  (" . implode(', ', $rowValues) . ")";
+
+                // Tulis per batch 500 baris ke file
+                if (count($valuesList) >= $batchSize) {
+                    $insertHeader = "INSERT INTO `{$table}` (" . implode(', ', $columnNames) . ") VALUES\n";
+                    fwrite($handle, $insertHeader . implode(",\n", $valuesList) . ";\n");
+                    $valuesList = [];
+                }
+            }
+
+            // Tulis sisa baris batch terakhir jika ada
+            if (!empty($valuesList) && $columnNames !== null) {
+                $insertHeader = "INSERT INTO `{$table}` (" . implode(', ', $columnNames) . ") VALUES\n";
+                fwrite($handle, $insertHeader . implode(",\n", $valuesList) . ";\n\n");
+            } elseif ($rowCount > 0) {
                 fwrite($handle, "\n");
             }
         }
