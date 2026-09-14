@@ -112,7 +112,8 @@ class UserController extends Controller
             'status.required' => 'Status wajib dipilih.',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        $rawPassword = $request->password;
+        $validated['password'] = Hash::make($rawPassword);
 
         // Jika Kepala Cabang memiliki penempatan cabang tertentu, kunci branch_id
         if ($currentUser->isKepalaCabang() && $currentUser->branch_id) {
@@ -124,9 +125,23 @@ class UserController extends Controller
             $validated['branch_id'] = null;
         }
 
-        User::create($validated);
+        $newUser = User::create($validated);
 
-        return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
+        $emailSent = false;
+        if ($request->boolean('send_email', true)) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($newUser->email)->send(new \App\Mail\UserCredentialsMail($newUser, $rawPassword));
+                $emailSent = true;
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim email kredensial user: ' . $e->getMessage());
+            }
+        }
+
+        $msg = $emailSent 
+            ? "User {$newUser->name} berhasil ditambahkan dan kredensial login telah dikirim ke {$newUser->email}."
+            : "User {$newUser->name} berhasil ditambahkan.";
+
+        return redirect()->route('users.index')->with('success', $msg);
     }
 
     /**

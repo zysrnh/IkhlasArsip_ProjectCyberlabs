@@ -789,6 +789,22 @@
                 </div>
             </div>
 
+            <!-- Send Credentials Email Checkbox -->
+            <div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3 flex items-start space-x-2.5">
+                <input 
+                    type="checkbox" 
+                    name="send_email" 
+                    id="createSendEmail" 
+                    value="1" 
+                    checked 
+                    class="mt-0.5 rounded border-slate-300 text-tealBrand focus:ring-tealBrand w-4 h-4 cursor-pointer"
+                >
+                <label for="createSendEmail" class="text-xs text-slate-700 font-semibold cursor-pointer select-none">
+                    <span>Kirim informasi akun & password ke email pengguna</span>
+                    <p class="text-[10.5px] text-slate-400 font-normal mt-0.5">Pengguna akan menerima email berisi detail login dan instruksi masuk sistem secara otomatis.</p>
+                </label>
+            </div>
+
             <!-- Footer Action Buttons -->
             <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2.5 shrink-0">
                 <button type="button" onclick="closeCreateModal()" class="w-full py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors text-center cursor-pointer">
