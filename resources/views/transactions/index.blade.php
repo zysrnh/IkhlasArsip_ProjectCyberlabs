@@ -312,17 +312,24 @@
                     </svg>
                 </button>
 
-                <div id="filterTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[200px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
-                    @php
-                        $types = ['Semua Jenis' => '', 'Penjualan Tunai' => 'Penjualan Tunai', 'Penjualan Kredit' => 'Penjualan Kredit', 'Retur Penjualan' => 'Retur Penjualan', 'Transfer Cabang' => 'Transfer Cabang'];
-                    @endphp
-                    @foreach($types as $tLabel => $tVal)
+                <div id="filterTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[200px] max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectFilterType('')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty(request('type')) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Jenis</span>
+                        @if(empty(request('type')))
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
+                    @foreach($allTransactionTypes as $tVal)
                         <button 
                             type="button" 
                             onclick="selectFilterType('{{ $tVal }}')"
                             class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ request('type') === $tVal ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
                         >
-                            <span>{{ $tLabel }}</span>
+                            <span>{{ $tVal }}</span>
                             @if(request('type') === $tVal)
                                 <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                             @endif
@@ -450,75 +457,61 @@
                 &bull; <a href="{{ route('transactions.index') }}" class="text-tealBrand hover:underline font-bold">Reset Filter</a>
             @endif
         </div>
-        <div class="text-xs sm:text-sm font-bold text-slate-700">
-            Total : <span class="text-emerald-600 font-extrabold font-sans">Rp {{ number_format($totalAmount, 0, ',', '.') }}</span>
+        <div class="text-slate-500 font-medium">
+            Total Nominal: <strong class="text-slate-900 font-bold">Rp {{ number_format($totalAmount, 0, ',', '.') }}</strong>
         </div>
     </div>
 
-    <!-- Data Container: Mobile Card List + Desktop Table -->
-    <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm overflow-hidden">
+    <!-- Data List (Cards for Mobile, Table for Desktop) -->
+    <div class="space-y-3">
         
-        <!-- Table & List Header -->
-        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-            <div class="flex items-center space-x-3">
-                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Daftar Transaksi</h3>
-                @if(!auth()->user()->isViewer())
-                    <!-- Master Checkbox for Mobile -->
-                    <label class="md:hidden flex items-center space-x-1.5 text-[11px] font-bold text-slate-500 cursor-pointer">
-                        <input type="checkbox" id="selectAllTrxMobile" onchange="toggleSelectAllTrx(this)" class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
-                        <span>Pilih Semua</span>
-                    </label>
-                @endif
-            </div>
-            <span class="text-xs text-slate-400 font-medium font-mono">Page {{ $transactions->currentPage() }} of {{ $transactions->lastPage() }}</span>
-        </div>
-
-        <!-- 1. Mobile Cards View (< md) -->
-        <div class="block md:hidden space-y-3">
+        <!-- 1. Mobile Cards (< md) -->
+        <div class="md:hidden space-y-3">
             @forelse($transactions as $trx)
-                <div class="bg-slate-50/50 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 transition-all">
+                <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm">
                     
-                    <!-- Card Top Row: Checkbox, Code, Type Badge & Date -->
-                    <div class="flex items-center justify-between">
+                    <!-- Card Top: Checkbox, Code, Date -->
+                    <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2.5">
                         <div class="flex items-center space-x-2">
-                            @if(!auth()->user()->isViewer() && (auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id))
-                                <input type="checkbox" name="trx_ids[]" value="{{ $trx->id }}" onchange="updateTrxSelection()" class="trx-item-checkbox rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
+                            @if(!auth()->user()->isViewer())
+                                @if(auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id)
+                                    <input type="checkbox" name="trx_ids[]" value="{{ $trx->id }}" onchange="updateTrxSelection()" class="trx-item-checkbox rounded border-slate-300 text-tealBrand focus:ring-tealBrand cursor-pointer">
+                                @else
+                                    <input type="checkbox" disabled class="rounded border-slate-200 text-slate-300 cursor-not-allowed opacity-40">
+                                @endif
                             @endif
-                            <span class="font-mono text-[11px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded-md">
-                                {{ $trx->code }}
-                            </span>
+                            <span class="font-mono font-bold text-slate-900">{{ $trx->code }}</span>
                         </div>
-                        
-                        <span class="text-[10px] text-slate-400 font-medium font-mono">
+                        <span class="text-slate-400 font-medium text-[11px]">
                             {{ $trx->transaction_date ? $trx->transaction_date->format('d M Y') : '-' }}
                         </span>
                     </div>
 
-                    <!-- Card Body: Customer, Notes, Branch & Type -->
-                    <div class="space-y-1">
+                    <!-- Card Middle: Customer & Type Badge -->
+                    <div class="space-y-1.5">
                         <div class="flex items-start justify-between gap-2">
                             <div class="font-bold text-xs text-slate-900 leading-tight">
                                 {{ $trx->customer_name }}
                             </div>
                             <!-- Type Badge -->
                             <div>
-                                @if($trx->type === 'Penjualan Tunai')
-                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        Tunai
-                                    </span>
-                                @elseif($trx->type === 'Penjualan Kredit')
-                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">
-                                        Kredit
-                                    </span>
-                                @elseif($trx->type === 'Retur Penjualan')
-                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                        Retur
-                                    </span>
-                                @else
-                                    <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                        Transfer
-                                    </span>
-                                @endif
+                                @php
+                                    $tLower = strtolower($trx->type);
+                                    if (str_contains($tLower, 'tunai') || str_contains($tLower, 'cash')) {
+                                        $mBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                                    } elseif (str_contains($tLower, 'kredit') || str_contains($tLower, 'tempo')) {
+                                        $mBadgeClass = 'bg-cyan-50 text-cyan-700 border-cyan-200';
+                                    } elseif (str_contains($tLower, 'retur')) {
+                                        $mBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                                    } elseif (str_contains($tLower, 'transfer')) {
+                                        $mBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                                    } else {
+                                        $mBadgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                                    }
+                                @endphp
+                                <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold border {{ $mBadgeClass }}">
+                                    {{ $trx->type }}
+                                </span>
                             </div>
                         </div>
 
@@ -587,7 +580,16 @@
         </div>
 
         <!-- 2. Desktop Table View (>= md) -->
-        <div class="hidden md:block overflow-x-auto">
+        <div class="hidden md:block overflow-x-auto bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm">
+            
+            <!-- Table & List Header -->
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Daftar Transaksi</h3>
+                </div>
+                <span class="text-xs text-slate-400 font-medium font-mono">Page {{ $transactions->currentPage() }} of {{ $transactions->lastPage() }}</span>
+            </div>
+
             <table class="w-full text-left text-xs text-slate-700">
                 <thead class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                     <tr>
@@ -636,23 +638,23 @@
                             
                             <!-- Jenis (Badge) -->
                             <td class="py-3 px-3 whitespace-nowrap">
-                                @if($trx->type === 'Penjualan Tunai')
-                                    <span class="inline-block px-3 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                                        Penjualan Tunai
-                                    </span>
-                                @elseif($trx->type === 'Penjualan Kredit')
-                                    <span class="inline-block px-3 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/80">
-                                        Penjualan Kredit
-                                    </span>
-                                @elseif($trx->type === 'Retur Penjualan')
-                                    <span class="inline-block px-3 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">
-                                        Retur Penjualan
-                                    </span>
-                                @else
-                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
-                                        Transfer Cabang
-                                    </span>
-                                @endif
+                                @php
+                                    $tLower = strtolower($trx->type);
+                                    if (str_contains($tLower, 'tunai') || str_contains($tLower, 'cash')) {
+                                        $dBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+                                    } elseif (str_contains($tLower, 'kredit') || str_contains($tLower, 'tempo')) {
+                                        $dBadgeClass = 'bg-cyan-50 text-cyan-700 border-cyan-200/80';
+                                    } elseif (str_contains($tLower, 'retur')) {
+                                        $dBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200/80';
+                                    } elseif (str_contains($tLower, 'transfer')) {
+                                        $dBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200/80';
+                                    } else {
+                                        $dBadgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200/80';
+                                    }
+                                @endphp
+                                <span class="inline-block px-3 py-0.5 rounded-full text-[10px] font-bold border {{ $dBadgeClass }}">
+                                    {{ $trx->type }}
+                                </span>
                             </td>
 
                             <!-- Deskripsi -->
@@ -872,8 +874,8 @@
                         </svg>
                     </button>
 
-                    <div id="createTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
-                        @foreach(['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'] as $tOption)
+                    <div id="createTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
+                        @foreach($allTransactionTypes as $tOption)
                             <button 
                                 type="button" 
                                 onclick="selectCreateType('{{ $tOption }}')"
@@ -885,6 +887,16 @@
                                 </span>
                             </button>
                         @endforeach
+                        <div class="border-t border-slate-100 pt-1 mt-1 px-2">
+                            <button 
+                                type="button" 
+                                onclick="promptCustomCreateType()"
+                                class="w-full text-left px-2 py-1.5 text-xs text-tealBrand hover:bg-teal-50 rounded-lg font-bold flex items-center space-x-1.5 cursor-pointer"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                <span>+ Ketik Jenis Baru...</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1000,8 +1012,8 @@
                         </svg>
                     </button>
 
-                    <div id="editTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
-                        @foreach(['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'] as $tOption)
+                    <div id="editTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
+                        @foreach($allTransactionTypes as $tOption)
                             <button 
                                 type="button" 
                                 onclick="selectEditType('{{ $tOption }}')"
@@ -1013,6 +1025,16 @@
                                 </span>
                             </button>
                         @endforeach
+                        <div class="border-t border-slate-100 pt-1 mt-1 px-2">
+                            <button 
+                                type="button" 
+                                onclick="promptCustomEditType()"
+                                class="w-full text-left px-2 py-1.5 text-xs text-tealBrand hover:bg-teal-50 rounded-lg font-bold flex items-center space-x-1.5 cursor-pointer"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                <span>+ Ketik Jenis Baru...</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1362,8 +1384,11 @@
         if (input) input.value = val;
         if (text) text.textContent = val;
 
+        let hasMatched = false;
         document.querySelectorAll('.create-type-check').forEach(el => {
-            el.classList.toggle('hidden', el.getAttribute('data-value') !== val);
+            const isMatch = el.getAttribute('data-value') === val;
+            el.classList.toggle('hidden', !isMatch);
+            if (isMatch) hasMatched = true;
         });
 
         const menu = document.getElementById('createTypeMenu');
@@ -1372,20 +1397,77 @@
         if (chevron) chevron.classList.remove('rotate-180');
     }
 
+    function promptCustomCreateType() {
+        const menu = document.getElementById('createTypeMenu');
+        const chevron = document.getElementById('createTypeChevron');
+        if (menu) menu.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+
+        Swal.fire({
+            title: 'Ketik Jenis Transaksi Baru',
+            input: 'text',
+            inputPlaceholder: 'Contoh: Pengadaan, BAA, Operasional...',
+            showCancelButton: true,
+            confirmButtonText: 'Terapkan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#0A97B0',
+            customClass: { popup: 'ikhlas-toast' },
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return 'Jenis transaksi tidak boleh kosong!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                selectCreateType(result.value.trim());
+            }
+        });
+    }
+
     function selectEditType(val) {
         const input = document.getElementById('editTypeInput');
         const text = document.getElementById('editTypeText');
         if (input) input.value = val;
         if (text) text.textContent = val;
 
+        let hasMatched = false;
         document.querySelectorAll('.edit-type-check').forEach(el => {
-            el.classList.toggle('hidden', el.getAttribute('data-value') !== val);
+            const isMatch = el.getAttribute('data-value') === val;
+            el.classList.toggle('hidden', !isMatch);
+            if (isMatch) hasMatched = true;
         });
 
         const menu = document.getElementById('editTypeMenu');
         const chevron = document.getElementById('editTypeChevron');
         if (menu) menu.classList.add('hidden');
         if (chevron) chevron.classList.remove('rotate-180');
+    }
+
+    function promptCustomEditType() {
+        const menu = document.getElementById('editTypeMenu');
+        const chevron = document.getElementById('editTypeChevron');
+        if (menu) menu.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+
+        Swal.fire({
+            title: 'Ketik Jenis Transaksi Baru',
+            input: 'text',
+            inputPlaceholder: 'Contoh: Pengadaan, BAA, Operasional...',
+            showCancelButton: true,
+            confirmButtonText: 'Terapkan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#0A97B0',
+            customClass: { popup: 'ikhlas-toast' },
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return 'Jenis transaksi tidak boleh kosong!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                selectEditType(result.value.trim());
+            }
+        });
     }
 
     function openCreateModal() {
@@ -1572,37 +1654,13 @@
                         minimumFractionDigits: 0 
                     }).format(cleanAmountNum);
 
-                    // Smart Keyword Matching untuk Jenis Transaksi
-                    let matchedType = 'Penjualan Tunai';
-                    let wasAdjusted = false;
-                    const rawTypeLower = colJenis.toLowerCase();
-                    const validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
-
-                    if (validTypes.includes(colJenis)) {
-                        matchedType = colJenis;
-                    } else if (rawTypeLower.includes('kredit') || rawTypeLower.includes('tempo') || rawTypeLower.includes('piutang') || rawTypeLower.includes('credit')) {
-                        matchedType = 'Penjualan Kredit';
-                        wasAdjusted = (colJenis !== 'Penjualan Kredit');
-                    } else if (rawTypeLower.includes('retur') || rawTypeLower.includes('return') || rawTypeLower.includes('kembali')) {
-                        matchedType = 'Retur Penjualan';
-                        wasAdjusted = (colJenis !== 'Retur Penjualan');
-                    } else if (rawTypeLower.includes('transfer') || rawTypeLower.includes('tf') || rawTypeLower.includes('mutasi') || rawTypeLower.includes('antar')) {
-                        matchedType = 'Transfer Cabang';
-                        wasAdjusted = (colJenis !== 'Transfer Cabang');
-                    } else if (rawTypeLower.includes('tunai') || rawTypeLower.includes('cash') || rawTypeLower.includes('lunas') || rawTypeLower.includes('jual')) {
-                        matchedType = 'Penjualan Tunai';
-                        wasAdjusted = (colJenis !== 'Penjualan Tunai');
-                    } else {
-                        matchedType = 'Penjualan Tunai';
-                        wasAdjusted = colJenis ? true : false;
-                    }
+                    // Jenis Transaksi langsung dari input Excel (atau fallback jika kosong)
+                    const exactType = colJenis ? colJenis : 'Penjualan Tunai';
 
                     dataRows.push({
                         tanggal: colTanggal || '-',
                         cabang: colCabang || '-',
-                        jenis: matchedType,
-                        rawJenis: colJenis,
-                        wasAdjusted: wasAdjusted,
+                        jenis: exactType,
                         deskripsi: colDeskripsi || '-',
                         customer: colCustomer || '-',
                         qty: colQty || '1',
@@ -1632,16 +1690,15 @@
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-50 transition-colors';
 
-                    let jenisBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    let jenisBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
                     const jLower = item.jenis.toLowerCase();
-                    if (jLower.includes('kredit')) jenisBadgeClass = 'bg-cyan-50 text-cyan-700 border-cyan-200';
+                    if (jLower.includes('tunai') || jLower.includes('cash')) jenisBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    else if (jLower.includes('kredit') || jLower.includes('tempo')) jenisBadgeClass = 'bg-cyan-50 text-cyan-700 border-cyan-200';
                     else if (jLower.includes('retur')) jenisBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
                     else if (jLower.includes('transfer')) jenisBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                    else jenisBadgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
 
                     let jenisDisplay = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${jenisBadgeClass}">${item.jenis}</span>`;
-                    if (item.wasAdjusted && item.rawJenis) {
-                        jenisDisplay += `<span class="block text-[8.5px] text-amber-600 font-bold mt-0.5" title="Nilai di berkas: '${item.rawJenis}'">Otomatis dari "${item.rawJenis}"</span>`;
-                    }
 
                     const amountClass = item.isNegative ? 'text-rose-600' : 'text-slate-900';
 
@@ -1668,16 +1725,14 @@
                 document.getElementById('dropzoneContainer').classList.add('hidden');
                 document.getElementById('importPreviewSection').classList.remove('hidden');
 
-                if (submitBtnText) {
-                    submitBtnText.textContent = `Import ${dataRows.length} Data Transaksi`;
-                }
+                if (submitBtnText) submitBtnText.textContent = `Import ${dataRows.length} Data Transaksi`;
 
             } catch (err) {
-                console.error('Error parsing Excel:', err);
+                console.error(err);
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Membaca Excel',
-                    text: 'Terjadi kesalahan saat memproses berkas Excel. Pastikan file tidak rusak.',
+                    text: 'Terjadi kesalahan saat membaca file. Pastikan format tabel sesuai dengan template.',
                     customClass: { popup: 'ikhlas-toast' }
                 });
                 resetImportFile();

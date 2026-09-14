@@ -89,6 +89,11 @@ class TransactionController extends Controller
         $transactions = $query->paginate(12)->withQueryString();
         $branches = Branch::where('status', 'active')->orderBy('name')->get();
 
+        // Ambil semua jenis transaksi yang ada di database + default 4 jenis utama
+        $defaultTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
+        $dbTypes = Transaction::distinct()->pluck('type')->filter()->toArray();
+        $allTransactionTypes = array_values(array_unique(array_merge($defaultTypes, $dbTypes)));
+
         // Generate next code preview yang dijamin unik
         $nextCode = $this->generateUniqueTransactionCode();
 
@@ -98,7 +103,8 @@ class TransactionController extends Controller
             'totalAmount',
             'totalCount',
             'selectedBranchId',
-            'nextCode'
+            'nextCode',
+            'allTransactionTypes'
         ));
     }
 
@@ -162,14 +168,14 @@ class TransactionController extends Controller
             'code' => ['nullable', 'string', 'max:50', 'unique:transactions,code'],
             'branch_id' => ['required', 'exists:branches,id'],
             'transaction_date' => ['required', 'date'],
-            'type' => ['required', Rule::in(['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'])],
+            'type' => ['required', 'string', 'max:100'],
             'customer_name' => ['required', 'string', 'max:255'],
             'qty' => ['required', 'integer', 'min:1'],
             'amount' => ['required', 'numeric'],
             'notes' => ['nullable', 'string', 'max:500'],
         ], [
             'transaction_date.required' => 'Tanggal transaksi wajib diisi.',
-            'type.required' => 'Jenis transaksi wajib dipilih.',
+            'type.required' => 'Jenis transaksi wajib diisi/dipilih.',
             'customer_name.required' => 'Nama customer / tujuan wajib diisi.',
             'qty.required' => 'Qty wajib diisi.',
             'amount.required' => 'Nominal jumlah wajib diisi.',
@@ -184,7 +190,7 @@ class TransactionController extends Controller
         $validated['user_id'] = $user->id;
 
         // Jika jenis retur, pastikan amount bertanda minus jika diisi positif
-        if ($validated['type'] === 'Retur Penjualan' && $validated['amount'] > 0) {
+        if (stripos($validated['type'], 'retur') !== false && $validated['amount'] > 0) {
             $validated['amount'] = -abs($validated['amount']);
         }
 
@@ -217,7 +223,7 @@ class TransactionController extends Controller
 
         $validated = $request->validate([
             'transaction_date' => ['required', 'date'],
-            'type' => ['required', Rule::in(['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'])],
+            'type' => ['required', 'string', 'max:100'],
             'customer_name' => ['required', 'string', 'max:255'],
             'qty' => ['required', 'integer', 'min:1'],
             'amount' => ['required', 'numeric'],
@@ -229,7 +235,7 @@ class TransactionController extends Controller
         }
 
         // Jika jenis retur, pastikan amount bertanda minus
-        if ($validated['type'] === 'Retur Penjualan' && $validated['amount'] > 0) {
+        if (stripos($validated['type'], 'retur') !== false && $validated['amount'] > 0) {
             $validated['amount'] = -abs($validated['amount']);
         }
 
@@ -575,7 +581,7 @@ class TransactionController extends Controller
             $guideLines = [
                 '1. Tanggal: Gunakan format standar YYYY-MM-DD (Contoh: 2026-09-11).',
                 '2. Cabang: Diisi nama cabang resmi (Contoh: Jakarta Pusat, Bandung, Surabaya).',
-                '3. Jenis Transaksi: Pilih salah satu dari: [Penjualan Tunai, Penjualan Kredit, Retur Penjualan, Transfer Cabang].',
+                '3. Jenis Transaksi: Pilih dari dropdown atau ketik jenis kustom bebas (Contoh: Penjualan Tunai, BAA, Operasional, dsb.).',
                 '4. Customer: Diisi nama customer / pembeli / cabang tujuan transfer.',
                 '5. Qty: Jumlah kuantitas unit barang (Angka bulat).',
                 '6. Jumlah: Cukup ketik angkanya saja (misal: 16700000), Excel akan otomatis memformat menjadi Rp 16.700.000. Untuk Retur Penjualan boleh diberi tanda minus (-).',
@@ -639,18 +645,16 @@ class TransactionController extends Controller
             // Borders untuk tabel sample
             $sheet->getStyle('A11:G15')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
 
-            // Data Validation: Dropdown List untuk Kolom C (Jenis Transaksi) Baris 12 - 500
+            // Data Validation: Dropdown Saran untuk Kolom C (Jenis Transaksi) Baris 12 - 500
             $validationJenis = $sheet->getCell('C12')->getDataValidation();
             $validationJenis->setType(DataValidation::TYPE_LIST);
             $validationJenis->setErrorStyle(DataValidation::STYLE_INFORMATION);
-            $validationJenis->setAllowBlank(false);
+            $validationJenis->setAllowBlank(true);
             $validationJenis->setShowInputMessage(true);
-            $validationJenis->setShowErrorMessage(true);
+            $validationJenis->setShowErrorMessage(false);
             $validationJenis->setShowDropDown(true);
-            $validationJenis->setErrorTitle('Pilihan Tidak Dikenal');
-            $validationJenis->setErrorMessage('Silakan pilih salah satu opsi resmi dari dropdown jenis transaksi.');
-            $validationJenis->setPromptTitle('Pilih Jenis Transaksi');
-            $validationJenis->setPrompt('Klik panah dropdown untuk memilih jenis transaksi');
+            $validationJenis->setPromptTitle('Pilih / Ketik Jenis Transaksi');
+            $validationJenis->setPrompt('Pilih opsi atau ketik jenis transaksi baru langsung di kolom ini.');
             $validationJenis->setFormula1('"Penjualan Tunai,Penjualan Kredit,Retur Penjualan,Transfer Cabang"');
 
             // Dropdown List untuk Kolom B (Cabang)
@@ -784,27 +788,8 @@ class TransactionController extends Controller
                 $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
             }
 
-            // 3. Normalisasi Jenis Transaksi dengan Smart Keyword Matching
-            $rawTypeLower = strtolower($col2);
-            $matchedType = 'Penjualan Tunai'; // default fallback
-
-            if (str_contains($rawTypeLower, 'kredit') || str_contains($rawTypeLower, 'tempo') || str_contains($rawTypeLower, 'piutang') || str_contains($rawTypeLower, 'credit')) {
-                $matchedType = 'Penjualan Kredit';
-            } elseif (str_contains($rawTypeLower, 'retur') || str_contains($rawTypeLower, 'return') || str_contains($rawTypeLower, 'kembali')) {
-                $matchedType = 'Retur Penjualan';
-            } elseif (str_contains($rawTypeLower, 'transfer') || str_contains($rawTypeLower, 'tf') || str_contains($rawTypeLower, 'mutasi') || str_contains($rawTypeLower, 'antar')) {
-                $matchedType = 'Transfer Cabang';
-            } elseif (str_contains($rawTypeLower, 'tunai') || str_contains($rawTypeLower, 'cash') || str_contains($rawTypeLower, 'lunas') || str_contains($rawTypeLower, 'jual')) {
-                $matchedType = 'Penjualan Tunai';
-            } else {
-                $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
-                foreach ($validTypes as $vt) {
-                    if (stripos($col2, $vt) !== false) {
-                        $matchedType = $vt;
-                        break;
-                    }
-                }
-            }
+            // 3. Jenis Transaksi (Pakai input asli dari berkas atau fallback ke Penjualan Tunai jika kosong)
+            $matchedType = !empty($col2) ? $col2 : 'Penjualan Tunai';
 
             // 4. QTY & Notes & Customer
             $qtyRaw = intval(preg_replace('/[^0-9]/', '', $col5));
@@ -817,7 +802,7 @@ class TransactionController extends Controller
             $cleanAmountStr = str_ireplace(['Rp', ' ', '.', ',', '(', ')'], '', $col6);
             $amountVal = floatval($cleanAmountStr);
 
-            if ($isNegative || $matchedType === 'Retur Penjualan') {
+            if ($isNegative || stripos($matchedType, 'retur') !== false) {
                 $amount = -abs($amountVal);
             } else {
                 $amount = abs($amountVal);
