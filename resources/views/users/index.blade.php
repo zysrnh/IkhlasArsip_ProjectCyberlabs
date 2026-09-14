@@ -583,10 +583,71 @@
                 <input type="email" name="email" required placeholder="budi@ikhlas.com" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
-            <!-- Password -->
+            <!-- Password Field with Generator & Strength Meter -->
             <div>
-                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">PASSWORD</label>
-                <input type="password" name="password" required placeholder="Minimal 6 karakter" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">PASSWORD</label>
+                    <div class="flex items-center space-x-1.5">
+                        <button 
+                            type="button" 
+                            onclick="generateStrongPassword('createPassword', 'create')"
+                            class="inline-flex items-center space-x-1 text-[10.5px] font-bold text-tealBrand hover:text-tealBrand-hover bg-teal-50 hover:bg-teal-100/80 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                            title="Buat password acak yang kuat"
+                        >
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                            <span>Generate</span>
+                        </button>
+                        <button 
+                            type="button" 
+                            onclick="copyPasswordToClipboard('createPassword', this)"
+                            class="inline-flex items-center space-x-1 text-[10.5px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                            title="Salin password ke clipboard"
+                        >
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                            <span>Salin</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="createPassword" 
+                        required 
+                        placeholder="Minimal 6 karakter" 
+                        oninput="checkPasswordStrength(this.value, 'create')"
+                        class="w-full pl-3.5 pr-10 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition font-mono"
+                    >
+                    <button 
+                        type="button" 
+                        onclick="togglePasswordVisibility('createPassword', 'eyeIcon_createPassword')"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                        title="Tampilkan / Sembunyikan Password"
+                    >
+                        <svg id="eyeIcon_createPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Password Strength Meter Bar -->
+                <div id="strengthContainer_create" class="mt-2 hidden space-y-1">
+                    <div class="flex items-center justify-between text-[10px]">
+                        <span class="text-slate-400 font-medium">Kekuatan Password:</span>
+                        <span id="strengthText_create" class="font-bold text-rose-500">Sangat Lemah</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden p-0.5">
+                        <div id="strengthBar_create_1" class="h-full rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="strengthBar_create_2" class="h-full rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="strengthBar_create_3" class="h-full rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="strengthBar_create_4" class="h-full rounded-full bg-slate-200 transition-all duration-300"></div>
+                    </div>
+                    <p id="strengthFeedback_create" class="text-[9.5px] text-slate-400 font-medium leading-tight pt-0.5">
+                        Kombinasikan huruf besar, kecil, angka, dan simbol untuk password yang kuat.
+                    </p>
+                </div>
             </div>
 
             <!-- Role & Branch Custom Popovers -->
@@ -771,12 +832,72 @@
                 <input type="email" name="email" id="editEmail" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
             </div>
 
-            <!-- Password Reset (Optional) -->
+            <!-- Password Reset (Optional) with Generator & Strength Meter -->
             <div>
-                <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">
-                    PASSWORD BARU <span class="text-slate-400 normal-case font-normal">(Kosongkan jika tidak ingin diubah)</span>
-                </label>
-                <input type="password" name="password" placeholder="Minimal 6 karakter..." class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition">
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
+                        PASSWORD BARU <span class="text-slate-400 normal-case font-normal">(Opsional)</span>
+                    </label>
+                    <div class="flex items-center space-x-1.5">
+                        <button 
+                            type="button" 
+                            onclick="generateStrongPassword('editPassword', 'edit')"
+                            class="inline-flex items-center space-x-1 text-[10.5px] font-bold text-tealBrand hover:text-tealBrand-hover bg-teal-50 hover:bg-teal-100/80 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                            title="Buat password acak yang kuat"
+                        >
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                            <span>Generate</span>
+                        </button>
+                        <button 
+                            type="button" 
+                            onclick="copyPasswordToClipboard('editPassword', this)"
+                            class="inline-flex items-center space-x-1 text-[10.5px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                            title="Salin password ke clipboard"
+                        >
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                            <span>Salin</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="editPassword" 
+                        placeholder="Kosongkan jika tidak ingin mengubah password..." 
+                        oninput="checkPasswordStrength(this.value, 'edit')"
+                        class="w-full pl-3.5 pr-10 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition font-mono"
+                    >
+                    <button 
+                        type="button" 
+                        onclick="togglePasswordVisibility('editPassword', 'eyeIcon_editPassword')"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                        title="Tampilkan / Sembunyikan Password"
+                    >
+                        <svg id="eyeIcon_editPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Password Strength Meter Bar -->
+                <div id="strengthContainer_edit" class="mt-2 hidden space-y-1">
+                    <div class="flex items-center justify-between text-[10px]">
+                        <span class="text-slate-400 font-medium">Kekuatan Password Baru:</span>
+                        <span id="strengthText_edit" class="font-bold text-rose-500">Sangat Lemah</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden p-0.5">
+                        <div id="strengthBar_edit_1" class="h-full rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="strengthBar_edit_2" class="h-full rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="strengthBar_edit_3" class="h-full rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="strengthBar_edit_4" class="h-full rounded-full bg-slate-200 transition-all duration-300"></div>
+                    </div>
+                    <p id="strengthFeedback_edit" class="text-[9.5px] text-slate-400 font-medium leading-tight pt-0.5">
+                        Kombinasikan huruf besar, kecil, angka, dan simbol untuk password yang kuat.
+                    </p>
+                </div>
             </div>
 
             <!-- Role & Branch Custom Popovers -->
@@ -1201,6 +1322,18 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         
+        // Reset password and strength meter
+        const pwInput = document.getElementById('createPassword');
+        if (pwInput) {
+            pwInput.value = '';
+            pwInput.type = 'password';
+            const eyeIcon = document.getElementById('eyeIcon_createPassword');
+            if (eyeIcon) {
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+            }
+            checkPasswordStrength('', 'create');
+        }
+
         setModalDropdownValue('create', 'Role', 'admin_cabang', 'Admin Cabang');
         
         if (isUserKepalaCabang && userDefaultBranchId) {
@@ -1228,6 +1361,18 @@
         document.getElementById('editName').value = user.name;
         document.getElementById('editEmail').value = user.email;
         
+        // Reset password and strength meter in edit modal
+        const pwInput = document.getElementById('editPassword');
+        if (pwInput) {
+            pwInput.value = '';
+            pwInput.type = 'password';
+            const eyeIcon = document.getElementById('eyeIcon_editPassword');
+            if (eyeIcon) {
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+            }
+            checkPasswordStrength('', 'edit');
+        }
+
         setModalDropdownValue('edit', 'Role', user.role, roleLabels[user.role] || 'Admin Cabang');
         setModalDropdownValue('edit', 'Status', user.status, statusLabels[user.status] || 'Aktif');
         
@@ -1244,6 +1389,170 @@
         const modal = document.getElementById('editModal');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+    }
+
+    // Generate Strong Random Password
+    function generateStrongPassword(inputId, type) {
+        const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const lowercase = 'abcdefghijkmnopqrstuvwxyz';
+        const numbers = '23456789';
+        const symbols = '!@#$%&*';
+        const allChars = uppercase + lowercase + numbers + symbols;
+
+        let password = '';
+        // Ensure at least 1 of each category
+        password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
+        password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
+        password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+        password += symbols.charAt(Math.floor(Math.random() * symbols.length));
+
+        // Fill up to 12 characters
+        for (let i = 4; i < 12; i++) {
+            password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+        }
+
+        // Shuffle password
+        password = password.split('').sort(() => 0.5 - Math.random()).join('');
+
+        const inputEl = document.getElementById(inputId);
+        if (inputEl) {
+            inputEl.value = password;
+            // Switch to text so user can see what was generated
+            inputEl.type = 'text';
+            const eyeIcon = document.getElementById('eyeIcon_' + inputId);
+            if (eyeIcon) {
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />`;
+            }
+            checkPasswordStrength(password, type);
+            
+            if (typeof IkhlasToast !== 'undefined') {
+                IkhlasToast.fire({
+                    icon: 'success',
+                    iconColor: '#0A97B0',
+                    title: 'Password kuat berhasil di-generate!'
+                });
+            }
+        }
+    }
+
+    // Copy Password to Clipboard
+    function copyPasswordToClipboard(inputId, btnElement) {
+        const inputEl = document.getElementById(inputId);
+        if (!inputEl || !inputEl.value) {
+            if (typeof IkhlasToast !== 'undefined') {
+                IkhlasToast.fire({
+                    icon: 'error',
+                    iconColor: '#f43f5e',
+                    title: 'Password masih kosong, tidak ada yang disalin.'
+                });
+            }
+            return;
+        }
+
+        navigator.clipboard.writeText(inputEl.value).then(() => {
+            const originalHTML = btnElement ? btnElement.innerHTML : '';
+            if (btnElement) {
+                btnElement.innerHTML = `<svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg><span class="text-emerald-700 font-bold">Tersalin!</span>`;
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHTML;
+                }, 2000);
+            }
+
+            if (typeof IkhlasToast !== 'undefined') {
+                IkhlasToast.fire({
+                    icon: 'success',
+                    iconColor: '#0A97B0',
+                    title: 'Password berhasil disalin ke clipboard!'
+                });
+            }
+        }).catch(() => {
+            inputEl.select();
+            document.execCommand('copy');
+            if (typeof IkhlasToast !== 'undefined') {
+                IkhlasToast.fire({
+                    icon: 'success',
+                    iconColor: '#0A97B0',
+                    title: 'Password berhasil disalin!'
+                });
+            }
+        });
+    }
+
+    // Toggle Password Visibility
+    function togglePasswordVisibility(inputId, eyeIconId) {
+        const inputEl = document.getElementById(inputId);
+        const eyeIcon = document.getElementById(eyeIconId);
+        if (!inputEl) return;
+
+        if (inputEl.type === 'password') {
+            inputEl.type = 'text';
+            if (eyeIcon) {
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />`;
+            }
+        } else {
+            inputEl.type = 'password';
+            if (eyeIcon) {
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+            }
+        }
+    }
+
+    // Check Password Strength
+    function checkPasswordStrength(password, type) {
+        const container = document.getElementById('strengthContainer_' + type);
+        const textEl = document.getElementById('strengthText_' + type);
+        const feedbackEl = document.getElementById('strengthFeedback_' + type);
+        const bar1 = document.getElementById('strengthBar_' + type + '_1');
+        const bar2 = document.getElementById('strengthBar_' + type + '_2');
+        const bar3 = document.getElementById('strengthBar_' + type + '_3');
+        const bar4 = document.getElementById('strengthBar_' + type + '_4');
+
+        if (!container || !textEl) return;
+
+        if (!password) {
+            container.classList.add('hidden');
+            return;
+        }
+
+        container.classList.remove('hidden');
+
+        let score = 0;
+        if (password.length >= 6) score++;
+        if (password.length >= 10) score++;
+        if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+        if (/[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) score++;
+
+        // Reset bars
+        [bar1, bar2, bar3, bar4].forEach(b => {
+            if (b) b.className = 'h-full rounded-full bg-slate-200 transition-all duration-300';
+        });
+
+        if (score <= 1) {
+            textEl.textContent = 'Sangat Lemah';
+            textEl.className = 'font-bold text-rose-500';
+            if (bar1) bar1.className = 'h-full rounded-full bg-rose-500 transition-all duration-300';
+            if (feedbackEl) feedbackEl.textContent = 'Terlalu pendek dan mudah ditebak. Tambahkan huruf besar & angka.';
+        } else if (score === 2) {
+            textEl.textContent = 'Cukup';
+            textEl.className = 'font-bold text-amber-500';
+            if (bar1) bar1.className = 'h-full rounded-full bg-amber-500 transition-all duration-300';
+            if (bar2) bar2.className = 'h-full rounded-full bg-amber-500 transition-all duration-300';
+            if (feedbackEl) feedbackEl.textContent = 'Cukup baik. Tambahkan simbol unik seperti @, #, $, atau % agar lebih aman.';
+        } else if (score === 3) {
+            textEl.textContent = 'Kuat';
+            textEl.className = 'font-bold text-tealBrand';
+            if (bar1) bar1.className = 'h-full rounded-full bg-tealBrand transition-all duration-300';
+            if (bar2) bar2.className = 'h-full rounded-full bg-tealBrand transition-all duration-300';
+            if (bar3) bar3.className = 'h-full rounded-full bg-tealBrand transition-all duration-300';
+            if (feedbackEl) feedbackEl.textContent = 'Password kuat! Sangat sulit ditebak orang lain.';
+        } else {
+            textEl.textContent = 'Sangat Kuat';
+            textEl.className = 'font-bold text-emerald-600';
+            [bar1, bar2, bar3, bar4].forEach(b => {
+                if (b) b.className = 'h-full rounded-full bg-emerald-500 transition-all duration-300';
+            });
+            if (feedbackEl) feedbackEl.textContent = 'Password sangat aman dan memenuhi standar keamanan tinggi.';
+        }
     }
 
     // Keyboard shortcut '/' to focus search input
