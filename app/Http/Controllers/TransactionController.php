@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -638,6 +639,37 @@ class TransactionController extends Controller
             // Borders untuk tabel sample
             $sheet->getStyle('A11:G15')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
 
+            // Data Validation: Dropdown List untuk Kolom C (Jenis Transaksi) Baris 12 - 500
+            $validationJenis = $sheet->getCell('C12')->getDataValidation();
+            $validationJenis->setType(DataValidation::TYPE_LIST);
+            $validationJenis->setErrorStyle(DataValidation::STYLE_INFORMATION);
+            $validationJenis->setAllowBlank(false);
+            $validationJenis->setShowInputMessage(true);
+            $validationJenis->setShowErrorMessage(true);
+            $validationJenis->setShowDropDown(true);
+            $validationJenis->setErrorTitle('Pilihan Tidak Dikenal');
+            $validationJenis->setErrorMessage('Silakan pilih salah satu opsi resmi dari dropdown jenis transaksi.');
+            $validationJenis->setPromptTitle('Pilih Jenis Transaksi');
+            $validationJenis->setPrompt('Klik panah dropdown untuk memilih jenis transaksi');
+            $validationJenis->setFormula1('"Penjualan Tunai,Penjualan Kredit,Retur Penjualan,Transfer Cabang"');
+
+            // Dropdown List untuk Kolom B (Cabang)
+            $activeBranchNames = Branch::where('status', 'active')->pluck('name')->implode(',');
+            if (!empty($activeBranchNames)) {
+                $validationCabang = $sheet->getCell('B12')->getDataValidation();
+                $validationCabang->setType(DataValidation::TYPE_LIST);
+                $validationCabang->setErrorStyle(DataValidation::STYLE_INFORMATION);
+                $validationCabang->setShowDropDown(true);
+                $validationCabang->setFormula1('"' . $activeBranchNames . '"');
+            }
+
+            for ($row = 12; $row <= 500; $row++) {
+                $sheet->getCell("C{$row}")->setDataValidation(clone $validationJenis);
+                if (!empty($activeBranchNames)) {
+                    $sheet->getCell("B{$row}")->setDataValidation(clone $validationCabang);
+                }
+            }
+
             // Auto-width kolom
             $sheet->getColumnDimension('A')->setWidth(16);
             $sheet->getColumnDimension('B')->setWidth(20);
@@ -752,13 +784,25 @@ class TransactionController extends Controller
                 $branchId = $matchedBranch ? $matchedBranch->id : (Branch::first()->id ?? 1);
             }
 
-            // 3. Normalisasi Jenis Transaksi
-            $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
-            $matchedType = 'Penjualan Tunai';
-            foreach ($validTypes as $vt) {
-                if (stripos($col2, $vt) !== false) {
-                    $matchedType = $vt;
-                    break;
+            // 3. Normalisasi Jenis Transaksi dengan Smart Keyword Matching
+            $rawTypeLower = strtolower($col2);
+            $matchedType = 'Penjualan Tunai'; // default fallback
+
+            if (str_contains($rawTypeLower, 'kredit') || str_contains($rawTypeLower, 'tempo') || str_contains($rawTypeLower, 'piutang') || str_contains($rawTypeLower, 'credit')) {
+                $matchedType = 'Penjualan Kredit';
+            } elseif (str_contains($rawTypeLower, 'retur') || str_contains($rawTypeLower, 'return') || str_contains($rawTypeLower, 'kembali')) {
+                $matchedType = 'Retur Penjualan';
+            } elseif (str_contains($rawTypeLower, 'transfer') || str_contains($rawTypeLower, 'tf') || str_contains($rawTypeLower, 'mutasi') || str_contains($rawTypeLower, 'antar')) {
+                $matchedType = 'Transfer Cabang';
+            } elseif (str_contains($rawTypeLower, 'tunai') || str_contains($rawTypeLower, 'cash') || str_contains($rawTypeLower, 'lunas') || str_contains($rawTypeLower, 'jual')) {
+                $matchedType = 'Penjualan Tunai';
+            } else {
+                $validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
+                foreach ($validTypes as $vt) {
+                    if (stripos($col2, $vt) !== false) {
+                        $matchedType = $vt;
+                        break;
+                    }
                 }
             }
 

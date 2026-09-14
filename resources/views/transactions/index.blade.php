@@ -857,21 +857,34 @@
                     </div>
                 </div>
 
-                <!-- Baris 2: Jenis Transaksi -->
-                <div>
+                <!-- Baris 2: Jenis Transaksi (Custom Popover Dropdown) -->
+                <div class="relative" id="createTypeDropdownContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">JENIS TRANSAKSI</label>
-                    <div class="relative">
-                        <select name="type" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
-                            <option value="Penjualan Tunai">Penjualan Tunai</option>
-                            <option value="Penjualan Kredit">Penjualan Kredit</option>
-                            <option value="Retur Penjualan">Retur Penjualan</option>
-                            <option value="Transfer Cabang">Transfer Cabang</option>
-                        </select>
-                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
+                    <input type="hidden" name="type" id="createTypeInput" value="Penjualan Tunai">
+                    <button 
+                        type="button"
+                        onclick="toggleCustomPopover('createTypeMenu', 'createTypeChevron')"
+                        class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-bold flex items-center justify-between transition-colors cursor-pointer"
+                    >
+                        <span id="createTypeText">Penjualan Tunai</span>
+                        <svg id="createTypeChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div id="createTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
+                        @foreach(['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'] as $tOption)
+                            <button 
+                                type="button" 
+                                onclick="selectCreateType('{{ $tOption }}')"
+                                class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition-colors hover:bg-teal-50 hover:text-tealBrand text-slate-700 font-semibold"
+                            >
+                                <span>{{ $tOption }}</span>
+                                <span class="create-type-check text-tealBrand {{ $tOption === 'Penjualan Tunai' ? '' : 'hidden' }}" data-value="{{ $tOption }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </span>
+                            </button>
+                        @endforeach
                     </div>
                 </div>
 
@@ -972,21 +985,34 @@
                     </div>
                 </div>
 
-                <!-- Baris 2: Jenis Transaksi -->
-                <div>
+                <!-- Baris 2: Jenis Transaksi (Custom Popover Dropdown) -->
+                <div class="relative" id="editTypeDropdownContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">JENIS TRANSAKSI</label>
-                    <div class="relative">
-                        <select name="type" id="editType" required class="w-full appearance-none px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer">
-                            <option value="Penjualan Tunai">Penjualan Tunai</option>
-                            <option value="Penjualan Kredit">Penjualan Kredit</option>
-                            <option value="Retur Penjualan">Retur Penjualan</option>
-                            <option value="Transfer Cabang">Transfer Cabang</option>
-                        </select>
-                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
+                    <input type="hidden" name="type" id="editTypeInput" value="Penjualan Tunai">
+                    <button 
+                        type="button"
+                        onclick="toggleCustomPopover('editTypeMenu', 'editTypeChevron')"
+                        class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-bold flex items-center justify-between transition-colors cursor-pointer"
+                    >
+                        <span id="editTypeText">Penjualan Tunai</span>
+                        <svg id="editTypeChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div id="editTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
+                        @foreach(['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'] as $tOption)
+                            <button 
+                                type="button" 
+                                onclick="selectEditType('{{ $tOption }}')"
+                                class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition-colors hover:bg-teal-50 hover:text-tealBrand text-slate-700 font-semibold"
+                            >
+                                <span>{{ $tOption }}</span>
+                                <span class="edit-type-check text-tealBrand {{ $tOption === 'Penjualan Tunai' ? '' : 'hidden' }}" data-value="{{ $tOption }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </span>
+                            </button>
+                        @endforeach
                     </div>
                 </div>
 
@@ -1330,6 +1356,38 @@
         modal.classList.remove('flex');
     }
 
+    function selectCreateType(val) {
+        const input = document.getElementById('createTypeInput');
+        const text = document.getElementById('createTypeText');
+        if (input) input.value = val;
+        if (text) text.textContent = val;
+
+        document.querySelectorAll('.create-type-check').forEach(el => {
+            el.classList.toggle('hidden', el.getAttribute('data-value') !== val);
+        });
+
+        const menu = document.getElementById('createTypeMenu');
+        const chevron = document.getElementById('createTypeChevron');
+        if (menu) menu.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+    }
+
+    function selectEditType(val) {
+        const input = document.getElementById('editTypeInput');
+        const text = document.getElementById('editTypeText');
+        if (input) input.value = val;
+        if (text) text.textContent = val;
+
+        document.querySelectorAll('.edit-type-check').forEach(el => {
+            el.classList.toggle('hidden', el.getAttribute('data-value') !== val);
+        });
+
+        const menu = document.getElementById('editTypeMenu');
+        const chevron = document.getElementById('editTypeChevron');
+        if (menu) menu.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+    }
+
     function openCreateModal() {
         const modal = document.getElementById('createModal');
         if (!modal) return;
@@ -1337,6 +1395,7 @@
         if (amountInput && (!amountInput.value || amountInput.value === '0')) {
             amountInput.value = '0';
         }
+        selectCreateType('Penjualan Tunai');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
@@ -1362,7 +1421,7 @@
             document.getElementById('editDate').value = trx.transaction_date ? trx.transaction_date.substring(0, 10) : '';
         }
 
-        document.getElementById('editType').value = trx.type;
+        selectEditType(trx.type || 'Penjualan Tunai');
         document.getElementById('editCustomer').value = trx.customer_name;
         document.getElementById('editQty').value = trx.qty;
         
@@ -1513,10 +1572,37 @@
                         minimumFractionDigits: 0 
                     }).format(cleanAmountNum);
 
+                    // Smart Keyword Matching untuk Jenis Transaksi
+                    let matchedType = 'Penjualan Tunai';
+                    let wasAdjusted = false;
+                    const rawTypeLower = colJenis.toLowerCase();
+                    const validTypes = ['Penjualan Tunai', 'Penjualan Kredit', 'Retur Penjualan', 'Transfer Cabang'];
+
+                    if (validTypes.includes(colJenis)) {
+                        matchedType = colJenis;
+                    } else if (rawTypeLower.includes('kredit') || rawTypeLower.includes('tempo') || rawTypeLower.includes('piutang') || rawTypeLower.includes('credit')) {
+                        matchedType = 'Penjualan Kredit';
+                        wasAdjusted = (colJenis !== 'Penjualan Kredit');
+                    } else if (rawTypeLower.includes('retur') || rawTypeLower.includes('return') || rawTypeLower.includes('kembali')) {
+                        matchedType = 'Retur Penjualan';
+                        wasAdjusted = (colJenis !== 'Retur Penjualan');
+                    } else if (rawTypeLower.includes('transfer') || rawTypeLower.includes('tf') || rawTypeLower.includes('mutasi') || rawTypeLower.includes('antar')) {
+                        matchedType = 'Transfer Cabang';
+                        wasAdjusted = (colJenis !== 'Transfer Cabang');
+                    } else if (rawTypeLower.includes('tunai') || rawTypeLower.includes('cash') || rawTypeLower.includes('lunas') || rawTypeLower.includes('jual')) {
+                        matchedType = 'Penjualan Tunai';
+                        wasAdjusted = (colJenis !== 'Penjualan Tunai');
+                    } else {
+                        matchedType = 'Penjualan Tunai';
+                        wasAdjusted = colJenis ? true : false;
+                    }
+
                     dataRows.push({
                         tanggal: colTanggal || '-',
                         cabang: colCabang || '-',
-                        jenis: colJenis || 'Penjualan Tunai',
+                        jenis: matchedType,
+                        rawJenis: colJenis,
+                        wasAdjusted: wasAdjusted,
                         deskripsi: colDeskripsi || '-',
                         customer: colCustomer || '-',
                         qty: colQty || '1',
@@ -1547,19 +1633,22 @@
                     tr.className = 'hover:bg-slate-50 transition-colors';
 
                     let jenisBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                    const jLower = (item.jenis || '').toLowerCase();
+                    const jLower = item.jenis.toLowerCase();
                     if (jLower.includes('kredit')) jenisBadgeClass = 'bg-cyan-50 text-cyan-700 border-cyan-200';
                     else if (jLower.includes('retur')) jenisBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
                     else if (jLower.includes('transfer')) jenisBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+
+                    let jenisDisplay = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${jenisBadgeClass}">${item.jenis}</span>`;
+                    if (item.wasAdjusted && item.rawJenis) {
+                        jenisDisplay += `<span class="block text-[8.5px] text-amber-600 font-bold mt-0.5" title="Nilai di berkas: '${item.rawJenis}'">Otomatis dari "${item.rawJenis}"</span>`;
+                    }
 
                     const amountClass = item.isNegative ? 'text-rose-600' : 'text-slate-900';
 
                     tr.innerHTML = `
                         <td class="py-2.5 px-3 font-medium text-slate-600 whitespace-nowrap">${item.tanggal}</td>
                         <td class="py-2.5 px-3 font-bold text-slate-800 whitespace-nowrap">${item.cabang}</td>
-                        <td class="py-2.5 px-3 whitespace-nowrap">
-                            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${jenisBadgeClass}">${item.jenis}</span>
-                        </td>
+                        <td class="py-2.5 px-3 whitespace-nowrap">${jenisDisplay}</td>
                         <td class="py-2.5 px-3 font-semibold text-slate-900 max-w-[150px] truncate" title="${item.customer}">${item.customer}</td>
                         <td class="py-2.5 px-3 text-center font-mono font-bold">${item.qty}</td>
                         <td class="py-2.5 px-3 text-right font-extrabold ${amountClass} whitespace-nowrap">${item.jumlah}</td>
@@ -1684,8 +1773,8 @@
         const chevron = document.getElementById(chevronId);
         if (!menu) return;
 
-        const allPopovers = ['trxHeaderBranchMenu', 'filterBranchMenu', 'filterTypeMenu', 'filterSortMenu'];
-        const allChevrons = ['trxHeaderBranchChevron', 'filterBranchChevron', 'filterTypeChevron', 'filterSortChevron'];
+        const allPopovers = ['trxHeaderBranchMenu', 'filterBranchMenu', 'filterTypeMenu', 'filterSortMenu', 'createTypeMenu', 'editTypeMenu'];
+        const allChevrons = ['trxHeaderBranchChevron', 'filterBranchChevron', 'filterTypeChevron', 'filterSortChevron', 'createTypeChevron', 'editTypeChevron'];
 
         allPopovers.forEach((id, idx) => {
             if (id !== menuId) {
@@ -1732,7 +1821,9 @@
             'trxHeaderBranchDropdownContainer',
             'filterBranchDropdownContainer',
             'filterTypeDropdownContainer',
-            'filterSortDropdownContainer'
+            'filterSortDropdownContainer',
+            'createTypeDropdownContainer',
+            'editTypeDropdownContainer'
         ];
         const isInsideAny = containers.some(id => {
             const el = document.getElementById(id);
@@ -1740,11 +1831,11 @@
         });
 
         if (!isInsideAny) {
-            ['trxHeaderBranchMenu', 'filterBranchMenu', 'filterTypeMenu', 'filterSortMenu'].forEach((id, idx) => {
+            ['trxHeaderBranchMenu', 'filterBranchMenu', 'filterTypeMenu', 'filterSortMenu', 'createTypeMenu', 'editTypeMenu'].forEach((id, idx) => {
                 const menu = document.getElementById(id);
                 if (menu) menu.classList.add('hidden');
             });
-            ['trxHeaderBranchChevron', 'filterBranchChevron', 'filterTypeChevron', 'filterSortChevron'].forEach(id => {
+            ['trxHeaderBranchChevron', 'filterBranchChevron', 'filterTypeChevron', 'filterSortChevron', 'createTypeChevron', 'editTypeChevron'].forEach(id => {
                 const ch = document.getElementById(id);
                 if (ch) ch.classList.remove('rotate-180');
             });
