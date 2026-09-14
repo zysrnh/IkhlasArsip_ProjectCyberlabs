@@ -63,7 +63,7 @@ class DummyDataSeeder extends Seeder
         $kepalaBdg = User::updateOrCreate(
             ['email' => 'kepala.bandung@ikhlas.com'],
             [
-                'name' => 'Zaki Yusron Hasyimmi',
+                'name' => 'Ahmad Fauzi',
                 'password' => Hash::make('password123'),
                 'role' => User::ROLE_KEPALA_CABANG,
                 'branch_id' => $branchBdg->id,
@@ -74,7 +74,7 @@ class DummyDataSeeder extends Seeder
         $adminBdg = User::updateOrCreate(
             ['email' => 'admin.bandung@ikhlas.com'],
             [
-                'name' => 'Yusron Hasyim',
+                'name' => 'Dimas Pratama',
                 'password' => Hash::make('password123'),
                 'role' => User::ROLE_ADMIN_CABANG,
                 'branch_id' => $branchBdg->id,
@@ -85,7 +85,7 @@ class DummyDataSeeder extends Seeder
         $adminJkt = User::updateOrCreate(
             ['email' => 'admin.jakarta@ikhlas.com'],
             [
-                'name' => 'Ria Sukmawati',
+                'name' => 'Siti Rahmawati',
                 'password' => Hash::make('password123'),
                 'role' => User::ROLE_ADMIN_CABANG,
                 'branch_id' => $branchJkt->id,
@@ -107,7 +107,7 @@ class DummyDataSeeder extends Seeder
         $viewerUser = User::updateOrCreate(
             ['email' => 'viewer@ikhlas.com'],
             [
-                'name' => 'Hasyimmi Viewer',
+                'name' => 'Staff Pengawas Pusat',
                 'password' => Hash::make('password123'),
                 'role' => User::ROLE_VIEWER,
                 'branch_id' => null,
