@@ -19,12 +19,12 @@ class DashboardController extends Controller
         $user = auth()->user();
         $query = Transaction::with(['branch', 'user']);
 
-        // Jika user adalah Admin Cabang, batasi hanya cabangnya sendiri
-        if ($user->isAdminCabang()) {
+        // Jika user bukan Super Admin & bukan Viewer, batasi hanya cabangnya sendiri (Kepala Cabang & Admin Cabang)
+        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
             $query->where('branch_id', $user->branch_id);
             $selectedBranchId = $user->branch_id;
         } else {
-            // Kepala Cabang / Super Admin bisa filter per cabang
+            // Super Admin & Viewer bisa filter per cabang atau semua cabang
             $selectedBranchId = $request->get('branch_id');
             if (!empty($selectedBranchId)) {
                 $query->where('branch_id', $selectedBranchId);

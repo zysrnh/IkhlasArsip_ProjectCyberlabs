@@ -30,8 +30,8 @@ class TransactionController extends Controller
         $user = auth()->user();
         $query = Transaction::with(['branch', 'user']);
 
-        // 1. Otorisasi Cabang
-        if ($user->isAdminCabang()) {
+        // 1. Otorisasi Cabang (Kepala Cabang & Admin Cabang terkunci ke cabangnya)
+        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
             $query->where('branch_id', $user->branch_id);
             $selectedBranchId = $user->branch_id;
         } else {
@@ -156,8 +156,8 @@ class TransactionController extends Controller
 
         $user = auth()->user();
 
-        // Admin cabang hanya bisa input untuk cabangnya sendiri
-        $branchId = $user->isAdminCabang() ? $user->branch_id : $request->branch_id;
+        // Admin cabang & Kepala cabang hanya bisa input untuk cabangnya sendiri
+        $branchId = (!$user->canAccessAllBranches() && !$user->isViewer()) ? $user->branch_id : $request->branch_id;
 
         // Bersihkan pemisah ribuan titik sebelum validasi
         if ($request->filled('amount')) {
@@ -209,12 +209,12 @@ class TransactionController extends Controller
 
         $user = auth()->user();
 
-        // Otorisasi: Admin cabang hanya boleh edit transaksi di cabangnya
-        if ($user->isAdminCabang() && $transaction->branch_id !== $user->branch_id) {
+        // Otorisasi: Admin cabang & Kepala cabang hanya boleh edit transaksi di cabangnya
+        if (!$user->canAccessAllBranches() && !$user->isViewer() && $transaction->branch_id !== $user->branch_id) {
             abort(403, 'Anda tidak memiliki izin mengubah data transaksi cabang lain.');
         }
 
-        $branchId = $user->isAdminCabang() ? $user->branch_id : $request->branch_id;
+        $branchId = (!$user->canAccessAllBranches() && !$user->isViewer()) ? $user->branch_id : $request->branch_id;
 
         // Bersihkan pemisah ribuan titik sebelum validasi
         if ($request->filled('amount')) {
@@ -254,8 +254,8 @@ class TransactionController extends Controller
 
         $user = auth()->user();
 
-        // Otorisasi: Admin cabang hanya boleh hapus transaksi di cabangnya
-        if ($user->isAdminCabang() && $transaction->branch_id !== $user->branch_id) {
+        // Otorisasi: Admin cabang & Kepala cabang hanya boleh hapus transaksi di cabangnya
+        if (!$user->canAccessAllBranches() && !$user->isViewer() && $transaction->branch_id !== $user->branch_id) {
             abort(403, 'Anda tidak memiliki izin menghapus data transaksi cabang lain.');
         }
 
@@ -281,8 +281,8 @@ class TransactionController extends Controller
 
         $query = Transaction::whereIn('id', $ids);
 
-        // Jika admin cabang, batasi hanya transaksi di cabangnya
-        if ($user->isAdminCabang()) {
+        // Jika admin cabang / kepala cabang, batasi hanya transaksi di cabangnya
+        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
             $query->where('branch_id', $user->branch_id);
         }
 
@@ -301,7 +301,7 @@ class TransactionController extends Controller
         $query = Transaction::with(['branch', 'user']);
 
         // Otorisasi & Filter
-        if ($user->isAdminCabang()) {
+        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
             $query->where('branch_id', $user->branch_id);
             $selectedBranch = $user->branch;
         } else {
@@ -397,7 +397,7 @@ class TransactionController extends Controller
          $query = Transaction::with(['branch', 'user']);
 
          // Otorisasi & Filter
-         if ($user->isAdminCabang()) {
+         if (!$user->canAccessAllBranches() && !$user->isViewer()) {
              $query->where('branch_id', $user->branch_id);
              $selectedBranch = $user->branch;
          } else {
@@ -938,7 +938,7 @@ class TransactionController extends Controller
             }
 
             // 2. Tentukan Cabang
-            if ($user->isAdminCabang()) {
+            if (!$user->canAccessAllBranches() && !$user->isViewer()) {
                 $branchId = $user->branch_id;
             } else {
                 $matchedBranch = $branchesMap->get(strtolower($col1));
