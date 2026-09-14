@@ -19,20 +19,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Schema::disableForeignKeyConstraints();
-        Transaction::truncate();
-        User::truncate();
-        Branch::truncate();
-        Schema::enableForeignKeyConstraints();
-
-        // Seed Akun Super Administrator (SU) Saja
-        User::create([
-            'name' => 'Super Administrator',
-            'email' => 'admin@ikhlas.com',
-            'password' => Hash::make('password123'),
-            'role' => User::ROLE_SUPERADMIN,
-            'branch_id' => null,
-            'status' => 'active',
-        ]);
+        $this->call(DummyDataSeeder::class);
     }
 }
