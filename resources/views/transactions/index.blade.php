@@ -534,39 +534,39 @@
                             </span>
                         </div>
 
-                        <div>
-                            @if(auth()->user()->isViewer())
+                        <div class="flex items-center space-x-1.5">
+                            <!-- Tombol Detail (Tersedia untuk semua user) -->
+                            <button 
+                                type="button" 
+                                onclick="openDetailModal({{ json_encode($trx) }})"
+                                class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
+                                title="Lihat Detail Transaksi"
+                            >
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                <span>Detail</span>
+                            </button>
+
+                            @if(!auth()->user()->isViewer() && (auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id))
                                 <button 
                                     type="button" 
-                                    onclick="openDetailModal({{ json_encode($trx) }})"
+                                    onclick="openEditModal({{ json_encode($trx) }})"
                                     class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
                                 >
-                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                    <span>Detail</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    <span>Edit</span>
                                 </button>
-                            @elseif(auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id)
-                                <div class="flex items-center space-x-2">
-                                    <button 
-                                        type="button" 
-                                        onclick="openEditModal({{ json_encode($trx) }})"
-                                        class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
-                                    >
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                        <span>Edit</span>
-                                    </button>
 
-                                    <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Transaksi?', text: 'Transaksi {{ $trx->code }} akan dipindahkan ke tempat sampah.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Pindahkan', form: this });" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button 
-                                            type="submit" 
-                                            class="p-1 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-                                            title="Hapus Transaksi"
-                                        >
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                        </button>
-                                    </form>
-                                </div>
+                                <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Transaksi?', text: 'Transaksi {{ $trx->code }} akan dipindahkan ke tempat sampah.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Pindahkan', form: this });" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button 
+                                        type="submit" 
+                                        class="p-1 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                        title="Hapus Transaksi"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                </form>
                             @endif
                         </div>
                     </div>
@@ -623,8 +623,17 @@
                                 </td>
                             @endif
 
-                            <!-- ID -->
-                            <td class="py-3 px-3 font-mono text-slate-500 font-bold">{{ $trx->code }}</td>
+                            <!-- ID (Bisa diklik untuk lihat rincian) -->
+                            <td class="py-3 px-3 font-mono font-bold">
+                                <button 
+                                    type="button" 
+                                    onclick="openDetailModal({{ json_encode($trx) }})"
+                                    class="text-slate-700 hover:text-tealBrand hover:underline focus:outline-none cursor-pointer transition-colors text-left"
+                                    title="Klik untuk melihat rincian transaksi {{ $trx->code }}"
+                                >
+                                    {{ $trx->code }}
+                                </button>
+                            </td>
                             
                             <!-- Tanggal -->
                             <td class="py-3 px-3 text-slate-500 whitespace-nowrap">
@@ -679,21 +688,22 @@
 
                             <!-- Aksi -->
                             <td class="py-3 px-3 text-center">
-                                @if(auth()->user()->isViewer())
+                                <div class="flex items-center justify-center space-x-1">
+                                    <!-- Tombol Lihat Detail (Tersedia untuk semua user) -->
                                     <button 
                                         type="button" 
                                         onclick="openDetailModal({{ json_encode($trx) }})"
-                                        class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors inline-flex items-center space-x-1 cursor-pointer"
+                                        class="p-1 text-slate-400 hover:text-tealBrand transition-colors cursor-pointer"
                                         title="Lihat Detail Transaksi"
                                     >
-                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                        <span>Detail</span>
                                     </button>
-                                @elseif(auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id)
-                                    <div class="flex items-center justify-center space-x-1.5">
+
+                                    @if(!auth()->user()->isViewer() && (auth()->user()->canAccessAllBranches() || auth()->user()->branch_id === $trx->branch_id))
+                                        <!-- Tombol Edit -->
                                         <button 
                                             type="button" 
                                             onclick="openEditModal({{ json_encode($trx) }})"
@@ -705,6 +715,7 @@
                                             </svg>
                                         </button>
 
+                                        <!-- Tombol Hapus -->
                                         <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Transaksi?', text: 'Transaksi {{ $trx->code }} akan dipindahkan ke tempat sampah.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Pindahkan', form: this });" class="inline">
                                             @csrf
                                             @method('DELETE')
@@ -718,10 +729,8 @@
                                                 </svg>
                                             </button>
                                         </form>
-                                    </div>
-                                @else
-                                    <span class="text-slate-300 text-[10px] italic">Read-only</span>
-                                @endif
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -1370,16 +1379,19 @@
         
         document.getElementById('detailBranch').textContent = (trx.branch && trx.branch.name) ? trx.branch.name : '-';
         
-        let typeHtml = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">${trx.type}</span>`;
-        if (trx.type === 'Penjualan Tunai') {
-            typeHtml = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Penjualan Tunai</span>`;
-        } else if (trx.type === 'Penjualan Kredit') {
-            typeHtml = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">Penjualan Kredit</span>`;
-        } else if (trx.type === 'Retur Penjualan') {
-            typeHtml = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Retur Penjualan</span>`;
-        } else {
-            typeHtml = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">${trx.type}</span>`;
+        const typeLower = (trx.type || '').toLowerCase();
+        let badgeStyle = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+        if (typeLower.includes('tunai') || typeLower.includes('cash')) {
+            badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        } else if (typeLower.includes('kredit') || typeLower.includes('tempo')) {
+            badgeStyle = 'bg-cyan-50 text-cyan-700 border-cyan-200';
+        } else if (typeLower.includes('retur')) {
+            badgeStyle = 'bg-rose-50 text-rose-700 border-rose-200';
+        } else if (typeLower.includes('transfer')) {
+            badgeStyle = 'bg-amber-50 text-amber-700 border-amber-200';
         }
+
+        let typeHtml = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeStyle}">${trx.type}</span>`;
         document.getElementById('detailType').innerHTML = typeHtml;
         
         document.getElementById('detailCustomer').textContent = trx.customer_name || '-';
