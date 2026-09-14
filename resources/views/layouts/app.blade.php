@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>@yield('title', 'Ikhlas Solusi') - Sales Management</title>
     
     <!-- Favicon -->
@@ -81,6 +81,20 @@
     <style>
         * {
             -webkit-font-smoothing: antialiased;
+        }
+
+        /* Mobile Safe Area & WebKit Touch Optimization */
+        .mobile-bottom-nav {
+            padding-bottom: max(0.65rem, env(safe-area-inset-bottom, 0.65rem)) !important;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .mobile-nav-btn {
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: manipulation !important;
+            -webkit-touch-callout: none !important;
+            user-select: none !important;
         }
 
         /* Hide scrollbar for clean UI */
@@ -414,21 +428,21 @@
         </header>
 
         <!-- Main Body (With Safe Padding for Mobile Bottom Bar) -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8">
             @yield('content')
         </main>
 
     </div>
 
-    <!-- Mobile Bottom App Navigation Bar (Native Mobile App Style) -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-navy-900 border-t border-navy-800 text-white shadow-2xl px-2 py-1.5 flex items-center justify-around">
+    <!-- Mobile Bottom App Navigation Bar (Native Mobile App Style & iOS Safari Optimized) -->
+    <nav class="mobile-bottom-nav lg:hidden fixed bottom-0 inset-x-0 z-50 bg-navy-900 border-t border-navy-800 text-white shadow-2xl px-2 pt-2 flex items-center justify-around">
         
         <!-- Dashboard Item -->
         <a 
             href="{{ route('dashboard') }}" 
-            class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('dashboard') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+            class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('dashboard') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
         >
-            <div class="relative">
+            <div class="relative pointer-events-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
@@ -436,15 +450,15 @@
                     <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
                 @endif
             </div>
-            <span class="text-[10px] font-bold mt-1 leading-none">Dashboard</span>
+            <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Dashboard</span>
         </a>
 
         <!-- Transaksi Item -->
         <a 
             href="{{ route('transactions.index') }}" 
-            class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('transactions.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+            class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('transactions.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
         >
-            <div class="relative">
+            <div class="relative pointer-events-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -452,16 +466,16 @@
                     <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
                 @endif
             </div>
-            <span class="text-[10px] font-bold mt-1 leading-none">Transaksi</span>
+            <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Transaksi</span>
         </a>
 
         <!-- Pengguna Item (Super Admin & Kepala Cabang) -->
         @if(auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang())
             <a 
                 href="{{ route('users.index') }}" 
-                class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('users.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+                class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('users.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
             >
-                <div class="relative">
+                <div class="relative pointer-events-none">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -469,7 +483,7 @@
                         <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
                     @endif
                 </div>
-                <span class="text-[10px] font-bold mt-1 leading-none">Pengguna</span>
+                <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Pengguna</span>
             </a>
         @endif
 
@@ -477,9 +491,9 @@
         @if(auth()->user()->isSuperAdmin())
             <a 
                 href="{{ route('branches.index') }}" 
-                class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('branches.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+                class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('branches.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
             >
-                <div class="relative">
+                <div class="relative pointer-events-none">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
@@ -487,16 +501,16 @@
                         <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
                     @endif
                 </div>
-                <span class="text-[10px] font-bold mt-1 leading-none">Cabang</span>
+                <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Cabang</span>
             </a>
         @endif
 
         <!-- Profil Saya Item Mobile -->
         <a 
             href="{{ route('profile.edit') }}" 
-            class="flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('profile.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+            class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('profile.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
         >
-            <div class="relative">
+            <div class="relative pointer-events-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -504,19 +518,19 @@
                     <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
                 @endif
             </div>
-            <span class="text-[10px] font-bold mt-1 leading-none">Profil</span>
+            <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Profil</span>
         </a>
 
         <!-- Logout Item -->
         <button 
             type="button" 
             onclick="confirmLogoutMobile()" 
-            class="flex-1 flex flex-col items-center py-1 px-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+            class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
         >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            <span class="text-[10px] font-bold mt-1 leading-none">Keluar</span>
+            <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Keluar</span>
         </button>
 
     </nav>
