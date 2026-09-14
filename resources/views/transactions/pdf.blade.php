@@ -222,9 +222,6 @@
                     Sistem Manajemen & Resume Penjualan Terpusat &bull;
                     <strong>{{ $selectedBranch ? $selectedBranch->name : 'Seluruh Unit Outlet Cabang' }}</strong>
                 </div>
-                <div class="company-tag">
-                    Layanan Laporan Digital &bull; Dokumen Resmi Terverifikasi Sistem
-                </div>
             </td>
             <td style="text-align: right; vertical-align: middle; width: 160px;">
                 <div style="font-size: 7.5pt; color: #64748b;">Kode Dokumen:</div>
