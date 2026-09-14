@@ -103,16 +103,6 @@
         @endif
     </div>
 
-    <!-- Viewer Notice Banner -->
-    @if(auth()->user()->isViewer())
-        <div class="bg-teal-50/80 border border-teal-200 text-teal-950 px-4 py-3 rounded-xl flex items-center justify-between gap-3 text-xs shadow-xs">
-            <div class="flex items-center space-x-2.5">
-                <span class="w-2 h-2 rounded-full bg-tealBrand shrink-0 animate-pulse"></span>
-                <span><strong>Mode Viewer (Hanya Lihat):</strong> Akun Anda memiliki izin untuk memantau data transaksi seluruh cabang serta mengunduh laporan dalam format <strong>PDF</strong> dan <strong>Excel</strong>.</span>
-            </div>
-        </div>
-    @endif
-
     <!-- Search & Action Buttons Bar -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         
