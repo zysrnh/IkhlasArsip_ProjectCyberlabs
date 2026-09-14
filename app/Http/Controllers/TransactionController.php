@@ -104,10 +104,22 @@ class TransactionController extends Controller
     }
 
     /**
+     * Otorisasi Hak Akses Tulis (Viewer hanya diizinkan membaca data & unduh laporan)
+     */
+    private function authorizeWriteAccess(): void
+    {
+        if (auth()->check() && auth()->user()->isViewer()) {
+            abort(403, 'Akses Ditolak: Akun dengan role Viewer hanya memiliki izin untuk memantau data dan mengunduh laporan.');
+        }
+    }
+
+    /**
      * Simpan Transaksi Baru (Manual Form)
      */
     public function store(Request $request): RedirectResponse
     {
+        $this->authorizeWriteAccess();
+
         $user = auth()->user();
 
         // Admin cabang hanya bisa input untuk cabangnya sendiri
@@ -161,6 +173,8 @@ class TransactionController extends Controller
      */
     public function update(Request $request, Transaction $transaction): RedirectResponse
     {
+        $this->authorizeWriteAccess();
+
         $user = auth()->user();
 
         // Otorisasi: Admin cabang hanya boleh edit transaksi di cabangnya
@@ -204,6 +218,8 @@ class TransactionController extends Controller
      */
     public function destroy(Transaction $transaction): RedirectResponse
     {
+        $this->authorizeWriteAccess();
+
         $user = auth()->user();
 
         // Otorisasi: Admin cabang hanya boleh hapus transaksi di cabangnya
@@ -222,6 +238,8 @@ class TransactionController extends Controller
      */
     public function bulkDelete(Request $request): RedirectResponse
     {
+        $this->authorizeWriteAccess();
+
         $user = auth()->user();
         $ids = $request->input('ids', []);
 
@@ -617,6 +635,8 @@ class TransactionController extends Controller
      */
     public function importExcel(Request $request): RedirectResponse
     {
+        $this->authorizeWriteAccess();
+
         $request->validate([
             'file' => ['required', 'file'],
         ], [
