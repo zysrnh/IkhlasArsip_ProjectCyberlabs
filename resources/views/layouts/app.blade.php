@@ -8,17 +8,22 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     
+    <!-- PWA & Mobile Meta -->
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <meta name="theme-color" content="#0B192C">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ikhlas Solusi">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+
     <!-- Google Fonts Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('style.css') }}">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
     
     <!-- Zero-Latency Sidebar State to Prevent Flicker -->
     <script>
@@ -671,7 +676,109 @@
                 title: "{{ $errors->first() }}"
             });
         @endif
+
+        // PWA Service Worker & Install Prompt Logic
+        let deferredPrompt = null;
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => {
+                    console.log('SW registration error:', err);
+                });
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            const dismissedAt = localStorage.getItem('ikhlas_pwa_dismissed_at');
+            const now = Date.now();
+            // Munculkan kembali setelah 5 hari jika pernah ditutup
+            if (!dismissedAt || (now - parseInt(dismissedAt)) > 5 * 24 * 60 * 60 * 1000) {
+                const banner = document.getElementById('pwaInstallBanner');
+                if (banner) {
+                    banner.classList.remove('hidden');
+                }
+            }
+        });
+
+        // Trigger deteksi browser HP jika beforeinstallprompt tidak jalan langsung
+        document.addEventListener('DOMContentLoaded', () => {
+            const isMobile = window.innerWidth <= 768;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            const dismissedAt = localStorage.getItem('ikhlas_pwa_dismissed_at');
+            const now = Date.now();
+
+            if (isMobile && !isStandalone) {
+                if (!dismissedAt || (now - parseInt(dismissedAt)) > 5 * 24 * 60 * 60 * 1000) {
+                    setTimeout(() => {
+                        const banner = document.getElementById('pwaInstallBanner');
+                        if (banner) {
+                            banner.classList.remove('hidden');
+                        }
+                    }, 1500);
+                }
+            }
+        });
+
+        function installPwaApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt = null;
+                    dismissPwaBanner();
+                });
+            } else {
+                const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+                if (isIos) {
+                    Swal.fire({
+                        title: 'Pasang di iPhone / iPad',
+                        html: '<div class="text-xs text-left text-slate-300 space-y-2 leading-relaxed"><p>1. Tekan tombol <strong>Bagikan (Share / ikon kotak panah ke atas)</strong> di bagian bawah browser Safari.</p><p>2. Gulir ke bawah lalu pilih <strong>Tambahkan ke Layar Utama (Add to Home Screen)</strong>.</p></div>',
+                        icon: 'info',
+                        confirmButtonText: 'Mengerti',
+                        customClass: { popup: 'ikhlas-toast' }
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Pasang Aplikasi',
+                        html: '<div class="text-xs text-left text-slate-300 space-y-2 leading-relaxed"><p>1. Tekan ikon <strong>titik tiga (menu browser)</strong> di pojok kanan atas.</p><p>2. Pilih menu <strong>Tambahkan ke Layar Utama</strong> atau <strong>Install Aplikasi</strong>.</p></div>',
+                        icon: 'info',
+                        confirmButtonText: 'Mengerti',
+                        customClass: { popup: 'ikhlas-toast' }
+                    });
+                }
+                dismissPwaBanner();
+            }
+        }
+
+        function dismissPwaBanner() {
+            const banner = document.getElementById('pwaInstallBanner');
+            if (banner) banner.classList.add('hidden');
+            localStorage.setItem('ikhlas_pwa_dismissed_at', Date.now().toString());
+        }
     </script>
+
+    <!-- Mobile PWA Install Prompt Banner (Pop-up kecil melayang di HP) -->
+    <div id="pwaInstallBanner" class="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-5 sm:max-w-sm z-50 hidden animate-slideUp">
+        <div class="bg-navy-900 border border-slate-700 text-white rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 min-w-0">
+                <img src="{{ asset('images/logo.png') }}" alt="Ikhlas Solusi" class="w-9 h-9 object-contain shrink-0 rounded-xl bg-white p-1">
+                <div class="min-w-0">
+                    <div class="font-extrabold text-xs text-white tracking-tight truncate">Pasang Aplikasi Ikhlas</div>
+                    <div class="text-[10.5px] text-slate-400 leading-tight truncate">Akses cepat dari layar utama HP</div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 shrink-0">
+                <button type="button" onclick="dismissPwaBanner()" class="px-2 py-1 text-xs text-slate-400 hover:text-white font-semibold cursor-pointer">
+                    Nanti
+                </button>
+                <button type="button" onclick="installPwaApp()" class="px-3 py-1.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer">
+                    Pasang
+                </button>
+            </div>
+        </div>
+    </div>
 
     @stack('scripts')
 </body>
