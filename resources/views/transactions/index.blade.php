@@ -859,44 +859,59 @@
                     </div>
                 </div>
 
-                <!-- Baris 2: Jenis Transaksi (Custom Popover Dropdown) -->
-                <div class="relative" id="createTypeDropdownContainer">
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">JENIS TRANSAKSI</label>
-                    <input type="hidden" name="type" id="createTypeInput" value="Penjualan Tunai">
-                    <button 
-                        type="button"
-                        onclick="toggleCustomPopover('createTypeMenu', 'createTypeChevron')"
-                        class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-bold flex items-center justify-between transition-colors cursor-pointer"
-                    >
-                        <span id="createTypeText">Penjualan Tunai</span>
-                        <svg id="createTypeChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
+                <!-- Baris 2: Jenis Transaksi (Custom Popover Dropdown + Inline Manual Toggle) -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">JENIS TRANSAKSI</label>
+                        <button 
+                            type="button" 
+                            id="createTypeToggleBtn"
+                            onclick="toggleCreateCustomTypeMode()" 
+                            class="text-[10px] text-tealBrand hover:underline font-bold cursor-pointer transition-colors"
+                        >
+                            + Ketik Manual
+                        </button>
+                    </div>
 
-                    <div id="createTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
-                        @foreach($allTransactionTypes as $tOption)
-                            <button 
-                                type="button" 
-                                onclick="selectCreateType('{{ $tOption }}')"
-                                class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition-colors hover:bg-teal-50 hover:text-tealBrand text-slate-700 font-semibold"
-                            >
-                                <span>{{ $tOption }}</span>
-                                <span class="create-type-check text-tealBrand {{ $tOption === 'Penjualan Tunai' ? '' : 'hidden' }}" data-value="{{ $tOption }}">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                </span>
-                            </button>
-                        @endforeach
-                        <div class="border-t border-slate-100 pt-1 mt-1 px-2">
-                            <button 
-                                type="button" 
-                                onclick="promptCustomCreateType()"
-                                class="w-full text-left px-2 py-1.5 text-xs text-tealBrand hover:bg-teal-50 rounded-lg font-bold flex items-center space-x-1.5 cursor-pointer"
-                            >
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                                <span>+ Ketik Jenis Baru...</span>
-                            </button>
+                    <!-- Mode 1: Custom Popover Dropdown -->
+                    <div class="relative" id="createTypeDropdownContainer">
+                        <input type="hidden" name="type" id="createTypeInput" value="Penjualan Tunai">
+                        <button 
+                            type="button"
+                            onclick="toggleCustomPopover('createTypeMenu', 'createTypeChevron')"
+                            class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-bold flex items-center justify-between transition-colors cursor-pointer"
+                        >
+                            <span id="createTypeText">Penjualan Tunai</span>
+                            <svg id="createTypeChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div id="createTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
+                            @foreach($allTransactionTypes as $tOption)
+                                <button 
+                                    type="button" 
+                                    onclick="selectCreateType('{{ $tOption }}')"
+                                    class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition-colors hover:bg-teal-50 hover:text-tealBrand text-slate-700 font-semibold"
+                                >
+                                    <span>{{ $tOption }}</span>
+                                    <span class="create-type-check text-tealBrand {{ $tOption === 'Penjualan Tunai' ? '' : 'hidden' }}" data-value="{{ $tOption }}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    </span>
+                                </button>
+                            @endforeach
                         </div>
+                    </div>
+
+                    <!-- Mode 2: Inline Manual Input -->
+                    <div id="createTypeManualContainer" class="hidden">
+                        <input 
+                            type="text" 
+                            id="createTypeManualInput" 
+                            placeholder="Ketik jenis transaksi kustom (misal: BAA, Pengadaan, Operasional)" 
+                            oninput="syncCreateManualType(this.value)"
+                            class="w-full px-3.5 py-2.5 text-xs bg-white border-2 border-tealBrand rounded-xl text-slate-800 font-bold focus:outline-none transition shadow-sm"
+                        >
                     </div>
                 </div>
 
@@ -997,44 +1012,59 @@
                     </div>
                 </div>
 
-                <!-- Baris 2: Jenis Transaksi (Custom Popover Dropdown) -->
-                <div class="relative" id="editTypeDropdownContainer">
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">JENIS TRANSAKSI</label>
-                    <input type="hidden" name="type" id="editTypeInput" value="Penjualan Tunai">
-                    <button 
-                        type="button"
-                        onclick="toggleCustomPopover('editTypeMenu', 'editTypeChevron')"
-                        class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-bold flex items-center justify-between transition-colors cursor-pointer"
-                    >
-                        <span id="editTypeText">Penjualan Tunai</span>
-                        <svg id="editTypeChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
+                <!-- Baris 2: Jenis Transaksi (Custom Popover Dropdown + Inline Manual Toggle) -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">JENIS TRANSAKSI</label>
+                        <button 
+                            type="button" 
+                            id="editTypeToggleBtn"
+                            onclick="toggleEditCustomTypeMode()" 
+                            class="text-[10px] text-tealBrand hover:underline font-bold cursor-pointer transition-colors"
+                        >
+                            + Ketik Manual
+                        </button>
+                    </div>
 
-                    <div id="editTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
-                        @foreach($allTransactionTypes as $tOption)
-                            <button 
-                                type="button" 
-                                onclick="selectEditType('{{ $tOption }}')"
-                                class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition-colors hover:bg-teal-50 hover:text-tealBrand text-slate-700 font-semibold"
-                            >
-                                <span>{{ $tOption }}</span>
-                                <span class="edit-type-check text-tealBrand {{ $tOption === 'Penjualan Tunai' ? '' : 'hidden' }}" data-value="{{ $tOption }}">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                </span>
-                            </button>
-                        @endforeach
-                        <div class="border-t border-slate-100 pt-1 mt-1 px-2">
-                            <button 
-                                type="button" 
-                                onclick="promptCustomEditType()"
-                                class="w-full text-left px-2 py-1.5 text-xs text-tealBrand hover:bg-teal-50 rounded-lg font-bold flex items-center space-x-1.5 cursor-pointer"
-                            >
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                                <span>+ Ketik Jenis Baru...</span>
-                            </button>
+                    <!-- Mode 1: Custom Popover Dropdown -->
+                    <div class="relative" id="editTypeDropdownContainer">
+                        <input type="hidden" name="type" id="editTypeInput" value="Penjualan Tunai">
+                        <button 
+                            type="button"
+                            onclick="toggleCustomPopover('editTypeMenu', 'editTypeChevron')"
+                            class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-bold flex items-center justify-between transition-colors cursor-pointer"
+                        >
+                            <span id="editTypeText">Penjualan Tunai</span>
+                            <svg id="editTypeChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div id="editTypeMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
+                            @foreach($allTransactionTypes as $tOption)
+                                <button 
+                                    type="button" 
+                                    onclick="selectEditType('{{ $tOption }}')"
+                                    class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition-colors hover:bg-teal-50 hover:text-tealBrand text-slate-700 font-semibold"
+                                >
+                                    <span>{{ $tOption }}</span>
+                                    <span class="edit-type-check text-tealBrand {{ $tOption === 'Penjualan Tunai' ? '' : 'hidden' }}" data-value="{{ $tOption }}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    </span>
+                                </button>
+                            @endforeach
                         </div>
+                    </div>
+
+                    <!-- Mode 2: Inline Manual Input -->
+                    <div id="editTypeManualContainer" class="hidden">
+                        <input 
+                            type="text" 
+                            id="editTypeManualInput" 
+                            placeholder="Ketik jenis transaksi kustom (misal: BAA, Pengadaan, Operasional)" 
+                            oninput="syncEditManualType(this.value)"
+                            class="w-full px-3.5 py-2.5 text-xs bg-white border-2 border-tealBrand rounded-xl text-slate-800 font-bold focus:outline-none transition shadow-sm"
+                        >
                     </div>
                 </div>
 
@@ -1378,6 +1408,39 @@
         modal.classList.remove('flex');
     }
 
+    function toggleCreateCustomTypeMode(forceMode = null) {
+        const dropdownContainer = document.getElementById('createTypeDropdownContainer');
+        const manualContainer = document.getElementById('createTypeManualContainer');
+        const toggleBtn = document.getElementById('createTypeToggleBtn');
+        const manualInput = document.getElementById('createTypeManualInput');
+        const hiddenInput = document.getElementById('createTypeInput');
+
+        const isCurrentlyManual = !manualContainer.classList.contains('hidden');
+        const willBeManual = forceMode !== null ? (forceMode === 'manual') : !isCurrentlyManual;
+
+        if (willBeManual) {
+            dropdownContainer.classList.add('hidden');
+            manualContainer.classList.remove('hidden');
+            toggleBtn.textContent = 'Pilih dari Dropdown';
+            manualInput.value = hiddenInput.value || '';
+            setTimeout(() => manualInput.focus(), 50);
+        } else {
+            manualContainer.classList.add('hidden');
+            dropdownContainer.classList.remove('hidden');
+            toggleBtn.textContent = '+ Ketik Manual';
+            if (!hiddenInput.value) {
+                selectCreateType('Penjualan Tunai');
+            }
+        }
+    }
+
+    function syncCreateManualType(val) {
+        const input = document.getElementById('createTypeInput');
+        const text = document.getElementById('createTypeText');
+        if (input) input.value = val;
+        if (text) text.textContent = val || 'Pilih Jenis Transaksi';
+    }
+
     function selectCreateType(val) {
         const input = document.getElementById('createTypeInput');
         const text = document.getElementById('createTypeText');
@@ -1397,31 +1460,37 @@
         if (chevron) chevron.classList.remove('rotate-180');
     }
 
-    function promptCustomCreateType() {
-        const menu = document.getElementById('createTypeMenu');
-        const chevron = document.getElementById('createTypeChevron');
-        if (menu) menu.classList.add('hidden');
-        if (chevron) chevron.classList.remove('rotate-180');
+    function toggleEditCustomTypeMode(forceMode = null) {
+        const dropdownContainer = document.getElementById('editTypeDropdownContainer');
+        const manualContainer = document.getElementById('editTypeManualContainer');
+        const toggleBtn = document.getElementById('editTypeToggleBtn');
+        const manualInput = document.getElementById('editTypeManualInput');
+        const hiddenInput = document.getElementById('editTypeInput');
 
-        Swal.fire({
-            title: 'Ketik Jenis Transaksi Baru',
-            input: 'text',
-            inputPlaceholder: 'Contoh: Pengadaan, BAA, Operasional...',
-            showCancelButton: true,
-            confirmButtonText: 'Terapkan',
-            cancelButtonText: 'Batal',
-            confirmButtonColor: '#0A97B0',
-            customClass: { popup: 'ikhlas-toast' },
-            inputValidator: (value) => {
-                if (!value || !value.trim()) {
-                    return 'Jenis transaksi tidak boleh kosong!';
-                }
+        const isCurrentlyManual = !manualContainer.classList.contains('hidden');
+        const willBeManual = forceMode !== null ? (forceMode === 'manual') : !isCurrentlyManual;
+
+        if (willBeManual) {
+            dropdownContainer.classList.add('hidden');
+            manualContainer.classList.remove('hidden');
+            toggleBtn.textContent = 'Pilih dari Dropdown';
+            manualInput.value = hiddenInput.value || '';
+            setTimeout(() => manualInput.focus(), 50);
+        } else {
+            manualContainer.classList.add('hidden');
+            dropdownContainer.classList.remove('hidden');
+            toggleBtn.textContent = '+ Ketik Manual';
+            if (!hiddenInput.value) {
+                selectEditType('Penjualan Tunai');
             }
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-                selectCreateType(result.value.trim());
-            }
-        });
+        }
+    }
+
+    function syncEditManualType(val) {
+        const input = document.getElementById('editTypeInput');
+        const text = document.getElementById('editTypeText');
+        if (input) input.value = val;
+        if (text) text.textContent = val || 'Pilih Jenis Transaksi';
     }
 
     function selectEditType(val) {
@@ -1443,33 +1512,6 @@
         if (chevron) chevron.classList.remove('rotate-180');
     }
 
-    function promptCustomEditType() {
-        const menu = document.getElementById('editTypeMenu');
-        const chevron = document.getElementById('editTypeChevron');
-        if (menu) menu.classList.add('hidden');
-        if (chevron) chevron.classList.remove('rotate-180');
-
-        Swal.fire({
-            title: 'Ketik Jenis Transaksi Baru',
-            input: 'text',
-            inputPlaceholder: 'Contoh: Pengadaan, BAA, Operasional...',
-            showCancelButton: true,
-            confirmButtonText: 'Terapkan',
-            cancelButtonText: 'Batal',
-            confirmButtonColor: '#0A97B0',
-            customClass: { popup: 'ikhlas-toast' },
-            inputValidator: (value) => {
-                if (!value || !value.trim()) {
-                    return 'Jenis transaksi tidak boleh kosong!';
-                }
-            }
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-                selectEditType(result.value.trim());
-            }
-        });
-    }
-
     function openCreateModal() {
         const modal = document.getElementById('createModal');
         if (!modal) return;
@@ -1477,6 +1519,7 @@
         if (amountInput && (!amountInput.value || amountInput.value === '0')) {
             amountInput.value = '0';
         }
+        toggleCreateCustomTypeMode('dropdown');
         selectCreateType('Penjualan Tunai');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -1503,6 +1546,7 @@
             document.getElementById('editDate').value = trx.transaction_date ? trx.transaction_date.substring(0, 10) : '';
         }
 
+        toggleEditCustomTypeMode('dropdown');
         selectEditType(trx.type || 'Penjualan Tunai');
         document.getElementById('editCustomer').value = trx.customer_name;
         document.getElementById('editQty').value = trx.qty;
