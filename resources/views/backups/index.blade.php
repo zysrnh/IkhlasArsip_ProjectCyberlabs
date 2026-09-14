@@ -36,12 +36,11 @@
             </button>
 
             <!-- Direct Button: Buat Backup Sekarang -->
-            <form action="{{ route('backups.create') }}" method="POST" id="directBackupForm" class="inline">
+            <form action="{{ route('backups.create') }}" method="POST" id="directBackupForm" onsubmit="handleDirectBackupSubmit(this)" class="inline">
                 @csrf
                 <button 
                     type="submit" 
                     id="directBackupBtn"
-                    onclick="handleDirectBackupSubmit(event, this.form)"
                     class="px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
                 >
                     <svg id="directBackupIcon" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,7 +269,7 @@
             </button>
         </div>
 
-        <form id="sendEmailForm" method="POST" action="" class="p-5 space-y-4 overflow-y-auto">
+        <form id="sendEmailForm" method="POST" action="" onsubmit="handleModalSubmit(this, 'sendEmailBtn', 'sendEmailSpinner', 'sendEmailIcon', 'sendEmailText', 'Mengirim...')" class="p-5 space-y-4 overflow-y-auto">
             @csrf
             
             <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
@@ -322,12 +321,17 @@
                 </button>
                 <button 
                     type="submit" 
+                    id="sendEmailBtn"
                     class="px-5 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
                 >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="sendEmailSpinner" class="w-3.5 h-3.5 text-white animate-spin hidden shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <svg id="sendEmailIcon" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
-                    <span>Kirim Sekarang</span>
+                    <span id="sendEmailText">Kirim Sekarang</span>
                 </button>
             </div>
         </form>
@@ -347,7 +351,7 @@
             </button>
         </div>
 
-        <form action="{{ route('backups.create') }}" method="POST" class="p-5 space-y-4 overflow-y-auto">
+        <form action="{{ route('backups.create') }}" method="POST" onsubmit="handleModalSubmit(this, 'createAndSendBtn', 'createAndSendSpinner', 'createAndSendIcon', 'createAndSendText', 'Memproses & Mengirim...')" class="p-5 space-y-4 overflow-y-auto">
             @csrf
             
             <p class="text-xs text-slate-600 leading-relaxed">
@@ -395,12 +399,17 @@
                 </button>
                 <button 
                     type="submit" 
+                    id="createAndSendBtn"
                     class="px-5 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
                 >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="createAndSendSpinner" class="w-3.5 h-3.5 text-white animate-spin hidden shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <svg id="createAndSendIcon" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    <span>Proses & Kirim</span>
+                    <span id="createAndSendText">Proses & Kirim</span>
                 </button>
             </div>
         </form>
@@ -410,19 +419,33 @@
 @push('scripts')
 <script>
     // 1. Direct Backup Inline Loading State
-    function handleDirectBackupSubmit(e, form) {
+    function handleDirectBackupSubmit(form) {
         const btn = document.getElementById('directBackupBtn');
         const icon = document.getElementById('directBackupIcon');
         const spinner = document.getElementById('directBackupSpinner');
         const text = document.getElementById('directBackupText');
 
         if (btn && icon && spinner && text) {
-            btn.disabled = true;
-            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            btn.classList.add('opacity-80', 'pointer-events-none');
             icon.classList.add('hidden');
             spinner.classList.remove('hidden');
             text.textContent = 'Membuat Backup...';
         }
+        return true;
+    }
+
+    // Modal Submit Loading Helper
+    function handleModalSubmit(form, btnId, spinnerId, iconId, textId, loadingText) {
+        const btn = document.getElementById(btnId);
+        const spinner = document.getElementById(spinnerId);
+        const icon = document.getElementById(iconId);
+        const text = document.getElementById(textId);
+
+        if (btn) btn.classList.add('opacity-80', 'pointer-events-none');
+        if (icon) icon.classList.add('hidden');
+        if (spinner) spinner.classList.remove('hidden');
+        if (text) text.textContent = loadingText;
+        return true;
     }
 
     // 2. Modal Kirim Email Terpilih
