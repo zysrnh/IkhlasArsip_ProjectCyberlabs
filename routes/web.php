@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
@@ -58,5 +59,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/trash/bulk-restore', [TrashController::class, 'bulkRestore'])->name('trash.bulk-restore');
         Route::post('/trash/bulk-force-delete', [TrashController::class, 'bulkForceDelete'])->name('trash.bulk-force-delete');
         Route::delete('/trash/empty', [TrashController::class, 'emptyTrash'])->name('trash.empty');
+
+        // Modul Backup Database
+        Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
+        Route::post('/backups', [BackupController::class, 'createBackup'])->name('backups.create');
+        Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download');
+        Route::post('/backups/{filename}/send-email', [BackupController::class, 'sendEmail'])->name('backups.send-email');
+        Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy');
     });
 });

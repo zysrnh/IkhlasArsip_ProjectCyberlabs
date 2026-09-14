@@ -310,6 +310,17 @@
                         </svg>
                         <span class="sidebar-hide-on-collapse">Sampah Transaksi</span>
                     </a>
+
+                    <a 
+                        href="{{ route('backups.index') }}" 
+                        title="Backup Database"
+                        class="sidebar-nav-item mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-all duration-150 {{ request()->routeIs('backups.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
+                    >
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21 3.582 4 8 4s8-1.79 8-4" />
+                        </svg>
+                        <span class="sidebar-hide-on-collapse">Backup Database</span>
+                    </a>
                 @endif
 
                 <!-- Menu Kelola Profil -->
