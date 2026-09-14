@@ -3,20 +3,26 @@
 @section('title', 'Backup Database — Ikhlas Solusi')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-5 animate-fadeIn">
 
-    <!-- Top Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5 pb-1">
         <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Backup Database</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Kelola pencadangan data, riwayat berkas SQL, dan pengiriman cadangan ke email resmi.
+            <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-50 text-teal-700 border border-teal-200 uppercase tracking-wider">
+                    Database Archiving
+                </span>
+                <span class="text-xs text-slate-400 font-mono font-medium">Auto-schedule active</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Backup Database</h1>
+            <p class="text-xs text-slate-500 mt-0.5 font-medium">
+                Kelola pencadangan data SQL mandiri, unduh salinan berkas, atau kirim langsung ke email resmi.
             </p>
         </div>
 
-        <!-- Primary Action Buttons -->
-        <div class="flex items-center gap-2">
-            <!-- Modal Trigger: Buat & Kirim Email -->
+        <!-- Action Buttons Group -->
+        <div class="flex items-center space-x-2">
+            <!-- Modal Trigger: Backup & Kirim Email -->
             <button 
                 type="button" 
                 onclick="openCreateAndSendModal()"
@@ -34,13 +40,18 @@
                 @csrf
                 <button 
                     type="submit" 
+                    id="directBackupBtn"
                     onclick="handleDirectBackupSubmit(event, this.form)"
                     class="px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
                 >
-                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="directBackupIcon" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    <span>+ Buat Backup Sekarang</span>
+                    <svg id="directBackupSpinner" class="w-3.5 h-3.5 text-white animate-spin hidden shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span id="directBackupText">+ Buat Backup Sekarang</span>
                 </button>
             </form>
         </div>
@@ -48,35 +59,35 @@
 
     <!-- Summary KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <!-- 1. Total Berkas Backup -->
+        <!-- 1. Total Berkas -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center space-x-3.5">
-            <div class="w-10 h-10 rounded-xl bg-tealBrand/10 text-tealBrand flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-teal-50 text-tealBrand flex items-center justify-center shrink-0 border border-teal-100">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16" />
                 </svg>
             </div>
             <div class="min-w-0">
                 <div class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Total Berkas</div>
-                <div class="text-base font-extrabold text-slate-900 truncate">{{ $totalCount }} Berkas SQL</div>
+                <div class="text-sm font-extrabold text-slate-900 truncate">{{ $totalCount }} Berkas SQL</div>
             </div>
         </div>
 
         <!-- 2. Ruang Terpakai -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center space-x-3.5">
-            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
             </div>
             <div class="min-w-0">
                 <div class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Penyimpanan Terpakai</div>
-                <div class="text-base font-extrabold text-slate-900 truncate">{{ $totalStorageFormatted }}</div>
+                <div class="text-sm font-extrabold text-slate-900 truncate font-mono">{{ $totalStorageFormatted }}</div>
             </div>
         </div>
 
         <!-- 3. Basis Data Aktif -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center space-x-3.5">
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
                 </svg>
@@ -89,7 +100,7 @@
 
         <!-- 4. Jadwal Otomatis -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center space-x-3.5">
-            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-100">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -98,24 +109,6 @@
                 <div class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Jadwal Otomatis</div>
                 <div class="text-sm font-extrabold text-slate-900 truncate">Harian (00:00 WIB)</div>
             </div>
-        </div>
-    </div>
-
-    <!-- Info Banner Panduan Cron Server -->
-    <div class="bg-slate-900 text-white rounded-xl p-4 sm:p-5 shadow-sm space-y-2 border border-slate-800">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2 text-xs font-bold text-teal-400 uppercase tracking-wider">
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Otomatisasi Jadwal Backup 24 Jam (Cron Job)</span>
-            </div>
-        </div>
-        <p class="text-xs text-slate-300 leading-relaxed">
-            Sistem telah dilengkapi task scheduler bawaan yang otomatis mem-backup seluruh database setiap hari pukul <strong>00:00 WIB</strong>. Pastikan cron job server (DirectAdmin / cPanel) telah mengarah ke perintah scheduler Laravel:
-        </p>
-        <div class="bg-slate-950/80 rounded-lg p-2.5 font-mono text-[11px] text-teal-300 border border-slate-800 overflow-x-auto select-all">
-            * * * * * cd {{ base_path() }} && php artisan schedule:run >> /dev/null 2>&1
         </div>
     </div>
 
@@ -188,7 +181,7 @@
                                     <!-- Unduh File SQL -->
                                     <a 
                                         href="{{ route('backups.download', $b['file_name']) }}" 
-                                        class="p-1.5 text-slate-500 hover:text-tealBrand hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
+                                        class="p-1.5 text-slate-400 hover:text-tealBrand hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
                                         title="Unduh Berkas SQL"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +193,7 @@
                                     <button 
                                         type="button" 
                                         onclick="openSendEmailModal('{{ $b['file_name'] }}', '{{ $b['size_formatted'] }}')"
-                                        class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                        class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                         title="Kirim Berkas ini ke Email"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,6 +229,30 @@
             </table>
         </div>
 
+    </div>
+
+    <!-- Info Box: Petunjuk Otomatisasi Cron Server -->
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-start space-x-2.5">
+            <svg class="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+                <span class="font-bold text-slate-800">Cron Scheduler 24 Jam:</span>
+                <span class="text-slate-500">Backup berjalan otomatis setiap pukul 00:00 WIB. Baris cron server:</span>
+                <code class="font-mono text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded text-[11px] ml-1 select-all">* * * * * cd {{ base_path() }} && php artisan schedule:run >> /dev/null 2>&1</code>
+            </div>
+        </div>
+        <button 
+            type="button" 
+            onclick="copyCronCommand('* * * * * cd {{ base_path() }} && php artisan schedule:run >> /dev/null 2>&1')"
+            class="shrink-0 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors cursor-pointer inline-flex items-center space-x-1"
+        >
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span id="copyCronText">Salin Cron</span>
+        </button>
     </div>
 
 </div>
@@ -392,19 +409,19 @@
 
 @push('scripts')
 <script>
-    // 1. Direct Backup Submit Handling
+    // 1. Direct Backup Inline Loading State
     function handleDirectBackupSubmit(e, form) {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Memproses Backup Database...',
-                text: 'Mohon tunggu beberapa detik saat sistem membuat cadangan SQL.',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+        const btn = document.getElementById('directBackupBtn');
+        const icon = document.getElementById('directBackupIcon');
+        const spinner = document.getElementById('directBackupSpinner');
+        const text = document.getElementById('directBackupText');
+
+        if (btn && icon && spinner && text) {
+            btn.disabled = true;
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            icon.classList.add('hidden');
+            spinner.classList.remove('hidden');
+            text.textContent = 'Membuat Backup...';
         }
     }
 
@@ -438,6 +455,18 @@
         const modal = document.getElementById('createAndSendModal');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+    }
+
+    // 4. Salin Baris Cron
+    function copyCronCommand(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const label = document.getElementById('copyCronText');
+            if (label) {
+                const prev = label.textContent;
+                label.textContent = 'Tersalin!';
+                setTimeout(() => { label.textContent = prev; }, 2000);
+            }
+        });
     }
 
     // Close on Escape key
