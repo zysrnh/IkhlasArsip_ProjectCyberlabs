@@ -499,7 +499,7 @@ class TransactionController extends Controller
              $sheet->setCellValue($cellRef, $columns[$i]);
          }
 
-         $sheet->getStyle('A8:I8')->getFont()->setBold(true)->getColor()->setRGB('FFFFFF')->setSize(9.5);
+         $sheet->getStyle('A8:I8')->getFont()->setBold(true)->setSize(10)->getColor()->setRGB('FFFFFF');
          $sheet->getStyle('A8:I8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0F172A');
          $sheet->getStyle('A8:I8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
          $sheet->getRowDimension(8)->setRowHeight(26);
