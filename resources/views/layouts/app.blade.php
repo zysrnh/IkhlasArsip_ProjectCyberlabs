@@ -730,25 +730,40 @@
                     dismissPwaBanner();
                 });
             } else {
-                const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-                if (isIos) {
-                    Swal.fire({
-                        title: 'Pasang di iPhone / iPad',
-                        html: '<div class="text-xs text-left text-slate-300 space-y-2 leading-relaxed"><p>1. Tekan tombol <strong>Bagikan (Share / ikon kotak panah ke atas)</strong> di bagian bawah browser Safari.</p><p>2. Gulir ke bawah lalu pilih <strong>Tambahkan ke Layar Utama (Add to Home Screen)</strong>.</p></div>',
-                        icon: 'info',
-                        confirmButtonText: 'Mengerti',
-                        customClass: { popup: 'ikhlas-toast' }
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Pasang Aplikasi',
-                        html: '<div class="text-xs text-left text-slate-300 space-y-2 leading-relaxed"><p>1. Tekan ikon <strong>titik tiga (menu browser)</strong> di pojok kanan atas.</p><p>2. Pilih menu <strong>Tambahkan ke Layar Utama</strong> atau <strong>Install Aplikasi</strong>.</p></div>',
-                        icon: 'info',
-                        confirmButtonText: 'Mengerti',
-                        customClass: { popup: 'ikhlas-toast' }
-                    });
-                }
+                const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()) || 
+                              (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+                
                 dismissPwaBanner();
+
+                if (isIos) {
+                    const iosModal = document.getElementById('iosInstallModal');
+                    if (iosModal) {
+                        iosModal.classList.remove('hidden');
+                        iosModal.classList.add('flex');
+                    }
+                } else {
+                    const androidModal = document.getElementById('androidInstallModal');
+                    if (androidModal) {
+                        androidModal.classList.remove('hidden');
+                        androidModal.classList.add('flex');
+                    }
+                }
+            }
+        }
+
+        function closeIosModal() {
+            const iosModal = document.getElementById('iosInstallModal');
+            if (iosModal) {
+                iosModal.classList.add('hidden');
+                iosModal.classList.remove('flex');
+            }
+        }
+
+        function closeAndroidModal() {
+            const androidModal = document.getElementById('androidInstallModal');
+            if (androidModal) {
+                androidModal.classList.add('hidden');
+                androidModal.classList.remove('flex');
             }
         }
 
@@ -760,7 +775,7 @@
     </script>
 
     <!-- Mobile PWA Install Prompt Banner (Pop-up kecil melayang di HP) -->
-    <div id="pwaInstallBanner" class="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-5 sm:max-w-sm z-50 hidden animate-slideUp">
+    <div id="pwaInstallBanner" style="bottom: max(1rem, env(safe-area-inset-bottom, 1rem));" class="fixed left-3 right-3 sm:left-auto sm:right-5 sm:max-w-sm z-50 hidden animate-slideUp">
         <div class="bg-navy-900 border border-slate-700 text-white rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3">
             <div class="flex items-center space-x-3 min-w-0">
                 <img src="{{ asset('images/logo.png') }}" alt="Ikhlas Solusi" class="w-9 h-9 object-contain shrink-0 rounded-xl bg-white p-1">
@@ -770,11 +785,85 @@
                 </div>
             </div>
             <div class="flex items-center space-x-2 shrink-0">
-                <button type="button" onclick="dismissPwaBanner()" class="px-2 py-1 text-xs text-slate-400 hover:text-white font-semibold cursor-pointer">
+                <button type="button" onclick="dismissPwaBanner()" class="px-2 py-1.5 text-xs text-slate-400 hover:text-white font-semibold cursor-pointer">
                     Nanti
                 </button>
-                <button type="button" onclick="installPwaApp()" class="px-3 py-1.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer">
+                <button type="button" onclick="installPwaApp()" class="px-3.5 py-1.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer">
                     Pasang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Panduan iOS Safari -->
+    <div id="iosInstallModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-4">
+        <div class="bg-navy-900 border border-slate-700 text-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-4 animate-fadeIn">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center space-x-2.5">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-8 h-8 rounded-lg bg-white p-0.5 object-contain">
+                    <span class="font-bold text-sm text-white">Pasang di iPhone / iPad</span>
+                </div>
+                <button type="button" onclick="closeIosModal()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-300">
+                <div class="flex items-start space-x-3 bg-navy-850 p-3 rounded-xl border border-slate-800">
+                    <div class="w-6 h-6 rounded-full bg-tealBrand/20 text-tealBrand font-bold flex items-center justify-center shrink-0 text-[11px]">1</div>
+                    <div class="leading-relaxed">
+                        Tekan tombol <strong>Bagikan</strong> (ikon kotak dengan tanda panah ke atas <svg class="w-3.5 h-3.5 inline text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>) di bagian bawah browser Safari.
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 bg-navy-850 p-3 rounded-xl border border-slate-800">
+                    <div class="w-6 h-6 rounded-full bg-tealBrand/20 text-tealBrand font-bold flex items-center justify-center shrink-0 text-[11px]">2</div>
+                    <div class="leading-relaxed">
+                        Gulir ke bawah pada menu yang muncul, lalu pilih <strong>Tambahkan ke Layar Utama (Add to Home Screen)</strong>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="button" onclick="closeIosModal()" class="w-full py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl transition cursor-pointer">
+                    Saya Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Panduan Android / Browser Lainnya -->
+    <div id="androidInstallModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-4">
+        <div class="bg-navy-900 border border-slate-700 text-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-4 animate-fadeIn">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center space-x-2.5">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-8 h-8 rounded-lg bg-white p-0.5 object-contain">
+                    <span class="font-bold text-sm text-white">Pasang Aplikasi</span>
+                </div>
+                <button type="button" onclick="closeAndroidModal()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-300">
+                <div class="flex items-start space-x-3 bg-navy-850 p-3 rounded-xl border border-slate-800">
+                    <div class="w-6 h-6 rounded-full bg-tealBrand/20 text-tealBrand font-bold flex items-center justify-center shrink-0 text-[11px]">1</div>
+                    <div class="leading-relaxed">
+                        Tekan ikon <strong>titik tiga (Menu)</strong> di pojok kanan atas browser Anda.
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 bg-navy-850 p-3 rounded-xl border border-slate-800">
+                    <div class="w-6 h-6 rounded-full bg-tealBrand/20 text-tealBrand font-bold flex items-center justify-center shrink-0 text-[11px]">2</div>
+                    <div class="leading-relaxed">
+                        Pilih opsi <strong>Tambahkan ke Layar Utama</strong> atau <strong>Install Aplikasi</strong>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="button" onclick="closeAndroidModal()" class="w-full py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl transition cursor-pointer">
+                    Saya Mengerti
                 </button>
             </div>
         </div>

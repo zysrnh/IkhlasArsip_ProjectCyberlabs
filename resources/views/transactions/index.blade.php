@@ -1028,12 +1028,22 @@
         </div>
     </div>
 
-    <!-- Modal Import Excel -->
+    <!-- SheetJS Library for Client-side Excel Live Preview -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- Modal Import Excel dengan Live Preview -->
     <div id="importModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-3 sm:p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
+        <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-xl lg:max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
             <!-- Header -->
             <div class="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
-                <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Import dari Excel</h3>
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                    </div>
+                    <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Import Data dari Excel</h3>
+                </div>
                 <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1041,22 +1051,22 @@
                 </button>
             </div>
 
-            <form action="{{ route('transactions.import-excel') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 overflow-y-auto">
+            <form id="importExcelForm" action="{{ route('transactions.import-excel') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 overflow-y-auto">
                 @csrf
 
                 <!-- Amber Warning Notice -->
-                <div class="p-4 bg-amber-50 border border-amber-200/80 rounded-xl flex items-start space-x-3 text-amber-900">
+                <div class="p-3.5 bg-amber-50 border border-amber-200/80 rounded-xl flex items-start space-x-3 text-amber-900">
                     <div class="shrink-0 mt-0.5">
                         <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                         </svg>
                     </div>
                     <div class="text-xs leading-relaxed">
-                        <strong class="font-bold">Pastikan format Excel sesuai template</strong> yang disediakan kepala cabang. Kolom: <span class="font-medium text-amber-950">Tanggal, Cabang, Jenis, Deskripsi, Customer, Jumlah, Qty</span>
+                        <strong class="font-bold">Format Kolom Excel:</strong> <span class="font-medium text-amber-950">Tanggal, Cabang, Jenis, Deskripsi, Customer, Jumlah, Qty</span>. Data yang diunggah akan otomatis dipratinjau di bawah sebelum disimpan.
                     </div>
                 </div>
 
-                <!-- Dropzone -->
+                <!-- Dropzone (Hidden when file selected) -->
                 <div id="dropzoneContainer" onclick="document.getElementById('importFileInput').click()" class="border-2 border-dashed border-slate-200 hover:border-tealBrand rounded-2xl p-6 text-center transition-all bg-slate-50/60 hover:bg-teal-50/20 cursor-pointer group">
                     <input type="file" id="importFileInput" name="file" required accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileSelect(this)">
                     
@@ -1071,11 +1081,50 @@
                     <div class="text-[11px] text-slate-400 font-medium mb-1">
                         Drag & drop berkas ke sini, atau klik untuk memilih (.xlsx, .xls, .csv)
                     </div>
-                    <div id="selectedFileName" class="hidden mt-2.5 inline-flex items-center px-3 py-1 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold">
-                        <svg class="w-3.5 h-3.5 mr-1.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span id="fileNameText">file.xlsx</span>
+                </div>
+
+                <!-- Live Preview Section (Appears after selecting file) -->
+                <div id="importPreviewSection" class="hidden space-y-3">
+                    <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-3 rounded-xl">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div id="fileNameText" class="font-bold text-xs text-slate-900 truncate">template.xlsx</div>
+                                <div id="previewCountBadge" class="text-[11px] text-emerald-600 font-semibold">0 baris transaksi terdeteksi</div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="resetImportFile()" class="text-xs text-rose-600 hover:text-rose-700 font-bold px-2.5 py-1 hover:bg-rose-50 rounded-lg transition-colors shrink-0 cursor-pointer">
+                            Ganti Berkas
+                        </button>
+                    </div>
+
+                    <!-- Preview Table Container -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+                        <div class="bg-slate-100 px-3 py-2 text-[10.5px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center justify-between">
+                            <span>Pratinjau Data (Sebelum Disimpan)</span>
+                            <span id="previewLimitNotice" class="text-slate-400 font-normal"></span>
+                        </div>
+                        <div class="max-h-52 overflow-y-auto overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-700">
+                                <thead class="bg-slate-50 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-200">
+                                    <tr>
+                                        <th class="py-2 px-2.5">Tanggal</th>
+                                        <th class="py-2 px-2.5">Cabang</th>
+                                        <th class="py-2 px-2.5">Jenis</th>
+                                        <th class="py-2 px-2.5">Customer</th>
+                                        <th class="py-2 px-2.5 text-center">QTY</th>
+                                        <th class="py-2 px-2.5 text-right">Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="importPreviewTableBody" class="divide-y divide-slate-100 font-medium text-[11px]">
+                                    <!-- Populated dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -1094,11 +1143,11 @@
                     <button type="button" onclick="closeImportModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center cursor-pointer">
+                    <button type="submit" id="btnSubmitImport" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center cursor-pointer">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                         </svg>
-                        Import Data
+                        <span id="btnSubmitImportText">Import Data</span>
                     </button>
                 </div>
             </form>
@@ -1354,14 +1403,165 @@
         if (!modal) return;
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        resetImportFile();
+    }
+
+    function resetImportFile() {
+        const input = document.getElementById('importFileInput');
+        if (input) input.value = '';
+        
+        const dropzone = document.getElementById('dropzoneContainer');
+        if (dropzone) dropzone.classList.remove('hidden');
+
+        const previewSection = document.getElementById('importPreviewSection');
+        if (previewSection) previewSection.classList.add('hidden');
+
+        const tbody = document.getElementById('importPreviewTableBody');
+        if (tbody) tbody.innerHTML = '';
+
+        const submitBtnText = document.getElementById('btnSubmitImportText');
+        if (submitBtnText) submitBtnText.textContent = 'Import Data';
     }
 
     function handleFileSelect(input) {
-        if (input.files && input.files[0]) {
-            const fileName = input.files[0].name;
-            document.getElementById('fileNameText').textContent = fileName;
-            document.getElementById('selectedFileName').classList.remove('hidden');
-        }
+        if (!input.files || !input.files[0]) return;
+
+        const file = input.files[0];
+        const fileName = file.name;
+        document.getElementById('fileNameText').textContent = fileName;
+
+        const submitBtnText = document.getElementById('btnSubmitImportText');
+        if (submitBtnText) submitBtnText.textContent = 'Membaca berkas...';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const rawJson = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, dateNF: 'yyyy-mm-dd' });
+
+                if (!rawJson || rawJson.length < 2) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Berkas Kosong',
+                        text: 'Berkas Excel tidak memiliki baris data transaksi.',
+                        customClass: { popup: 'ikhlas-toast' }
+                    });
+                    resetImportFile();
+                    return;
+                }
+
+                // Cari baris header (Tanggal / Cabang / Jenis)
+                let headerIndex = -1;
+                for (let i = 0; i < rawJson.length; i++) {
+                    const row = rawJson[i];
+                    if (row && row.some(cell => typeof cell === 'string' && (cell.toLowerCase().includes('tanggal') || cell.toLowerCase().includes('cabang')))) {
+                        headerIndex = i;
+                        break;
+                    }
+                }
+
+                if (headerIndex === -1) {
+                    headerIndex = 0;
+                }
+
+                const dataRows = [];
+                for (let i = headerIndex + 1; i < rawJson.length; i++) {
+                    const row = rawJson[i];
+                    if (!row || row.length === 0) continue;
+                    
+                    const colTanggal = row[0] || '';
+                    const colCabang = row[1] || '';
+                    const colJenis = row[2] || '';
+                    const colDeskripsi = row[3] || '';
+                    const colCustomer = row[4] || '';
+                    const colQty = row[5] || '1';
+                    const colJumlah = row[6] || '0';
+
+                    if (!colTanggal && !colCustomer && !colJumlah) continue;
+
+                    dataRows.push({
+                        tanggal: colTanggal,
+                        cabang: colCabang,
+                        jenis: colJenis || 'Penjualan Tunai',
+                        deskripsi: colDeskripsi,
+                        customer: colCustomer || '-',
+                        qty: colQty,
+                        jumlah: colJumlah
+                    });
+                }
+
+                if (dataRows.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tidak Ada Data Valid',
+                        text: 'Format tabel Excel tidak sesuai template. Pastikan kolom terisi dengan benar.',
+                        customClass: { popup: 'ikhlas-toast' }
+                    });
+                    resetImportFile();
+                    return;
+                }
+
+                // Render Preview Table
+                const tbody = document.getElementById('importPreviewTableBody');
+                tbody.innerHTML = '';
+
+                const displayLimit = Math.min(dataRows.length, 5);
+                for (let i = 0; i < displayLimit; i++) {
+                    const item = dataRows[i];
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition-colors';
+
+                    let jenisBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    const jLower = (item.jenis || '').toLowerCase();
+                    if (jLower.includes('kredit')) jenisBadgeClass = 'bg-cyan-50 text-cyan-700 border-cyan-200';
+                    else if (jLower.includes('retur')) jenisBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                    else if (jLower.includes('transfer')) jenisBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+
+                    tr.innerHTML = `
+                        <td class="py-2 px-2.5 font-medium text-slate-600 whitespace-nowrap">${item.tanggal || '-'}</td>
+                        <td class="py-2 px-2.5 font-bold text-slate-800 whitespace-nowrap">${item.cabang || '-'}</td>
+                        <td class="py-2 px-2.5 whitespace-nowrap">
+                            <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold border ${jenisBadgeClass}">${item.jenis}</span>
+                        </td>
+                        <td class="py-2 px-2.5 font-semibold text-slate-900 max-w-[120px] truncate" title="${item.customer}">${item.customer}</td>
+                        <td class="py-2 px-2.5 text-center font-mono font-bold">${item.qty}</td>
+                        <td class="py-2 px-2.5 text-right font-extrabold text-slate-900 whitespace-nowrap">${item.jumlah}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+
+                document.getElementById('previewCountBadge').textContent = `${dataRows.length} baris transaksi valid terdeteksi`;
+                
+                const notice = document.getElementById('previewLimitNotice');
+                if (dataRows.length > 5) {
+                    notice.textContent = `Menampilkan 5 dari ${dataRows.length} data`;
+                } else {
+                    notice.textContent = `Semua ${dataRows.length} data ditampilkan`;
+                }
+
+                document.getElementById('dropzoneContainer').classList.add('hidden');
+                document.getElementById('importPreviewSection').classList.remove('hidden');
+
+                if (submitBtnText) {
+                    submitBtnText.textContent = `Import ${dataRows.length} Data Transaksi`;
+                }
+
+            } catch (err) {
+                console.error('Error parsing Excel:', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Membaca Excel',
+                    text: 'Terjadi kesalahan saat memproses berkas Excel. Pastikan file tidak rusak.',
+                    customClass: { popup: 'ikhlas-toast' }
+                });
+                resetImportFile();
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
     }
 
     // Bulk Action Checkboxes Sync
