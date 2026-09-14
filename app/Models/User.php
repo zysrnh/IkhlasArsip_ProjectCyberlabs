@@ -126,4 +126,32 @@ class User extends Authenticatable
         }
         return strtoupper($initials ?: 'U');
     }
+
+    /**
+     * Dapatkan label role dalam format yang rapi dan user-friendly
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            self::ROLE_SUPERADMIN => 'Super Administrator',
+            self::ROLE_KEPALA_CABANG => 'Kepala Cabang',
+            self::ROLE_ADMIN_CABANG => 'Admin Cabang' . ($this->branch ? ' - ' . $this->branch->name : ''),
+            self::ROLE_VIEWER => 'Viewer (Read-Only)',
+            default => ucfirst(str_replace('_', ' ', $this->role ?? 'User')),
+        };
+    }
+
+    /**
+     * Dapatkan warna background inisial avatar berdasarkan role
+     */
+    public function getRoleColorAttribute(): string
+    {
+        return match ($this->role) {
+            self::ROLE_SUPERADMIN => 'bg-purple-700 text-white',
+            self::ROLE_KEPALA_CABANG => 'bg-tealBrand text-white',
+            self::ROLE_ADMIN_CABANG => 'bg-navy-800 text-white border border-slate-700',
+            self::ROLE_VIEWER => 'bg-slate-700 text-white',
+            default => 'bg-slate-700 text-white',
+        };
+    }
 }

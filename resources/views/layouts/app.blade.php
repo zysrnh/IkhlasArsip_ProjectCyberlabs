@@ -379,20 +379,14 @@
                             class="w-8 h-8 rounded object-cover border border-slate-700 shrink-0 shadow-xs"
                         >
                     @else
-                        <div class="w-8 h-8 rounded {{ auth()->user()->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : (auth()->user()->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-slate-700 text-white') }} flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
+                        <div class="w-8 h-8 rounded {{ auth()->user()->role_color }} flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
                             {{ auth()->user()->initials }}
                         </div>
                     @endif
                     <div class="min-w-0 overflow-hidden sidebar-hide-on-collapse">
                         <div class="text-xs font-bold text-white truncate group-hover:text-tealBrand transition-colors leading-tight">{{ auth()->user()->name }}</div>
                         <div class="text-[10px] text-slate-400 truncate leading-normal">
-                            @if(auth()->user()->isKepalaCabang())
-                                Kepala Cabang
-                            @elseif(auth()->user()->isAdminCabang())
-                                Admin Cabang
-                            @else
-                                Super Administrator
-                            @endif
+                            {{ auth()->user()->role_label }}
                         </div>
                     </div>
                 </a>
@@ -463,7 +457,7 @@
                         class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-xs"
                     >
                 @else
-                    <div class="w-8 h-8 rounded-full {{ auth()->user()->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : (auth()->user()->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-navy-900 text-white') }} flex items-center justify-center text-[11px] font-bold shrink-0 shadow-xs">
+                    <div class="w-8 h-8 rounded-full {{ auth()->user()->role_color }} flex items-center justify-center text-[11px] font-bold shrink-0 shadow-xs">
                         {{ auth()->user()->initials }}
                     </div>
                 @endif
