@@ -214,171 +214,203 @@
     <!-- Sidebar Desktop & Drawer Mobile -->
     <aside 
         id="sidebar" 
-        class="fixed inset-y-0 left-0 z-50 w-64 -translate-x-full lg:translate-x-0 bg-navy-900 text-white flex flex-col justify-between border-r border-navy-800 transition-all duration-300 shadow-2xl lg:shadow-none"
+        class="fixed inset-y-0 left-0 z-50 w-64 -translate-x-full lg:translate-x-0 bg-navy-900 text-white flex flex-col justify-between border-r border-navy-800 transition-all duration-300 shadow-2xl lg:shadow-none select-none"
     >
         
-        <!-- Top Section -->
-        <div>
-            <!-- Brand Header & Desktop Collapse Toggle -->
-            <div class="h-20 flex items-center justify-between px-4 sm:px-5 border-b border-navy-800/80 brand-container">
-                <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 group cursor-pointer overflow-hidden">
-                    <img 
-                        src="{{ asset('images/logo.png') }}" 
-                        alt="Ikhlas Solusi" 
-                        class="w-9 h-9 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
-                    >
-                    <div class="sidebar-hide-on-collapse overflow-hidden">
-                        <div class="font-extrabold text-sm tracking-tight text-white leading-tight truncate">Ikhlas Solusi</div>
-                        <div class="text-[10px] text-teal-400/90 font-medium truncate">Sales Management</div>
-                    </div>
-                </a>
-
-                <!-- Mobile Close Button -->
-                <button 
-                    type="button" 
-                    onclick="toggleSidebarMobile()" 
-                    class="lg:hidden p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+        <!-- Brand Header (Fixed at top of sidebar) -->
+        <div class="h-16 flex items-center justify-between px-4 sm:px-5 border-b border-navy-800 shrink-0 brand-container">
+            <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 group cursor-pointer overflow-hidden">
+                <img 
+                    src="{{ asset('images/logo.png') }}" 
+                    alt="Ikhlas Solusi" 
+                    class="w-8 h-8 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
                 >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </div>
+                <div class="sidebar-hide-on-collapse overflow-hidden">
+                    <div class="font-extrabold text-sm tracking-tight text-white leading-tight truncate">Ikhlas Solusi</div>
+                    <div class="text-[10px] text-teal-400 font-medium tracking-wide truncate">Sales Management</div>
+                </div>
+            </a>
 
-            <!-- Navigation Menu -->
-            <div class="py-5 space-y-1">
-                <div class="px-5 pb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider sidebar-hide-on-collapse">
-                    Menu
+            <!-- Mobile Close Button -->
+            <button 
+                type="button" 
+                onclick="toggleSidebarMobile()" 
+                class="lg:hidden p-1 text-slate-400 hover:text-white hover:bg-navy-800 rounded cursor-pointer transition-colors"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+
+        <!-- Scrollable Navigation Menu Area -->
+        <div class="flex-1 overflow-y-auto py-4 px-3 space-y-5">
+            
+            <!-- SECTION: MENU UTAMA -->
+            <div class="space-y-1">
+                <div class="px-2 pb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest sidebar-hide-on-collapse">
+                    Menu Utama
                 </div>
 
                 <!-- Dashboard Tab -->
                 <a 
                     href="{{ route('dashboard') }}" 
                     title="Dashboard"
-                    class="sidebar-nav-item mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-bold transition-all duration-150 {{ request()->routeIs('dashboard') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
+                    class="sidebar-nav-item flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded transition-all duration-150 {{ request()->routeIs('dashboard') ? 'bg-tealBrand text-white font-bold' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
                 >
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
-                    <span class="sidebar-hide-on-collapse">Dashboard</span>
+                    <span class="sidebar-hide-on-collapse truncate">Dashboard</span>
                 </a>
 
                 <!-- Transaksi Tab -->
                 <a 
                     href="{{ route('transactions.index') }}" 
-                    title="Transaksi"
-                    class="sidebar-nav-item mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-bold transition-all duration-150 {{ request()->routeIs('transactions.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
+                    title="Data Transaksi"
+                    class="sidebar-nav-item flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded transition-all duration-150 {{ request()->routeIs('transactions.*') ? 'bg-tealBrand text-white font-bold' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
                 >
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span class="sidebar-hide-on-collapse">Transaksi</span>
+                    <span class="sidebar-hide-on-collapse truncate">Data Transaksi</span>
                 </a>
+            </div>
 
-                <!-- Menu Super Admin & Kepala Cabang: Kelola Pengguna -->
-                @if(auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang())
+            <!-- SECTION: MANAJEMEN -->
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang())
+                <div class="space-y-1">
+                    <div class="px-2 pb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest sidebar-hide-on-collapse">
+                        Manajemen
+                    </div>
+
+                    <!-- Kelola Pengguna -->
                     <a 
                         href="{{ route('users.index') }}" 
                         title="Kelola Pengguna"
-                        class="sidebar-nav-item mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-all duration-150 {{ request()->routeIs('users.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
+                        class="sidebar-nav-item flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded transition-all duration-150 {{ request()->routeIs('users.*') ? 'bg-tealBrand text-white font-bold' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
                     >
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
-                        <span class="sidebar-hide-on-collapse">Kelola Pengguna</span>
-                    </a>
-                @endif
-
-                <!-- Menu Khusus Super Admin: Cabang & Sampah -->
-                @if(auth()->user()->isSuperAdmin())
-                    <a 
-                        href="{{ route('branches.index') }}" 
-                        title="Kelola Cabang"
-                        class="sidebar-nav-item mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-all duration-150 {{ request()->routeIs('branches.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
-                    >
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        <span class="sidebar-hide-on-collapse">Kelola Cabang</span>
+                        <span class="sidebar-hide-on-collapse truncate">Kelola Pengguna</span>
                     </a>
 
+                    <!-- Kelola Cabang (Super Admin Only) -->
+                    @if(auth()->user()->isSuperAdmin())
+                        <a 
+                            href="{{ route('branches.index') }}" 
+                            title="Kelola Cabang"
+                            class="sidebar-nav-item flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded transition-all duration-150 {{ request()->routeIs('branches.*') ? 'bg-tealBrand text-white font-bold' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
+                        >
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <span class="sidebar-hide-on-collapse truncate">Kelola Cabang</span>
+                        </a>
+                    @endif
+                </div>
+            @endif
+
+            <!-- SECTION: SISTEM & ARSIP (Super Admin Only) -->
+            @if(auth()->user()->isSuperAdmin())
+                <div class="space-y-1">
+                    <div class="px-2 pb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest sidebar-hide-on-collapse">
+                        Sistem & Arsip
+                    </div>
+
+                    <!-- Sampah Transaksi -->
                     <a 
                         href="{{ route('trash.index') }}" 
                         title="Sampah Transaksi"
-                        class="sidebar-nav-item mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-all duration-150 {{ request()->routeIs('trash.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
+                        class="sidebar-nav-item flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded transition-all duration-150 {{ request()->routeIs('trash.*') ? 'bg-tealBrand text-white font-bold' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
                     >
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        <span class="sidebar-hide-on-collapse">Sampah Transaksi</span>
+                        <span class="sidebar-hide-on-collapse truncate">Sampah Transaksi</span>
                     </a>
 
+                    <!-- Backup Database -->
                     <a 
                         href="{{ route('backups.index') }}" 
                         title="Backup Database"
-                        class="sidebar-nav-item mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-all duration-150 {{ request()->routeIs('backups.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
+                        class="sidebar-nav-item flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded transition-all duration-150 {{ request()->routeIs('backups.*') ? 'bg-tealBrand text-white font-bold' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
                     >
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21 3.582 4 8 4s8-1.79 8-4" />
                         </svg>
-                        <span class="sidebar-hide-on-collapse">Backup Database</span>
+                        <span class="sidebar-hide-on-collapse truncate">Backup Database</span>
                     </a>
-                @endif
+                </div>
+            @endif
 
-                <!-- Menu Kelola Profil -->
+            <!-- SECTION: PENGATURAN -->
+            <div class="space-y-1">
+                <div class="px-2 pb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest sidebar-hide-on-collapse">
+                    Pengaturan
+                </div>
+
+                <!-- Profil Saya -->
                 <a 
                     href="{{ route('profile.edit') }}" 
                     title="Profil Saya"
-                    class="sidebar-nav-item mx-3 px-3.5 py-2.5 rounded-lg flex items-center space-x-3 text-xs font-semibold transition-all duration-150 {{ request()->routeIs('profile.*') ? 'bg-tealBrand text-white shadow-sm' : 'text-slate-300 hover:bg-navy-800 hover:text-white hover:translate-x-0.5' }}"
+                    class="sidebar-nav-item flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded transition-all duration-150 {{ request()->routeIs('profile.*') ? 'bg-tealBrand text-white font-bold' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
                 >
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span class="sidebar-hide-on-collapse">Profil Saya</span>
+                    <span class="sidebar-hide-on-collapse truncate">Profil Saya</span>
                 </a>
             </div>
+
         </div>
 
-        <!-- Bottom User Profile Section with Avatar -->
-        <div class="p-3 sm:p-4 border-t border-navy-800/80">
-            <a 
-                href="{{ route('profile.edit') }}" 
-                class="flex items-center space-x-3 mb-3 p-1.5 rounded-xl hover:bg-navy-800/80 transition-colors cursor-pointer group sidebar-profile-container"
-                title="Kelola Profil Akun"
-            >
-                @if(auth()->user()->avatar_url)
-                    <img 
-                        src="{{ auth()->user()->avatar_url }}" 
-                        alt="{{ auth()->user()->name }}" 
-                        class="w-9 h-9 rounded-xl object-cover border border-slate-700 shrink-0 shadow-sm"
-                    >
-                @else
-                    <div class="w-9 h-9 rounded-xl {{ auth()->user()->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : (auth()->user()->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-navy-800 text-white border border-slate-700') }} flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
-                        {{ auth()->user()->initials }}
+        <!-- Bottom User Profile & Logout Section -->
+        <div class="p-3 border-t border-navy-800 shrink-0 bg-navy-900/60">
+            <div class="flex items-center justify-between gap-2">
+                <a 
+                    href="{{ route('profile.edit') }}" 
+                    class="flex items-center space-x-2.5 min-w-0 p-1.5 rounded hover:bg-navy-800 transition-colors group sidebar-profile-container flex-1"
+                    title="Lihat Profil: {{ auth()->user()->name }}"
+                >
+                    @if(auth()->user()->avatar_url)
+                        <img 
+                            src="{{ auth()->user()->avatar_url }}" 
+                            alt="{{ auth()->user()->name }}" 
+                            class="w-8 h-8 rounded object-cover border border-slate-700 shrink-0 shadow-xs"
+                        >
+                    @else
+                        <div class="w-8 h-8 rounded {{ auth()->user()->role === 'kepala_cabang' ? 'bg-tealBrand text-white' : (auth()->user()->role === 'superadmin' ? 'bg-purple-700 text-white' : 'bg-slate-700 text-white') }} flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
+                            {{ auth()->user()->initials }}
+                        </div>
+                    @endif
+                    <div class="min-w-0 overflow-hidden sidebar-hide-on-collapse">
+                        <div class="text-xs font-bold text-white truncate group-hover:text-tealBrand transition-colors leading-tight">{{ auth()->user()->name }}</div>
+                        <div class="text-[10px] text-slate-400 truncate leading-normal">
+                            @if(auth()->user()->isKepalaCabang())
+                                Kepala Cabang
+                            @elseif(auth()->user()->isAdminCabang())
+                                Admin Cabang
+                            @else
+                                Super Administrator
+                            @endif
+                        </div>
                     </div>
-                @endif
-                <div class="overflow-hidden sidebar-hide-on-collapse">
-                    <div class="text-xs font-bold text-white truncate group-hover:text-tealBrand transition-colors">{{ auth()->user()->name }}</div>
-                    <div class="text-[11px] text-slate-400 truncate">
-                        @if(auth()->user()->isKepalaCabang())
-                            Kepala Cabang
-                        @elseif(auth()->user()->isAdminCabang())
-                            Admin - {{ auth()->user()->branch->name ?? 'Cabang' }}
-                        @else
-                            {{ ucfirst(auth()->user()->role) }}
-                        @endif
-                    </div>
-                </div>
-            </a>
+                </a>
 
-            <!-- Logout Button with SweetAlert2 Confirmation -->
-            <form action="{{ route('logout') }}" method="POST" onsubmit="event.preventDefault(); confirmLogout(this);">
-                @csrf
-                <button type="submit" class="w-full flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-rose-400 py-1.5 px-2 transition-colors group cursor-pointer sidebar-nav-item" title="Keluar dari Sistem">
-                    <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    <span class="sidebar-hide-on-collapse">Keluar</span>
-                </button>
-            </form>
+                <!-- Quick Logout Button -->
+                <form action="{{ route('logout') }}" method="POST" onsubmit="event.preventDefault(); confirmLogout(this);" class="shrink-0">
+                    @csrf
+                    <button 
+                        type="submit" 
+                        class="p-2 text-slate-400 hover:text-rose-400 hover:bg-navy-800 rounded transition-colors cursor-pointer" 
+                        title="Keluar dari Sistem"
+                    >
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
         </div>
 
     </aside>
