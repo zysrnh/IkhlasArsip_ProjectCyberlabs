@@ -1033,7 +1033,7 @@
 
     <!-- Modal Import Excel dengan Live Preview -->
     <div id="importModal" class="fixed inset-0 z-50 bg-slate-950/70 hidden items-center justify-center p-3 sm:p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-xl lg:max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
+        <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-3xl lg:max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
             <!-- Header -->
             <div class="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
                 <div class="flex items-center space-x-2.5">
@@ -1453,43 +1453,75 @@
                     return;
                 }
 
-                // Cari baris header (Tanggal / Cabang / Jenis)
+                // Cari baris header murni tabel (Tanggal, Cabang, Jenis, dsb.)
                 let headerIndex = -1;
                 for (let i = 0; i < rawJson.length; i++) {
                     const row = rawJson[i];
-                    if (row && row.some(cell => typeof cell === 'string' && (cell.toLowerCase().includes('tanggal') || cell.toLowerCase().includes('cabang')))) {
+                    if (!row || row.length < 2) continue;
+                    const c0 = String(row[0] || '').trim().toLowerCase();
+                    const c1 = String(row[1] || '').trim().toLowerCase();
+                    
+                    // Header murni kolom tabel: c0 = 'tanggal', c1 = 'cabang' (bukan petunjuk seperti "1. Tanggal:...")
+                    if ((c0 === 'tanggal' || (c0.includes('tanggal') && !c0.startsWith('1.') && !c0.includes('petunjuk'))) && 
+                        (c1 === 'cabang' || c1.includes('cabang'))) {
                         headerIndex = i;
                         break;
                     }
                 }
 
-                if (headerIndex === -1) {
-                    headerIndex = 0;
-                }
-
                 const dataRows = [];
-                for (let i = headerIndex + 1; i < rawJson.length; i++) {
+                const startRow = headerIndex !== -1 ? (headerIndex + 1) : 0;
+
+                for (let i = startRow; i < rawJson.length; i++) {
                     const row = rawJson[i];
                     if (!row || row.length === 0) continue;
                     
-                    const colTanggal = row[0] || '';
-                    const colCabang = row[1] || '';
-                    const colJenis = row[2] || '';
-                    const colDeskripsi = row[3] || '';
-                    const colCustomer = row[4] || '';
-                    const colQty = row[5] || '1';
-                    const colJumlah = row[6] || '0';
+                    const colTanggal = String(row[0] || '').trim();
+                    const colCabang = String(row[1] || '').trim();
+                    const colJenis = String(row[2] || '').trim();
+                    const colDeskripsi = String(row[3] || '').trim();
+                    const colCustomer = String(row[4] || '').trim();
+                    const colQty = String(row[5] || '1').trim();
+                    const colJumlah = String(row[6] || '0').trim();
 
-                    if (!colTanggal && !colCustomer && !colJumlah) continue;
+                    // Abaikan baris judul template, box petunjuk, atau header kolom yang terulang
+                    const c0Upper = colTanggal.toUpperCase();
+                    if (c0Upper.includes('PETUNJUK') || 
+                        c0Upper.includes('TEMPLATE') || 
+                        /^\d+\.\s/.test(colTanggal) ||
+                        colTanggal.toLowerCase() === 'tanggal') {
+                        continue;
+                    }
+
+                    // Jika baris kosong
+                    if (!colTanggal && !colCustomer && (!colJumlah || colJumlah === '0')) continue;
+
+                    // Bersihkan dan format angka nominal
+                    let cleanAmountNum = 0;
+                    const isNeg = colJumlah.includes('-') || (colJumlah.startsWith('(') && colJumlah.endsWith(')'));
+                    const cleanStr = colJumlah.replace(/[^0-9]/g, '');
+                    if (cleanStr) {
+                        cleanAmountNum = parseFloat(cleanStr);
+                        if (isNeg || colJenis.toLowerCase().includes('retur')) {
+                            cleanAmountNum = -Math.abs(cleanAmountNum);
+                        }
+                    }
+
+                    const formattedAmountDisplay = new Intl.NumberFormat('id-ID', { 
+                        style: 'currency', 
+                        currency: 'IDR', 
+                        minimumFractionDigits: 0 
+                    }).format(cleanAmountNum);
 
                     dataRows.push({
-                        tanggal: colTanggal,
-                        cabang: colCabang,
+                        tanggal: colTanggal || '-',
+                        cabang: colCabang || '-',
                         jenis: colJenis || 'Penjualan Tunai',
-                        deskripsi: colDeskripsi,
+                        deskripsi: colDeskripsi || '-',
                         customer: colCustomer || '-',
-                        qty: colQty,
-                        jumlah: colJumlah
+                        qty: colQty || '1',
+                        jumlah: formattedAmountDisplay,
+                        isNegative: cleanAmountNum < 0
                     });
                 }
 
@@ -1497,7 +1529,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Tidak Ada Data Valid',
-                        text: 'Format tabel Excel tidak sesuai template. Pastikan kolom terisi dengan benar.',
+                        text: 'Format tabel Excel tidak sesuai template. Pastikan kolom data transaksi terisi dengan benar mulai baris data.',
                         customClass: { popup: 'ikhlas-toast' }
                     });
                     resetImportFile();
@@ -1508,7 +1540,7 @@
                 const tbody = document.getElementById('importPreviewTableBody');
                 tbody.innerHTML = '';
 
-                const displayLimit = Math.min(dataRows.length, 5);
+                const displayLimit = Math.min(dataRows.length, 6);
                 for (let i = 0; i < displayLimit; i++) {
                     const item = dataRows[i];
                     const tr = document.createElement('tr');
@@ -1520,24 +1552,26 @@
                     else if (jLower.includes('retur')) jenisBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
                     else if (jLower.includes('transfer')) jenisBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
 
+                    const amountClass = item.isNegative ? 'text-rose-600' : 'text-slate-900';
+
                     tr.innerHTML = `
-                        <td class="py-2 px-2.5 font-medium text-slate-600 whitespace-nowrap">${item.tanggal || '-'}</td>
-                        <td class="py-2 px-2.5 font-bold text-slate-800 whitespace-nowrap">${item.cabang || '-'}</td>
-                        <td class="py-2 px-2.5 whitespace-nowrap">
-                            <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold border ${jenisBadgeClass}">${item.jenis}</span>
+                        <td class="py-2.5 px-3 font-medium text-slate-600 whitespace-nowrap">${item.tanggal}</td>
+                        <td class="py-2.5 px-3 font-bold text-slate-800 whitespace-nowrap">${item.cabang}</td>
+                        <td class="py-2.5 px-3 whitespace-nowrap">
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${jenisBadgeClass}">${item.jenis}</span>
                         </td>
-                        <td class="py-2 px-2.5 font-semibold text-slate-900 max-w-[120px] truncate" title="${item.customer}">${item.customer}</td>
-                        <td class="py-2 px-2.5 text-center font-mono font-bold">${item.qty}</td>
-                        <td class="py-2 px-2.5 text-right font-extrabold text-slate-900 whitespace-nowrap">${item.jumlah}</td>
+                        <td class="py-2.5 px-3 font-semibold text-slate-900 max-w-[150px] truncate" title="${item.customer}">${item.customer}</td>
+                        <td class="py-2.5 px-3 text-center font-mono font-bold">${item.qty}</td>
+                        <td class="py-2.5 px-3 text-right font-extrabold ${amountClass} whitespace-nowrap">${item.jumlah}</td>
                     `;
                     tbody.appendChild(tr);
                 }
 
-                document.getElementById('previewCountBadge').textContent = `${dataRows.length} baris transaksi valid terdeteksi`;
+                document.getElementById('previewCountBadge').textContent = `${dataRows.length} baris transaksi valid siap diimpor`;
                 
                 const notice = document.getElementById('previewLimitNotice');
-                if (dataRows.length > 5) {
-                    notice.textContent = `Menampilkan 5 dari ${dataRows.length} data`;
+                if (dataRows.length > 6) {
+                    notice.textContent = `Menampilkan 6 dari ${dataRows.length} data`;
                 } else {
                     notice.textContent = `Semua ${dataRows.length} data ditampilkan`;
                 }

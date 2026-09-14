@@ -88,10 +88,8 @@ class TransactionController extends Controller
         $transactions = $query->paginate(12)->withQueryString();
         $branches = Branch::where('status', 'active')->orderBy('name')->get();
 
-        // Generate next code preview
-        $lastTrx = Transaction::withTrashed()->latest('id')->first();
-        $nextCodeNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
-        $nextCode = 'TRX-' . str_pad($nextCodeNumber, 3, '0', STR_PAD_LEFT);
+        // Generate next code preview yang dijamin unik
+        $nextCode = $this->generateUniqueTransactionCode();
 
         return view('transactions.index', compact(
             'transactions',
@@ -101,6 +99,34 @@ class TransactionController extends Controller
             'selectedBranchId',
             'nextCode'
         ));
+    }
+
+    /**
+     * Generator Kode Transaksi Unik Anti-Duplikasi
+     */
+    private function generateUniqueTransactionCode(?int &$runningNumber = null): string
+    {
+        if ($runningNumber === null) {
+            $maxCodeNum = 0;
+            $allCodes = Transaction::withTrashed()->pluck('code');
+            foreach ($allCodes as $c) {
+                if (preg_match('/TRX-(\d+)/i', (string) $c, $matches)) {
+                    $num = intval($matches[1]);
+                    if ($num > $maxCodeNum) {
+                        $maxCodeNum = $num;
+                    }
+                }
+            }
+            $runningNumber = $maxCodeNum + 1;
+        }
+
+        do {
+            $code = 'TRX-' . str_pad($runningNumber, 3, '0', STR_PAD_LEFT);
+            $exists = Transaction::withTrashed()->where('code', $code)->exists();
+            $runningNumber++;
+        } while ($exists);
+
+        return $code;
     }
 
     /**
@@ -150,9 +176,7 @@ class TransactionController extends Controller
 
         // Auto-generate code jika kosong
         if (empty($validated['code'])) {
-            $lastTrx = Transaction::withTrashed()->latest('id')->first();
-            $nextCodeNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
-            $validated['code'] = 'TRX-' . str_pad($nextCodeNumber, 3, '0', STR_PAD_LEFT);
+            $validated['code'] = $this->generateUniqueTransactionCode();
         }
 
         $validated['branch_id'] = $branchId;
@@ -662,9 +686,18 @@ class TransactionController extends Controller
             return strtolower(trim($item->name));
         });
 
-        // Ambil ID transaksi terakhir
-        $lastTrx = Transaction::withTrashed()->latest('id')->first();
-        $nextNumber = $lastTrx ? ($lastTrx->id + 1) : 1;
+        // Inisialisasi running number awal dari angka tertinggi kode TRX
+        $maxCodeNum = 0;
+        $allCodes = Transaction::withTrashed()->pluck('code');
+        foreach ($allCodes as $c) {
+            if (preg_match('/TRX-(\d+)/i', (string) $c, $matches)) {
+                $num = intval($matches[1]);
+                if ($num > $maxCodeNum) {
+                    $maxCodeNum = $num;
+                }
+            }
+        }
+        $runningNumber = $maxCodeNum + 1;
 
         $isHeaderPassed = false;
 
@@ -682,14 +715,14 @@ class TransactionController extends Controller
             $col5 = trim((string)($cells[5] ?? ''));
             $col6 = trim((string)($cells[6] ?? ''));
 
-            // Deteksi Header: Tanggal & Cabang
-            if (stripos($col0, 'Tanggal') !== false && stripos($col1, 'Cabang') !== false) {
+            // Deteksi Header Murni: Tanggal & Cabang (Bukan baris petunjuk)
+            if (stripos($col0, 'Tanggal') !== false && stripos($col1, 'Cabang') !== false && !str_starts_with($col0, '1.')) {
                 $isHeaderPassed = true;
                 continue;
             }
 
             // Abaikan baris sebelum header (judul atau box petunjuk)
-            if (!$isHeaderPassed || stripos($col0, 'TEMPLATE') !== false || stripos($col0, 'PETUNJUK') !== false) {
+            if (!$isHeaderPassed || stripos($col0, 'TEMPLATE') !== false || stripos($col0, 'PETUNJUK') !== false || preg_match('/^\d+\.\s/', $col0)) {
                 continue;
             }
 
@@ -746,7 +779,7 @@ class TransactionController extends Controller
                 $amount = abs($amountVal);
             }
 
-            $code = 'TRX-' . str_pad($nextNumber++, 3, '0', STR_PAD_LEFT);
+            $code = $this->generateUniqueTransactionCode($runningNumber);
 
             Transaction::create([
                 'code' => $code,
