@@ -353,6 +353,23 @@ class TransactionController extends Controller
         $totalAmount = $transactions->sum('amount');
         $totalQty = $transactions->sum('qty');
 
+        // Resolve logo dengan multi-fallback path untuk shared hosting
+        $logoBase64 = null;
+        $logoCandidates = [
+            public_path('images/logo.png'),
+            base_path('public/images/logo.png'),
+            base_path('public_html/images/logo.png'),
+            isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] . '/images/logo.png' : null,
+            base_path('../public_html/images/logo.png'),
+        ];
+
+        foreach ($logoCandidates as $candidate) {
+            if ($candidate && file_exists($candidate)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($candidate));
+                break;
+            }
+        }
+
         $pdf = Pdf::loadView('transactions.pdf', [
             'transactions' => $transactions,
             'selectedBranch' => $selectedBranch,
@@ -362,6 +379,7 @@ class TransactionController extends Controller
             'printedAt' => now()->translatedFormat('d F Y, H:i'),
             'dateFrom' => $request->date_from,
             'dateTo' => $request->date_to,
+            'logoBase64' => $logoBase64,
         ])->setPaper('a4', 'portrait');
 
         $fileName = 'Laporan_Transaksi_' . ($selectedBranch ? str_replace(' ', '_', $selectedBranch->name) : 'Semua_Cabang') . '_' . date('Ymd_His') . '.pdf';

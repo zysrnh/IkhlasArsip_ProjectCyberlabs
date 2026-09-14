@@ -189,16 +189,29 @@
 <body>
 
 @php
-    $logoPath = public_path('images/logo.png');
-    $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : null;
+    if (empty($logoBase64)) {
+        $candidatePaths = [
+            public_path('images/logo.png'),
+            base_path('public/images/logo.png'),
+            base_path('public_html/images/logo.png'),
+            isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] . '/images/logo.png' : null,
+            base_path('../public_html/images/logo.png'),
+        ];
+        foreach ($candidatePaths as $cPath) {
+            if ($cPath && file_exists($cPath)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($cPath));
+                break;
+            }
+        }
+    }
 @endphp
 
     <!-- KOP Surat Resmi -->
     <table class="kop-table">
         <tr>
             <td style="width: 52px; vertical-align: middle;">
-                @if($logoBase64)
-                    <img src="{{ $logoBase64 }}" style="width: 46px; height: 46px; object-fit: contain; border-radius: 6px;">
+                @if(!empty($logoBase64))
+                    <img src="{{ $logoBase64 }}" width="46" height="46" style="width: 46px; height: 46px; object-fit: contain; border-radius: 6px;">
                 @else
                     <div class="kop-logo-box">IS</div>
                 @endif
