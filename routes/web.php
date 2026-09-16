@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KitchenReportController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
@@ -37,6 +38,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
+    // Modul Input Masakan Dapur Harian (Sheet 1)
+    Route::resource('kitchen-reports', KitchenReportController::class);
+
     // Modul Data Transaksi & Laporan
     Route::get('/transactions/download-template', [TransactionController::class, 'downloadTemplate'])->name('transactions.download-template');
     Route::get('/transactions/export-pdf', [TransactionController::class, 'exportPdf'])->name('transactions.export-pdf');
@@ -45,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/bulk-delete', [TransactionController::class, 'bulkDelete'])->name('transactions.bulk-delete');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);
 
-    // Modul Master Menu Masakan & Harga Cabang (Bisa dilihat semua user, edit khusus Super Admin di controller)
+    // Modul Master Menu Masakan & Harga Cabang
     Route::post('/menus/{menu}/prices', [MenuController::class, 'updatePrices'])->name('menus.prices.update');
     Route::resource('menus', MenuController::class)->except(['create', 'show', 'edit']);
 
