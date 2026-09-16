@@ -13,6 +13,10 @@
                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
                         Master Data
                     </span>
+                @elseif(auth()->user()->isAdminDapur())
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
+                        Admin Dapur
+                    </span>
                 @endif
             </div>
             <p class="text-xs text-slate-500 mt-1 font-medium">
@@ -20,7 +24,7 @@
             </p>
         </div>
 
-        @if(auth()->user()->isSuperAdmin())
+        @if(!auth()->user()->isViewer())
         <div class="flex items-center gap-2">
             <button 
                 type="button" 
@@ -293,7 +297,7 @@
                         <th class="py-3.5 px-4 text-right text-slate-700">{{ $b->name }}</th>
                         @endforeach
                         <th class="py-3.5 px-4 text-center">Status</th>
-                        @if(auth()->user()->isSuperAdmin())
+                        @if(!auth()->user()->isViewer())
                         <th class="py-3.5 px-4 text-center w-28">Aksi</th>
                         @endif
                     </tr>
@@ -344,7 +348,7 @@
                             </span>
                             @endif
                         </td>
-                        @if(auth()->user()->isSuperAdmin())
+                        @if(!auth()->user()->isViewer())
                         <td class="py-3 px-4 text-center">
                             <div class="inline-flex items-center gap-1">
                                 <!-- Tombol Setting Harga Cabang -->

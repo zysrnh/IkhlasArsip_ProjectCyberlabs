@@ -24,7 +24,7 @@ class MenuController extends Controller
             $query->where('name', 'like', "%{$search}%");
         }
 
-        // Filter kategori (sayur/lauk)
+        // Filter kategori sifat lauk (cepat basi / lauk biasa)
         if ($request->filled('category')) {
             $cat = $request->get('category');
             if ($cat === 'perishable') {
@@ -57,8 +57,8 @@ class MenuController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('menus.index')->with('error', 'Hanya Super Administrator yang berhak menambah menu.');
+        if (auth()->user()->isViewer()) {
+            return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin menambah menu.');
         }
 
         $validated = $request->validate([
@@ -70,7 +70,7 @@ class MenuController extends Controller
         ], [
             'name.required' => 'Nama masakan wajib diisi.',
             'name.unique' => 'Nama masakan sudah terdaftar.',
-            'is_perishable.required' => 'Kategori menu wajib dipilih.',
+            'is_perishable.required' => 'Sifat lauk wajib dipilih.',
             'default_price.required' => 'Harga default wajib diisi.',
             'default_price.numeric' => 'Harga harus berupa angka yang valid.',
         ]);
@@ -94,7 +94,7 @@ class MenuController extends Controller
             );
         }
 
-        return redirect()->route('menus.index')->with('success', 'Menu masakan baru berhasil ditambahkan.');
+        return redirect()->route('menus.index')->with('success', 'Menu masakan baru "' . $menu->name . '" berhasil ditambahkan.');
     }
 
     /**
@@ -102,8 +102,8 @@ class MenuController extends Controller
      */
     public function update(Request $request, Menu $menu): RedirectResponse
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('menus.index')->with('error', 'Hanya Super Administrator yang berhak mengubah menu.');
+        if (auth()->user()->isViewer()) {
+            return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin mengubah menu.');
         }
 
         $validated = $request->validate([
@@ -115,7 +115,7 @@ class MenuController extends Controller
         ], [
             'name.required' => 'Nama masakan wajib diisi.',
             'name.unique' => 'Nama masakan sudah digunakan menu lain.',
-            'is_perishable.required' => 'Kategori menu wajib dipilih.',
+            'is_perishable.required' => 'Sifat lauk wajib dipilih.',
             'default_price.required' => 'Harga default wajib diisi.',
         ]);
 
@@ -127,7 +127,7 @@ class MenuController extends Controller
             'is_active' => $request->has('is_active') ? (bool) $request->input('is_active') : false,
         ]);
 
-        return redirect()->route('menus.index')->with('success', 'Data menu masakan berhasil diperbarui.');
+        return redirect()->route('menus.index')->with('success', 'Data menu masakan "' . $menu->name . '" berhasil diperbarui.');
     }
 
     /**
@@ -135,8 +135,8 @@ class MenuController extends Controller
      */
     public function updatePrices(Request $request, Menu $menu): RedirectResponse
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('menus.index')->with('error', 'Hanya Super Administrator yang berhak mengatur harga cabang.');
+        if (auth()->user()->isViewer()) {
+            return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin mengatur harga.');
         }
 
         $validated = $request->validate([
@@ -153,7 +153,7 @@ class MenuController extends Controller
             }
         }
 
-        return redirect()->route('menus.index')->with('success', 'Harga cabang untuk menu ' . $menu->name . ' berhasil diperbarui.');
+        return redirect()->route('menus.index')->with('success', 'Harga cabang untuk menu "' . $menu->name . '" berhasil diperbarui.');
     }
 
     /**
@@ -161,13 +161,13 @@ class MenuController extends Controller
      */
     public function destroy(Menu $menu): RedirectResponse
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            return redirect()->route('menus.index')->with('error', 'Hanya Super Administrator yang berhak menghapus menu.');
+        if (auth()->user()->isViewer()) {
+            return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin menghapus menu.');
         }
 
         $menuName = $menu->name;
         $menu->delete();
 
-        return redirect()->route('menus.index')->with('success', 'Menu masakan ' . $menuName . ' berhasil dihapus.');
+        return redirect()->route('menus.index')->with('success', 'Menu masakan "' . $menuName . '" berhasil dihapus.');
     }
 }
