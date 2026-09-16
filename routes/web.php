@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TrashController;
@@ -43,6 +44,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/import-excel', [TransactionController::class, 'importExcel'])->name('transactions.import-excel');
     Route::post('/transactions/bulk-delete', [TransactionController::class, 'bulkDelete'])->name('transactions.bulk-delete');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);
+
+    // Modul Master Menu Masakan & Harga Cabang (Bisa dilihat semua user, edit khusus Super Admin di controller)
+    Route::post('/menus/{menu}/prices', [MenuController::class, 'updatePrices'])->name('menus.prices.update');
+    Route::resource('menus', MenuController::class)->except(['create', 'show', 'edit']);
 
     // Modul Manajemen User (Super Admin & Kepala Cabang)
     Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
