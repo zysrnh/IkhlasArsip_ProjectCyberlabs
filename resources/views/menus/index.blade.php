@@ -25,12 +25,10 @@
             <button 
                 type="button" 
                 onclick="openCreateModal()" 
-                class="inline-flex items-center gap-2 px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-150 cursor-pointer"
+                class="px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
             >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tambah Menu Baru
+                <span class="text-sm leading-none">+</span>
+                <span>Tambah Menu Baru</span>
             </button>
         </div>
         @endif
@@ -60,46 +58,157 @@
         </div>
     </div>
 
-    <!-- Filter & Search Bar -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-        <form action="{{ route('menus.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div>
-                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Cari Menu</label>
-                <div class="relative">
-                    <input 
-                        type="text" 
-                        name="search" 
-                        value="{{ request('search') }}" 
-                        placeholder="Cari nama masakan..." 
-                        class="w-full pl-9 pr-3.5 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 outline-none transition-all duration-150"
-                    >
-                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Filter & Sorting Card (Matching other pages) -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <span>FILTER & PENCARIAN MENU</span>
+                @if(request()->hasAny(['search', 'category', 'status']))
+                    <span class="w-2 h-2 rounded-full bg-tealBrand inline-block"></span>
+                @endif
+            </div>
+        </div>
+
+        <form id="menuFilterForm" method="GET" action="{{ route('menus.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <input type="hidden" name="category" id="filterCategoryInput" value="{{ request('category') }}">
+            <input type="hidden" name="status" id="filterStatusInput" value="{{ request('status') }}">
+
+            <!-- 1. Search Input -->
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ request('search') }}" 
+                    placeholder="Cari nama menu..." 
+                    class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 shadow-sm outline-none transition-all duration-150"
+                >
             </div>
-            <div>
-                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Sifat Lauk</label>
-                <select name="category" class="w-full px-3.5 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-xs font-medium text-slate-800 outline-none transition-all duration-150 cursor-pointer">
-                    <option value="">Semua Kategori</option>
-                    <option value="perishable" {{ request('category') === 'perishable' ? 'selected' : '' }}>Cepat Basi</option>
-                    <option value="non_perishable" {{ request('category') === 'non_perishable' ? 'selected' : '' }}>Lauk Biasa (Tahan Lama)</option>
-                </select>
+
+            <!-- 2. Custom Popover: Sifat Lauk -->
+            <div class="relative" id="filterCategoryDropdownContainer">
+                <button 
+                    type="button"
+                    onclick="toggleCustomPopover('filterCategoryMenu', 'filterCategoryChevron')"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-xl text-slate-700 font-medium flex items-center justify-between transition-colors shadow-sm cursor-pointer"
+                >
+                    <span class="truncate" id="filterCategoryLabel">
+                        @if(request('category') === 'perishable')
+                            Cepat Basi
+                        @elseif(request('category') === 'non_perishable')
+                            Lauk Biasa (Tahan Lama)
+                        @else
+                            Semua Sifat Lauk
+                        @endif
+                    </span>
+                    <svg id="filterCategoryChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div id="filterCategoryMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[200px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectFilterCategory('', 'Semua Sifat Lauk')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty(request('category')) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Sifat Lauk</span>
+                        @if(empty(request('category')))
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="selectFilterCategory('perishable', 'Cepat Basi')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ request('category') === 'perishable' ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Cepat Basi</span>
+                        @if(request('category') === 'perishable')
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="selectFilterCategory('non_perishable', 'Lauk Biasa (Tahan Lama)')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ request('category') === 'non_perishable' ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Lauk Biasa (Tahan Lama)</span>
+                        @if(request('category') === 'non_perishable')
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
+                </div>
             </div>
-            <div>
-                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Status Menu</label>
-                <select name="status" class="w-full px-3.5 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-xs font-medium text-slate-800 outline-none transition-all duration-150 cursor-pointer">
-                    <option value="">Semua Status</option>
-                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktif Saja</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Nonaktif Saja</option>
-                </select>
+
+            <!-- 3. Custom Popover: Status Menu -->
+            <div class="relative" id="filterStatusDropdownContainer">
+                <button 
+                    type="button"
+                    onclick="toggleCustomPopover('filterStatusMenu', 'filterStatusChevron')"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-xl text-slate-700 font-medium flex items-center justify-between transition-colors shadow-sm cursor-pointer"
+                >
+                    <span class="truncate" id="filterStatusLabel">
+                        @if(request('status') === 'active')
+                            Aktif Saja
+                        @elseif(request('status') === 'inactive')
+                            Nonaktif Saja
+                        @else
+                            Semua Status
+                        @endif
+                    </span>
+                    <svg id="filterStatusChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div id="filterStatusMenu" class="hidden absolute left-0 top-full mt-1.5 w-full min-w-[200px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-40 animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectFilterStatus('', 'Semua Status')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty(request('status')) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Status</span>
+                        @if(empty(request('status')))
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="selectFilterStatus('active', 'Aktif Saja')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ request('status') === 'active' ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Aktif Saja</span>
+                        @if(request('status') === 'active')
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="selectFilterStatus('inactive', 'Nonaktif Saja')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ request('status') === 'inactive' ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Nonaktif Saja</span>
+                        @if(request('status') === 'inactive')
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
+                </div>
             </div>
-            <div class="flex items-end gap-2">
-                <button type="submit" class="flex-1 py-2 px-4 bg-navy-800 hover:bg-navy-900 text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-150 cursor-pointer">
+
+            <!-- 4. Submit & Reset Actions -->
+            <div class="flex items-center gap-2">
+                <button type="submit" class="flex-1 py-2.5 px-4 bg-navy-800 hover:bg-navy-900 text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-150 cursor-pointer">
                     Terapkan Filter
                 </button>
                 @if(request()->hasAny(['search', 'category', 'status']))
-                <a href="{{ route('menus.index') }}" class="py-2 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl text-center transition-all duration-150">
+                <a href="{{ route('menus.index') }}" class="py-2.5 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl text-center transition-all duration-150">
                     Reset
                 </a>
                 @endif
@@ -244,30 +353,30 @@
             @csrf
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Urut Menu</label>
-                <input type="number" name="order_number" min="1" placeholder="Auto / Contoh: 1" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
+                <input type="number" name="order_number" min="1" placeholder="Auto / Contoh: 1" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Masakan <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" required placeholder="Contoh: Rendang Daging Sapi" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
+                <input type="text" name="name" required placeholder="Contoh: Rendang Daging Sapi" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Sifat Lauk <span class="text-rose-500">*</span></label>
-                <select name="is_perishable" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none cursor-pointer">
+                <select name="is_perishable" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none cursor-pointer">
                     <option value="0">Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</option>
                     <option value="1">Cepat Basi (Sayuran / Makanan Basah)</option>
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Harga Jual Default (Rp) <span class="text-rose-500">*</span></label>
-                <input type="number" name="default_price" required min="0" step="500" placeholder="Contoh: 9000" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
+                <input type="number" name="default_price" required min="0" step="500" placeholder="Contoh: 9000" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
             </div>
             <div class="flex items-center gap-2 pt-1">
                 <input type="checkbox" name="is_active" id="create_is_active" value="1" checked class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
                 <label for="create_is_active" class="text-xs font-medium text-slate-700">Menu Aktif (Tersedia di form dapur)</label>
             </div>
             <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Simpan Menu</button>
+                <button type="button" onclick="closeCreateModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
+                <button type="submit" class="px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Simpan Menu</button>
             </div>
         </form>
     </div>
@@ -287,30 +396,30 @@
             @method('PUT')
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Urut Menu</label>
-                <input type="number" id="edit_order_number" name="order_number" min="1" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
+                <input type="number" id="edit_order_number" name="order_number" min="1" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Masakan <span class="text-rose-500">*</span></label>
-                <input type="text" id="edit_name" name="name" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
+                <input type="text" id="edit_name" name="name" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Sifat Lauk <span class="text-rose-500">*</span></label>
-                <select id="edit_is_perishable" name="is_perishable" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none cursor-pointer">
+                <select id="edit_is_perishable" name="is_perishable" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none cursor-pointer">
                     <option value="0">Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</option>
                     <option value="1">Cepat Basi (Sayuran / Makanan Basah)</option>
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Harga Jual Default (Rp) <span class="text-rose-500">*</span></label>
-                <input type="number" id="edit_default_price" name="default_price" required min="0" step="500" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
+                <input type="number" id="edit_default_price" name="default_price" required min="0" step="500" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
             </div>
             <div class="flex items-center gap-2 pt-1">
                 <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
                 <label for="edit_is_active" class="text-xs font-medium text-slate-700">Menu Aktif</label>
             </div>
             <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-navy-800 hover:bg-navy-900 text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Perbarui Menu</button>
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
+                <button type="submit" class="px-4 py-2.5 bg-navy-800 hover:bg-navy-900 text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Perbarui Menu</button>
             </div>
         </form>
     </div>
@@ -355,8 +464,8 @@
                 @endforeach
             </div>
             <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="closePriceModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Simpan Harga Cabang</button>
+                <button type="button" onclick="closePriceModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
+                <button type="submit" class="px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Simpan Harga Cabang</button>
             </div>
         </form>
     </div>
@@ -369,6 +478,74 @@
 </form>
 
 <script>
+    // Custom Popover Dropdown Handlers (Matching transactions/index.blade.php)
+    function toggleCustomPopover(menuId, chevronId) {
+        const menu = document.getElementById(menuId);
+        const chevron = document.getElementById(chevronId);
+        if (!menu) return;
+
+        const allPopovers = ['filterCategoryMenu', 'filterStatusMenu'];
+        const allChevrons = ['filterCategoryChevron', 'filterStatusChevron'];
+
+        allPopovers.forEach((id, idx) => {
+            if (id !== menuId) {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+                const ch = document.getElementById(allChevrons[idx]);
+                if (ch) ch.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            menu.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
+    // Close popovers on click outside
+    document.addEventListener('click', function(e) {
+        const categoryDropdown = document.getElementById('filterCategoryDropdownContainer');
+        const statusDropdown = document.getElementById('filterStatusDropdownContainer');
+
+        if (categoryDropdown && !categoryDropdown.contains(e.target)) {
+            const menu = document.getElementById('filterCategoryMenu');
+            const ch = document.getElementById('filterCategoryChevron');
+            if (menu) menu.classList.add('hidden');
+            if (ch) ch.classList.remove('rotate-180');
+        }
+
+        if (statusDropdown && !statusDropdown.contains(e.target)) {
+            const menu = document.getElementById('filterStatusMenu');
+            const ch = document.getElementById('filterStatusChevron');
+            if (menu) menu.classList.add('hidden');
+            if (ch) ch.classList.remove('rotate-180');
+        }
+    });
+
+    function selectFilterCategory(val, label) {
+        document.getElementById('filterCategoryInput').value = val;
+        document.getElementById('filterCategoryLabel').innerText = label;
+        const menu = document.getElementById('filterCategoryMenu');
+        const ch = document.getElementById('filterCategoryChevron');
+        if (menu) menu.classList.add('hidden');
+        if (ch) ch.classList.remove('rotate-180');
+        document.getElementById('menuFilterForm').submit();
+    }
+
+    function selectFilterStatus(val, label) {
+        document.getElementById('filterStatusInput').value = val;
+        document.getElementById('filterStatusLabel').innerText = label;
+        const menu = document.getElementById('filterStatusMenu');
+        const ch = document.getElementById('filterStatusChevron');
+        if (menu) menu.classList.add('hidden');
+        if (ch) ch.classList.remove('rotate-180');
+        document.getElementById('menuFilterForm').submit();
+    }
+
     function openCreateModal() {
         document.getElementById('createModal').classList.remove('hidden');
     }
