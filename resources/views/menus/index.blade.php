@@ -11,16 +11,16 @@
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Master Menu Masakan</h1>
                 @if(auth()->user()->isSuperAdmin())
                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
-                        Master Data
+                        Semua Cabang
                     </span>
-                @elseif(auth()->user()->isAdminDapur())
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
-                        Admin Dapur
+                @elseif(auth()->user()->branch)
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-50 text-tealBrand border border-teal-200 uppercase tracking-wider">
+                        {{ auth()->user()->branch->name }}
                     </span>
                 @endif
             </div>
             <p class="text-xs text-slate-500 mt-1 font-medium">
-                Daftar menu masakan dapur, pengaturan sifat lauk (cepat basi / tahan lama), dan penetapan harga per cabang.
+                Daftar menu masakan dapur, pengaturan sifat lauk (cepat basi / tahan lama), dan penetapan harga jual.
             </p>
         </div>
 
@@ -38,7 +38,7 @@
         @endif
     </div>
 
-    <!-- 4 Primary Stat Cards (Matching Dashboard & Transactions Style) -->
+    <!-- 4 Primary Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Total Menu -->
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group relative overflow-hidden">
@@ -292,9 +292,11 @@
                         <th class="py-3.5 px-4 w-12 text-center">No</th>
                         <th class="py-3.5 px-4">Nama Menu Masakan</th>
                         <th class="py-3.5 px-4">Sifat Lauk</th>
+                        @if(auth()->user()->isSuperAdmin())
                         <th class="py-3.5 px-4 text-right">Harga Default</th>
+                        @endif
                         @foreach($branches as $b)
-                        <th class="py-3.5 px-4 text-right text-slate-700">{{ $b->name }}</th>
+                        <th class="py-3.5 px-4 text-right text-slate-700">{{ auth()->user()->isSuperAdmin() ? $b->name : 'Harga Jual (' . $b->name . ')' }}</th>
                         @endforeach
                         <th class="py-3.5 px-4 text-center">Status</th>
                         @if(!auth()->user()->isViewer())
@@ -322,9 +324,11 @@
                             </span>
                             @endif
                         </td>
+                        @if(auth()->user()->isSuperAdmin())
                         <td class="py-3 px-4 text-right font-bold text-slate-800">
                             Rp {{ number_format($menu->default_price, 0, ',', '.') }}
                         </td>
+                        @endif
                         @foreach($branches as $b)
                         @php
                             $branchPrice = $menu->branchPrices->firstWhere('branch_id', $b->id);
@@ -332,7 +336,7 @@
                             $isCustom = $branchPrice && $branchPrice->price != $menu->default_price;
                         @endphp
                         <td class="py-3 px-4 text-right">
-                            <span class="font-medium {{ $isCustom ? 'text-tealBrand font-bold' : 'text-slate-600' }}">
+                            <span class="font-bold {{ $isCustom ? 'text-tealBrand' : 'text-slate-800' }}">
                                 Rp {{ number_format($priceVal, 0, ',', '.') }}
                             </span>
                         </td>
@@ -365,7 +369,7 @@
                                 <!-- Tombol Edit Menu -->
                                 <button 
                                     type="button" 
-                                    onclick="openEditModal({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ $menu->order_number ?: 0 }}, {{ $menu->is_perishable ? 1 : 0 }}, {{ $menu->default_price }}, {{ $menu->is_active ? 1 : 0 }})" 
+                                    onclick="openEditModal({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ $menu->order_number ?: 0 }}, {{ $menu->is_perishable ? 1 : 0 }}, '{{ number_format($menu->default_price, 0, ',', '.') }}', {{ $menu->is_active ? 1 : 0 }})" 
                                     title="Edit Menu"
                                     class="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                                 >
@@ -390,7 +394,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ 5 + count($branches) }}" class="py-12 text-center text-slate-400 font-medium">
+                        <td colspan="{{ (auth()->user()->isSuperAdmin() ? 5 : 4) + count($branches) }}" class="py-12 text-center text-slate-400 font-medium">
                             Tidak ada data menu masakan yang sesuai kriteria pencarian.
                         </td>
                     </tr>
@@ -409,7 +413,7 @@
 
 <!-- MODAL TAMBAH MENU -->
 <div id="createModal" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fadeIn">
         <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
             <h3 class="text-sm font-extrabold text-slate-900">Tambah Menu Masakan Baru</h3>
             <button type="button" onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -420,22 +424,67 @@
             @csrf
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Urut Menu</label>
-                <input type="number" name="order_number" min="1" placeholder="Auto / Contoh: 1" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
+                <input type="number" name="order_number" min="1" placeholder="Auto / Contoh: 1" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-slate-800 font-medium outline-none transition">
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Masakan <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" required placeholder="Contoh: Rendang Daging Sapi" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
+                <input type="text" name="name" required placeholder="Contoh: Rendang Daging Sapi" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-slate-800 font-medium outline-none transition">
             </div>
-            <div>
+
+            <!-- Custom Popover Dropdown: Sifat Lauk (Tambah) -->
+            <div class="relative" id="createCategoryDropdownContainer">
                 <label class="block text-xs font-bold text-slate-700 mb-1">Sifat Lauk <span class="text-rose-500">*</span></label>
-                <select name="is_perishable" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none cursor-pointer">
-                    <option value="0">Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</option>
-                    <option value="1">Cepat Basi (Sayuran / Makanan Basah)</option>
-                </select>
+                <input type="hidden" name="is_perishable" id="createCategoryInput" value="0">
+                <button 
+                    type="button"
+                    onclick="toggleCustomPopover('createCategoryMenu', 'createCategoryChevron')"
+                    class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-bold flex items-center justify-between transition cursor-pointer"
+                >
+                    <span id="createCategoryText">Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</span>
+                    <svg id="createCategoryChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div id="createCategoryMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectCreateCategory('0', 'Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)')"
+                        class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-teal-50 hover:text-tealBrand text-slate-700 font-semibold cursor-pointer"
+                    >
+                        <span>Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</span>
+                        <span id="createCheck0" class="text-tealBrand">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </span>
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="selectCreateCategory('1', 'Cepat Basi (Sayuran / Makanan Basah)')"
+                        class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-rose-50 hover:text-rose-600 text-slate-700 font-semibold cursor-pointer"
+                    >
+                        <span>Cepat Basi (Sayuran / Makanan Basah)</span>
+                        <span id="createCheck1" class="text-rose-600 hidden">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </span>
+                    </button>
+                </div>
             </div>
+
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Harga Jual Default (Rp) <span class="text-rose-500">*</span></label>
-                <input type="number" name="default_price" required min="0" step="500" placeholder="Contoh: 9000" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
+                <label class="block text-xs font-bold text-slate-700 mb-1">Harga Jual (Rp) <span class="text-rose-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute left-3.5 top-2.5 text-xs text-slate-400 font-bold">Rp</span>
+                    <input 
+                        type="text" 
+                        inputmode="numeric" 
+                        name="default_price" 
+                        id="createDefaultPrice" 
+                        required 
+                        placeholder="Contoh: 9.000" 
+                        oninput="formatRupiahInput(this)" 
+                        class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-slate-800 font-bold outline-none transition"
+                    >
+                </div>
             </div>
             <div class="flex items-center gap-2 pt-1">
                 <input type="checkbox" name="is_active" id="create_is_active" value="1" checked class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
@@ -451,7 +500,7 @@
 
 <!-- MODAL EDIT MENU -->
 <div id="editModal" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fadeIn">
         <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
             <h3 class="text-sm font-extrabold text-slate-900">Edit Data Menu Masakan</h3>
             <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -463,22 +512,66 @@
             @method('PUT')
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Urut Menu</label>
-                <input type="number" id="edit_order_number" name="order_number" min="1" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
+                <input type="number" id="edit_order_number" name="order_number" min="1" class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-slate-800 font-medium outline-none transition">
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Masakan <span class="text-rose-500">*</span></label>
-                <input type="text" id="edit_name" name="name" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
+                <input type="text" id="edit_name" name="name" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-slate-800 font-medium outline-none transition">
             </div>
-            <div>
+
+            <!-- Custom Popover Dropdown: Sifat Lauk (Edit) -->
+            <div class="relative" id="editCategoryDropdownContainer">
                 <label class="block text-xs font-bold text-slate-700 mb-1">Sifat Lauk <span class="text-rose-500">*</span></label>
-                <select id="edit_is_perishable" name="is_perishable" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none cursor-pointer">
-                    <option value="0">Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</option>
-                    <option value="1">Cepat Basi (Sayuran / Makanan Basah)</option>
-                </select>
+                <input type="hidden" name="is_perishable" id="editCategoryInput" value="0">
+                <button 
+                    type="button"
+                    onclick="toggleCustomPopover('editCategoryMenu', 'editCategoryChevron')"
+                    class="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-bold flex items-center justify-between transition cursor-pointer"
+                >
+                    <span id="editCategoryText">Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</span>
+                    <svg id="editCategoryChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div id="editCategoryMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-50 animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectEditCategory('0', 'Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)')"
+                        class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-teal-50 hover:text-tealBrand text-slate-700 font-semibold cursor-pointer"
+                    >
+                        <span>Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</span>
+                        <span id="editCheck0" class="text-tealBrand">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </span>
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="selectEditCategory('1', 'Cepat Basi (Sayuran / Makanan Basah)')"
+                        class="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-rose-50 hover:text-rose-600 text-slate-700 font-semibold cursor-pointer"
+                    >
+                        <span>Cepat Basi (Sayuran / Makanan Basah)</span>
+                        <span id="editCheck1" class="text-rose-600 hidden">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </span>
+                    </button>
+                </div>
             </div>
+
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Harga Jual Default (Rp) <span class="text-rose-500">*</span></label>
-                <input type="number" id="edit_default_price" name="default_price" required min="0" step="500" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:border-tealBrand outline-none">
+                <div class="relative">
+                    <span class="absolute left-3.5 top-2.5 text-xs text-slate-400 font-bold">Rp</span>
+                    <input 
+                        type="text" 
+                        inputmode="numeric" 
+                        name="default_price" 
+                        id="edit_default_price" 
+                        required 
+                        oninput="formatRupiahInput(this)" 
+                        class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-slate-800 font-bold outline-none transition"
+                    >
+                </div>
             </div>
             <div class="flex items-center gap-2 pt-1">
                 <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
@@ -494,7 +587,7 @@
 
 <!-- MODAL SETTING HARGA CABANG -->
 <div id="priceModal" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-fadeIn">
         <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
             <div>
                 <h3 class="text-sm font-extrabold text-slate-900">Setting Harga Cabang</h3>
@@ -508,22 +601,22 @@
             @csrf
             <div class="space-y-3">
                 @foreach($branches as $b)
-                <div class="flex items-center justify-between gap-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div class="flex items-center justify-between gap-4 p-3 bg-slate-50/60 border border-slate-200 rounded-xl">
                     <div>
                         <div class="text-xs font-bold text-slate-900">{{ $b->name }}</div>
                         <div class="text-[10px] text-slate-400 font-medium">{{ $b->code }} - {{ $b->address }}</div>
                     </div>
-                    <div class="w-36">
+                    <div class="w-40">
                         <div class="relative">
-                            <span class="absolute left-3 top-2 text-[11px] text-slate-400 font-bold">Rp</span>
+                            <span class="absolute left-3 top-2 text-xs text-slate-400 font-bold">Rp</span>
                             <input 
-                                type="number" 
+                                type="text" 
+                                inputmode="numeric" 
                                 name="prices[{{ $b->id }}]" 
                                 id="price_branch_{{ $b->id }}" 
-                                min="0" 
-                                step="500" 
+                                oninput="formatRupiahInput(this)" 
                                 placeholder="0" 
-                                class="w-full pl-9 pr-3 py-1.5 text-xs text-right font-bold bg-white border border-slate-200 rounded-lg focus:border-tealBrand outline-none"
+                                class="w-full pl-9 pr-3 py-1.5 text-xs text-right font-bold bg-white border border-slate-200 rounded-lg hover:border-tealBrand focus:border-tealBrand outline-none transition"
                             >
                         </div>
                     </div>
@@ -545,14 +638,24 @@
 </form>
 
 <script>
-    // Custom Popover Dropdown Handlers (Matching transactions/index.blade.php)
+    // Format live input Rupiah with dots
+    function formatRupiahInput(input) {
+        let raw = input.value.replace(/[^0-9]/g, '');
+        if (!raw) {
+            input.value = '';
+            return;
+        }
+        input.value = new Intl.NumberFormat('id-ID').format(raw);
+    }
+
+    // Custom Popover Dropdown Handlers
     function toggleCustomPopover(menuId, chevronId) {
         const menu = document.getElementById(menuId);
         const chevron = document.getElementById(chevronId);
         if (!menu) return;
 
-        const allPopovers = ['filterCategoryMenu', 'filterStatusMenu'];
-        const allChevrons = ['filterCategoryChevron', 'filterStatusChevron'];
+        const allPopovers = ['filterCategoryMenu', 'filterStatusMenu', 'createCategoryMenu', 'editCategoryMenu'];
+        const allChevrons = ['filterCategoryChevron', 'filterStatusChevron', 'createCategoryChevron', 'editCategoryChevron'];
 
         allPopovers.forEach((id, idx) => {
             if (id !== menuId) {
@@ -577,6 +680,8 @@
     document.addEventListener('click', function(e) {
         const categoryDropdown = document.getElementById('filterCategoryDropdownContainer');
         const statusDropdown = document.getElementById('filterStatusDropdownContainer');
+        const createCategoryDropdown = document.getElementById('createCategoryDropdownContainer');
+        const editCategoryDropdown = document.getElementById('editCategoryDropdownContainer');
 
         if (categoryDropdown && !categoryDropdown.contains(e.target)) {
             const menu = document.getElementById('filterCategoryMenu');
@@ -588,6 +693,20 @@
         if (statusDropdown && !statusDropdown.contains(e.target)) {
             const menu = document.getElementById('filterStatusMenu');
             const ch = document.getElementById('filterStatusChevron');
+            if (menu) menu.classList.add('hidden');
+            if (ch) ch.classList.remove('rotate-180');
+        }
+
+        if (createCategoryDropdown && !createCategoryDropdown.contains(e.target)) {
+            const menu = document.getElementById('createCategoryMenu');
+            const ch = document.getElementById('createCategoryChevron');
+            if (menu) menu.classList.add('hidden');
+            if (ch) ch.classList.remove('rotate-180');
+        }
+
+        if (editCategoryDropdown && !editCategoryDropdown.contains(e.target)) {
+            const menu = document.getElementById('editCategoryMenu');
+            const ch = document.getElementById('editCategoryChevron');
             if (menu) menu.classList.add('hidden');
             if (ch) ch.classList.remove('rotate-180');
         }
@@ -613,20 +732,47 @@
         document.getElementById('menuFilterForm').submit();
     }
 
+    function selectCreateCategory(val, label) {
+        document.getElementById('createCategoryInput').value = val;
+        document.getElementById('createCategoryText').innerText = label;
+        document.getElementById('createCheck0').classList.toggle('hidden', val !== '0');
+        document.getElementById('createCheck1').classList.toggle('hidden', val !== '1');
+        const menu = document.getElementById('createCategoryMenu');
+        const ch = document.getElementById('createCategoryChevron');
+        if (menu) menu.classList.add('hidden');
+        if (ch) ch.classList.remove('rotate-180');
+    }
+
+    function selectEditCategory(val, label) {
+        document.getElementById('editCategoryInput').value = val;
+        document.getElementById('editCategoryText').innerText = label;
+        document.getElementById('editCheck0').classList.toggle('hidden', val !== '0');
+        document.getElementById('editCheck1').classList.toggle('hidden', val !== '1');
+        const menu = document.getElementById('editCategoryMenu');
+        const ch = document.getElementById('editCategoryChevron');
+        if (menu) menu.classList.add('hidden');
+        if (ch) ch.classList.remove('rotate-180');
+    }
+
     function openCreateModal() {
+        selectCreateCategory('0', 'Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)');
+        document.getElementById('createDefaultPrice').value = '';
         document.getElementById('createModal').classList.remove('hidden');
     }
     function closeCreateModal() {
         document.getElementById('createModal').classList.add('hidden');
     }
 
-    function openEditModal(id, name, order, isPerishable, defaultPrice, isActive) {
+    function openEditModal(id, name, order, isPerishable, defaultPriceFormatted, isActive) {
         const form = document.getElementById('editForm');
         form.action = `/menus/${id}`;
         document.getElementById('edit_name').value = name;
         document.getElementById('edit_order_number').value = order;
-        document.getElementById('edit_is_perishable').value = isPerishable ? "1" : "0";
-        document.getElementById('edit_default_price').value = defaultPrice;
+        
+        const catText = isPerishable ? 'Cepat Basi (Sayuran / Makanan Basah)' : 'Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)';
+        selectEditCategory(isPerishable ? "1" : "0", catText);
+        
+        document.getElementById('edit_default_price').value = defaultPriceFormatted;
         document.getElementById('edit_is_active').checked = isActive === 1;
         document.getElementById('editModal').classList.remove('hidden');
     }
@@ -646,7 +792,9 @@
         if (prices) {
             for (const [branchId, price] of Object.entries(prices)) {
                 const input = document.getElementById(`price_branch_${branchId}`);
-                if (input) input.value = price;
+                if (input && price) {
+                    input.value = new Intl.NumberFormat('id-ID').format(price);
+                }
             }
         }
 

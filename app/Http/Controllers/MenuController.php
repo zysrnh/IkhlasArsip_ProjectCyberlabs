@@ -40,7 +40,15 @@ class MenuController extends Controller
         }
 
         $menus = $query->paginate(20)->withQueryString();
-        $branches = Branch::where('status', 'active')->orderBy('name')->get();
+
+        // Tentukan daftar cabang yang ditampilkan di tabel
+        if (auth()->user()->isSuperAdmin()) {
+            $branches = Branch::where('status', 'active')->orderBy('name')->get();
+        } elseif (auth()->user()->branch_id) {
+            $branches = Branch::where('id', auth()->user()->branch_id)->get();
+        } else {
+            $branches = Branch::where('status', 'active')->orderBy('name')->get();
+        }
 
         $stats = [
             'total_menus' => Menu::count(),
@@ -59,6 +67,13 @@ class MenuController extends Controller
     {
         if (auth()->user()->isViewer()) {
             return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin menambah menu.');
+        }
+
+        // Bersihkan format titik rupiah pada harga
+        if ($request->filled('default_price')) {
+            $request->merge([
+                'default_price' => str_replace('.', '', $request->input('default_price'))
+            ]);
         }
 
         $validated = $request->validate([
@@ -106,6 +121,13 @@ class MenuController extends Controller
             return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin mengubah menu.');
         }
 
+        // Bersihkan format titik rupiah pada harga
+        if ($request->filled('default_price')) {
+            $request->merge([
+                'default_price' => str_replace('.', '', $request->input('default_price'))
+            ]);
+        }
+
         $validated = $request->validate([
             'order_number' => 'nullable|integer|min:1',
             'name' => 'required|string|max:255|unique:menus,name,' . $menu->id,
@@ -138,6 +160,13 @@ class MenuController extends Controller
         if (auth()->user()->isViewer()) {
             return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin mengatur harga.');
         }
+
+        $rawPrices = $request->input('prices', []);
+        $cleanedPrices = [];
+        foreach ($rawPrices as $branchId => $priceVal) {
+            $cleanedPrices[$branchId] = $priceVal !== null ? str_replace('.', '', $priceVal) : null;
+        }
+        $request->merge(['prices' => $cleanedPrices]);
 
         $validated = $request->validate([
             'prices' => 'required|array',
