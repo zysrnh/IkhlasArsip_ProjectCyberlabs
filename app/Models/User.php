@@ -24,6 +24,7 @@ class User extends Authenticatable
     public const ROLE_SUPERADMIN = 'superadmin';
     public const ROLE_KEPALA_CABANG = 'kepala_cabang';
     public const ROLE_ADMIN_CABANG = 'admin_cabang';
+    public const ROLE_ADMIN_DAPUR = 'admin_dapur';
     public const ROLE_VIEWER = 'viewer';
 
     /**
@@ -56,7 +57,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user bisa akses semua cabang (Super Admin & Kepala Cabang)
+     * Cek apakah user bisa akses semua cabang (Super Admin)
      */
     public function canAccessAllBranches(): bool
     {
@@ -69,6 +70,14 @@ class User extends Authenticatable
     public function isAdminCabang(): bool
     {
         return $this->role === self::ROLE_ADMIN_CABANG;
+    }
+
+    /**
+     * Cek apakah user adalah Admin Dapur
+     */
+    public function isAdminDapur(): bool
+    {
+        return $this->role === self::ROLE_ADMIN_DAPUR;
     }
 
     /**
@@ -136,6 +145,7 @@ class User extends Authenticatable
             self::ROLE_SUPERADMIN => 'Super Administrator',
             self::ROLE_KEPALA_CABANG => 'Kepala Cabang',
             self::ROLE_ADMIN_CABANG => 'Admin Cabang' . ($this->branch ? ' - ' . $this->branch->name : ''),
+            self::ROLE_ADMIN_DAPUR => 'Admin Dapur' . ($this->branch ? ' - ' . $this->branch->name : ''),
             self::ROLE_VIEWER => 'Viewer (Read-Only)',
             default => ucfirst(str_replace('_', ' ', $this->role ?? 'User')),
         };
@@ -150,6 +160,7 @@ class User extends Authenticatable
             self::ROLE_SUPERADMIN => 'bg-purple-700 text-white',
             self::ROLE_KEPALA_CABANG => 'bg-tealBrand text-white',
             self::ROLE_ADMIN_CABANG => 'bg-navy-800 text-white border border-slate-700',
+            self::ROLE_ADMIN_DAPUR => 'bg-amber-600 text-white',
             self::ROLE_VIEWER => 'bg-slate-700 text-white',
             default => 'bg-slate-700 text-white',
         };

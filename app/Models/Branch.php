@@ -35,4 +35,12 @@ class Branch extends Model
     {
         return $this->hasMany(Transaction::class, 'branch_id');
     }
+
+    /**
+     * Relasi ke Harga Menu Cabang
+     */
+    public function menuPrices(): HasMany
+    {
+        return $this->hasMany(BranchMenuPrice::class, 'branch_id');
+    }
 }
