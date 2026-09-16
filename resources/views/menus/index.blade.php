@@ -3,19 +3,29 @@
 @section('title', 'Master Menu Masakan & Harga Cabang')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header Section -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-slate-200 p-5 rounded">
+<div class="space-y-5 animate-fadeIn">
+    <!-- Top Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5">
         <div>
-            <h1 class="text-xl font-bold text-navy-900 tracking-tight">Master Menu Masakan & Harga</h1>
-            <p class="text-xs text-slate-500 mt-1">Kelola daftar 57+ menu masakan dapur, kategori sayuran (cepat basi), dan pengaturan harga per cabang.</p>
+            <div class="flex items-center space-x-2">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Master Menu Masakan</h1>
+                @if(auth()->user()->isSuperAdmin())
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
+                        Master Data
+                    </span>
+                @endif
+            </div>
+            <p class="text-xs text-slate-500 mt-1 font-medium">
+                Daftar menu masakan dapur, pengaturan sifat lauk (cepat basi / tahan lama), dan penetapan harga per cabang.
+            </p>
         </div>
+
         @if(auth()->user()->isSuperAdmin())
         <div class="flex items-center gap-2">
             <button 
                 type="button" 
                 onclick="openCreateModal()" 
-                class="inline-flex items-center gap-2 px-4 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-semibold rounded shadow-none transition-colors duration-150"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-150 cursor-pointer"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -28,68 +38,68 @@
 
     <!-- Metric Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white border border-slate-200 p-4 rounded">
-            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Menu Terdaftar</div>
-            <div class="text-2xl font-bold text-navy-900 mt-1">{{ number_format($stats['total_menus']) }}</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">Daftar item masakan aktif & nonaktif</div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-sm">
+            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Total Menu</div>
+            <div class="text-2xl font-extrabold text-slate-900 mt-1">{{ number_format($stats['total_menus']) }}</div>
+            <div class="text-[11px] text-slate-500 font-medium mt-0.5">Item masakan terdaftar</div>
         </div>
-        <div class="bg-white border border-slate-200 p-4 rounded">
-            <div class="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Sayur / Cepat Basi</div>
-            <div class="text-2xl font-bold text-rose-600 mt-1">{{ number_format($stats['total_sayur']) }}</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">Sisa H-1 otomatis di-set 0 (terbuang)</div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-sm">
+            <div class="text-[10px] font-extrabold text-rose-500 uppercase tracking-wider">Cepat Basi</div>
+            <div class="text-2xl font-extrabold text-rose-600 mt-1">{{ number_format($stats['total_sayur']) }}</div>
+            <div class="text-[11px] text-slate-500 font-medium mt-0.5">Sayuran & makanan basah</div>
         </div>
-        <div class="bg-white border border-slate-200 p-4 rounded">
-            <div class="text-[11px] font-bold text-tealBrand uppercase tracking-wider">Lauk Tahan Lama</div>
-            <div class="text-2xl font-bold text-tealBrand mt-1">{{ number_format($stats['total_lauk']) }}</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">Sisa otomatis ditarik ke hari esok</div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-sm">
+            <div class="text-[10px] font-extrabold text-tealBrand uppercase tracking-wider">Lauk Biasa</div>
+            <div class="text-2xl font-extrabold text-tealBrand mt-1">{{ number_format($stats['total_lauk']) }}</div>
+            <div class="text-[11px] text-slate-500 font-medium mt-0.5">Lauk olahan & protein</div>
         </div>
-        <div class="bg-white border border-slate-200 p-4 rounded">
-            <div class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Menu Aktif</div>
-            <div class="text-2xl font-bold text-emerald-600 mt-1">{{ number_format($stats['total_active']) }}</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">Tersedia untuk input harian outlet</div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-sm">
+            <div class="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider">Menu Aktif</div>
+            <div class="text-2xl font-extrabold text-emerald-600 mt-1">{{ number_format($stats['total_active']) }}</div>
+            <div class="text-[11px] text-slate-500 font-medium mt-0.5">Tersedia di form dapur</div>
         </div>
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="bg-white border border-slate-200 p-4 rounded">
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
         <form action="{{ route('menus.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
-                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Cari Nama Menu</label>
+                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Cari Menu</label>
                 <div class="relative">
                     <input 
                         type="text" 
                         name="search" 
                         value="{{ request('search') }}" 
-                        placeholder="Contoh: Sayur Sop, Rendang..." 
-                        class="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none"
+                        placeholder="Cari nama masakan..." 
+                        class="w-full pl-9 pr-3.5 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 outline-none transition-all duration-150"
                     >
-                    <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
             </div>
             <div>
-                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Kategori Masakan</label>
-                <select name="category" class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
+                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Sifat Lauk</label>
+                <select name="category" class="w-full px-3.5 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-xs font-medium text-slate-800 outline-none transition-all duration-150 cursor-pointer">
                     <option value="">Semua Kategori</option>
-                    <option value="perishable" {{ request('category') === 'perishable' ? 'selected' : '' }}>Sayur / Cepat Basi (Merah)</option>
-                    <option value="non_perishable" {{ request('category') === 'non_perishable' ? 'selected' : '' }}>Lauk Tahan Lama (Protein)</option>
+                    <option value="perishable" {{ request('category') === 'perishable' ? 'selected' : '' }}>Cepat Basi</option>
+                    <option value="non_perishable" {{ request('category') === 'non_perishable' ? 'selected' : '' }}>Lauk Biasa (Tahan Lama)</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Status Menu</label>
-                <select name="status" class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
+                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Status Menu</label>
+                <select name="status" class="w-full px-3.5 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-tealBrand focus:border-tealBrand rounded-xl text-xs font-medium text-slate-800 outline-none transition-all duration-150 cursor-pointer">
                     <option value="">Semua Status</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktif Saja</option>
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Nonaktif Saja</option>
                 </select>
             </div>
             <div class="flex items-end gap-2">
-                <button type="submit" class="w-full py-1.5 px-3 bg-navy-800 hover:bg-navy-900 text-white text-xs font-semibold rounded transition-colors duration-150">
+                <button type="submit" class="flex-1 py-2 px-4 bg-navy-800 hover:bg-navy-900 text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-150 cursor-pointer">
                     Terapkan Filter
                 </button>
                 @if(request()->hasAny(['search', 'category', 'status']))
-                <a href="{{ route('menus.index') }}" class="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded text-center transition-colors duration-150">
+                <a href="{{ route('menus.index') }}" class="py-2 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl text-center transition-all duration-150">
                     Reset
                 </a>
                 @endif
@@ -98,45 +108,45 @@
     </div>
 
     <!-- Table Section -->
-    <div class="bg-white border border-slate-200 rounded overflow-hidden">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                        <th class="py-3 px-4 w-12 text-center">No</th>
-                        <th class="py-3 px-4">Nama Menu Masakan</th>
-                        <th class="py-3 px-4">Kategori / Sifat</th>
-                        <th class="py-3 px-4 text-right">Harga Default</th>
+                    <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        <th class="py-3.5 px-4 w-12 text-center">No</th>
+                        <th class="py-3.5 px-4">Nama Menu Masakan</th>
+                        <th class="py-3.5 px-4">Sifat Lauk</th>
+                        <th class="py-3.5 px-4 text-right">Harga Default</th>
                         @foreach($branches as $b)
-                        <th class="py-3 px-4 text-right text-navy-800">{{ $b->name }}</th>
+                        <th class="py-3.5 px-4 text-right text-slate-700">{{ $b->name }}</th>
                         @endforeach
-                        <th class="py-3 px-4 text-center">Status</th>
+                        <th class="py-3.5 px-4 text-center">Status</th>
                         @if(auth()->user()->isSuperAdmin())
-                        <th class="py-3 px-4 text-center w-28">Aksi</th>
+                        <th class="py-3.5 px-4 text-center w-28">Aksi</th>
                         @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs">
                     @forelse($menus as $menu)
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="py-3 px-4 text-center font-bold text-slate-500">
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3 px-4 text-center font-bold text-slate-400">
                             {{ $menu->order_number ?: '-' }}
                         </td>
-                        <td class="py-3 px-4 font-bold text-navy-900">
+                        <td class="py-3 px-4 font-bold text-slate-900">
                             {{ $menu->name }}
                         </td>
                         <td class="py-3 px-4">
                             @if($menu->is_perishable)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                                Sayur / Cepat Basi (Sisa = 0)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-600 border border-rose-200 uppercase tracking-wider">
+                                Cepat Basi
                             </span>
                             @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-tealBrand-dark border border-teal-200">
-                                Lauk Tahan Lama (Auto H-1)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-50 text-tealBrand border border-teal-200 uppercase tracking-wider">
+                                Lauk Biasa
                             </span>
                             @endif
                         </td>
-                        <td class="py-3 px-4 text-right font-semibold text-slate-700">
+                        <td class="py-3 px-4 text-right font-bold text-slate-800">
                             Rp {{ number_format($menu->default_price, 0, ',', '.') }}
                         </td>
                         @foreach($branches as $b)
@@ -153,11 +163,11 @@
                         @endforeach
                         <td class="py-3 px-4 text-center">
                             @if($menu->is_active)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200 uppercase tracking-wider">
                                 Aktif
                             </span>
                             @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 uppercase tracking-wider">
                                 Nonaktif
                             </span>
                             @endif
@@ -170,7 +180,7 @@
                                     type="button" 
                                     onclick="openPriceModal({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ json_encode($menu->branchPrices->pluck('price', 'branch_id')) }})" 
                                     title="Atur Harga Tiap Cabang"
-                                    class="p-1.5 text-slate-500 hover:text-tealBrand hover:bg-slate-100 rounded transition-colors"
+                                    class="p-1.5 text-slate-400 hover:text-tealBrand hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -181,7 +191,7 @@
                                     type="button" 
                                     onclick="openEditModal({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ $menu->order_number ?: 0 }}, {{ $menu->is_perishable ? 1 : 0 }}, {{ $menu->default_price }}, {{ $menu->is_active ? 1 : 0 }})" 
                                     title="Edit Menu"
-                                    class="p-1.5 text-slate-500 hover:text-navy-900 hover:bg-slate-100 rounded transition-colors"
+                                    class="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -192,7 +202,7 @@
                                     type="button" 
                                     onclick="confirmDelete({{ $menu->id }}, '{{ addslashes($menu->name) }}')" 
                                     title="Hapus Menu"
-                                    class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                                    class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -204,7 +214,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ 5 + count($branches) }}" class="py-8 text-center text-slate-400">
+                        <td colspan="{{ 5 + count($branches) }}" class="py-12 text-center text-slate-400 font-medium">
                             Tidak ada data menu masakan yang sesuai kriteria pencarian.
                         </td>
                     </tr>
@@ -223,10 +233,10 @@
 
 <!-- MODAL TAMBAH MENU -->
 <div id="createModal" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded w-full max-w-md overflow-hidden shadow-2xl">
-        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-            <h3 class="text-sm font-bold text-navy-900">Tambah Menu Masakan Baru</h3>
-            <button type="button" onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-600">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+            <h3 class="text-sm font-extrabold text-slate-900">Tambah Menu Masakan Baru</h3>
+            <button type="button" onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -234,30 +244,30 @@
             @csrf
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Urut Menu</label>
-                <input type="number" name="order_number" min="1" placeholder="Auto / Contoh: 1" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
+                <input type="number" name="order_number" min="1" placeholder="Auto / Contoh: 1" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Masakan <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" required placeholder="Contoh: Rendang Daging Sapi" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
+                <input type="text" name="name" required placeholder="Contoh: Rendang Daging Sapi" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Masakan <span class="text-rose-500">*</span></label>
-                <select name="is_perishable" required class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
-                    <option value="0">Lauk Tahan Lama (Bisa disimpan/dijual lagi besok - Auto H-1)</option>
-                    <option value="1">Sayur / Cepat Basi (Pasti terbuang - Sisa kemarin otomatis 0)</option>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Sifat Lauk <span class="text-rose-500">*</span></label>
+                <select name="is_perishable" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none cursor-pointer">
+                    <option value="0">Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</option>
+                    <option value="1">Cepat Basi (Sayuran / Makanan Basah)</option>
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Harga Jual Default (Rp) <span class="text-rose-500">*</span></label>
-                <input type="number" name="default_price" required min="0" step="500" placeholder="Contoh: 9000" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
+                <input type="number" name="default_price" required min="0" step="500" placeholder="Contoh: 9000" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
             </div>
             <div class="flex items-center gap-2 pt-1">
                 <input type="checkbox" name="is_active" id="create_is_active" value="1" checked class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
-                <label for="create_is_active" class="text-xs font-medium text-slate-700">Menu Aktif (Tersedia di input harian outlet)</label>
+                <label for="create_is_active" class="text-xs font-medium text-slate-700">Menu Aktif (Tersedia di form dapur)</label>
             </div>
             <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-semibold rounded">Simpan Menu</button>
+                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Simpan Menu</button>
             </div>
         </form>
     </div>
@@ -265,10 +275,10 @@
 
 <!-- MODAL EDIT MENU -->
 <div id="editModal" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded w-full max-w-md overflow-hidden shadow-2xl">
-        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-            <h3 class="text-sm font-bold text-navy-900">Edit Data Menu Masakan</h3>
-            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+            <h3 class="text-sm font-extrabold text-slate-900">Edit Data Menu Masakan</h3>
+            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -277,30 +287,30 @@
             @method('PUT')
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Urut Menu</label>
-                <input type="number" id="edit_order_number" name="order_number" min="1" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
+                <input type="number" id="edit_order_number" name="order_number" min="1" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Masakan <span class="text-rose-500">*</span></label>
-                <input type="text" id="edit_name" name="name" required class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
+                <input type="text" id="edit_name" name="name" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Masakan <span class="text-rose-500">*</span></label>
-                <select id="edit_is_perishable" name="is_perishable" required class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
-                    <option value="0">Lauk Tahan Lama (Bisa disimpan/dijual lagi besok - Auto H-1)</option>
-                    <option value="1">Sayur / Cepat Basi (Pasti terbuang - Sisa kemarin otomatis 0)</option>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Sifat Lauk <span class="text-rose-500">*</span></label>
+                <select id="edit_is_perishable" name="is_perishable" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none cursor-pointer">
+                    <option value="0">Lauk Biasa (Tahan Lama / Bisa Diolah Kembali)</option>
+                    <option value="1">Cepat Basi (Sayuran / Makanan Basah)</option>
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Harga Jual Default (Rp) <span class="text-rose-500">*</span></label>
-                <input type="number" id="edit_default_price" name="default_price" required min="0" step="500" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none">
+                <input type="number" id="edit_default_price" name="default_price" required min="0" step="500" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-tealBrand outline-none">
             </div>
             <div class="flex items-center gap-2 pt-1">
                 <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="rounded border-slate-300 text-tealBrand focus:ring-tealBrand">
                 <label for="edit_is_active" class="text-xs font-medium text-slate-700">Menu Aktif</label>
             </div>
             <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-navy-800 hover:bg-navy-900 text-white text-xs font-semibold rounded">Perbarui Menu</button>
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-navy-800 hover:bg-navy-900 text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Perbarui Menu</button>
             </div>
         </form>
     </div>
@@ -308,13 +318,13 @@
 
 <!-- MODAL SETTING HARGA CABANG -->
 <div id="priceModal" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded w-full max-w-lg overflow-hidden shadow-2xl">
-        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
             <div>
-                <h3 class="text-sm font-bold text-navy-900">Setting Harga Cabang</h3>
-                <p id="priceModalSubtitle" class="text-[11px] text-slate-500 mt-0.5">Atur harga khusus untuk masing-masing cabang</p>
+                <h3 class="text-sm font-extrabold text-slate-900">Setting Harga Cabang</h3>
+                <p id="priceModalSubtitle" class="text-[11px] text-slate-500 mt-0.5 font-medium">Atur harga khusus untuk masing-masing cabang</p>
             </div>
-            <button type="button" onclick="closePriceModal()" class="text-slate-400 hover:text-slate-600">
+            <button type="button" onclick="closePriceModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -322,14 +332,14 @@
             @csrf
             <div class="space-y-3">
                 @foreach($branches as $b)
-                <div class="flex items-center justify-between gap-4 p-2.5 bg-slate-50 border border-slate-200 rounded">
+                <div class="flex items-center justify-between gap-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                     <div>
-                        <div class="text-xs font-bold text-navy-900">{{ $b->name }}</div>
-                        <div class="text-[10px] text-slate-500">{{ $b->code }} - {{ $b->address }}</div>
+                        <div class="text-xs font-bold text-slate-900">{{ $b->name }}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">{{ $b->code }} - {{ $b->address }}</div>
                     </div>
                     <div class="w-36">
                         <div class="relative">
-                            <span class="absolute left-2.5 top-1.5 text-[11px] text-slate-400 font-bold">Rp</span>
+                            <span class="absolute left-3 top-2 text-[11px] text-slate-400 font-bold">Rp</span>
                             <input 
                                 type="number" 
                                 name="prices[{{ $b->id }}]" 
@@ -337,7 +347,7 @@
                                 min="0" 
                                 step="500" 
                                 placeholder="0" 
-                                class="w-full pl-8 pr-2.5 py-1 text-xs text-right font-bold bg-white border border-slate-200 rounded focus:border-tealBrand focus:ring-1 focus:ring-tealBrand outline-none"
+                                class="w-full pl-9 pr-3 py-1.5 text-xs text-right font-bold bg-white border border-slate-200 rounded-lg focus:border-tealBrand outline-none"
                             >
                         </div>
                     </div>
@@ -345,8 +355,8 @@
                 @endforeach
             </div>
             <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="closePriceModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-semibold rounded">Simpan Harga Cabang</button>
+                <button type="button" onclick="closePriceModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Simpan Harga Cabang</button>
             </div>
         </form>
     </div>
@@ -385,12 +395,10 @@
         form.action = `/menus/${id}/prices`;
         document.getElementById('priceModalSubtitle').innerText = `Menu: ${name}`;
         
-        // Reset all branch price inputs
         @foreach($branches as $b)
         document.getElementById('price_branch_{{ $b->id }}').value = '';
         @endforeach
 
-        // Fill with existing values if available
         if (prices) {
             for (const [branchId, price] of Object.entries(prices)) {
                 const input = document.getElementById(`price_branch_${branchId}`);
