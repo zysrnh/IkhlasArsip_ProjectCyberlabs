@@ -27,42 +27,84 @@
         @csrf
 
         <!-- Top Header Card: Cabang & Tanggal -->
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 <!-- Pilihan Cabang -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Cabang Outlet</label>
+                <div class="relative" id="createBranchDropdownWrapper">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Cabang Outlet</label>
                     @if(auth()->user()->isSuperAdmin() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
-                        <select name="branch_id" id="branchSelector" onchange="changeBranchOrDate()" class="w-full text-sm font-medium border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition">
+                        <input type="hidden" name="branch_id" id="createBranchInput" value="{{ $activeBranch->id }}">
+                        <button 
+                            type="button" 
+                            onclick="toggleKitchenDropdown('createBranchDropdownMenu')" 
+                            class="w-full flex items-center justify-between px-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-bold hover:border-tealBrand focus:outline-none transition-colors"
+                        >
+                            <div class="flex items-center space-x-2 truncate">
+                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                <span id="createSelectedBranchLabel" class="truncate font-bold text-slate-900">{{ $activeBranch->name }}</span>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div id="createBranchDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-56 overflow-y-auto">
                             @foreach($branches as $b)
-                                <option value="{{ $b->id }}" {{ $activeBranch->id == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
+                                <button 
+                                    type="button" 
+                                    onclick="selectCreateBranch('{{ $b->id }}', '{{ $b->name }}')" 
+                                    class="w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 flex items-center justify-between {{ $activeBranch->id == $b->id ? 'font-bold text-tealBrand bg-teal-50/50' : 'text-slate-700' }}"
+                                >
+                                    <span>{{ $b->name }}</span>
+                                    @if($activeBranch->id == $b->id)
+                                        <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    @endif
+                                </button>
                             @endforeach
-                        </select>
+                        </div>
                     @else
-                        <input type="hidden" name="branch_id" value="{{ $activeBranch->id }}">
-                        <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800">
-                            {{ $activeBranch->name }}
+                        <input type="hidden" name="branch_id" id="createBranchInput" value="{{ $activeBranch->id }}">
+                        <div class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <span>{{ $activeBranch->name }}</span>
                         </div>
                     @endif
                 </div>
 
-                <!-- Pilihan Tanggal -->
+                <!-- Pilihan Tanggal (Flatpickr Custom) -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Tanggal Laporan</label>
-                    <input type="date" name="report_date" id="reportDateInput" value="{{ $dateString }}" onchange="changeBranchOrDate()" class="w-full text-sm font-medium border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tanggal Laporan</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <input 
+                            type="text" 
+                            name="report_date" 
+                            id="reportDateInput" 
+                            value="{{ $dateString }}" 
+                            class="w-full pl-10 pr-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-bold focus:outline-none focus:border-tealBrand cursor-pointer"
+                        >
+                    </div>
                 </div>
 
                 <!-- Info Box Sisa Kemarin -->
                 <div class="bg-blue-50/75 border border-blue-100 rounded-xl p-3.5 text-xs text-blue-900">
-                    <div class="font-semibold flex items-center gap-1.5 text-blue-800 mb-1">
+                    <div class="font-bold flex items-center gap-1.5 text-blue-800 mb-1">
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         Logika Sisa Otomatis
                     </div>
-                    <p class="text-blue-700 leading-relaxed">
+                    <p class="text-blue-700 leading-relaxed text-[11px]">
                         @if($previousReport)
-                            Sisa kemarin otomatis ditarik dari laporan tanggal <strong>{{ $previousReport->report_date->translatedFormat('d M Y') }}</strong>. Khusus menu cepat basi (sayur/mie), sisa kemarin di-set <strong>0</strong>.
+                            Sisa kemarin otomatis ditarik dari laporan <strong>{{ $previousReport->report_date->translatedFormat('d M Y') }}</strong>. Khusus menu cepat basi (sayur/mie), sisa kemarin di-set <strong>0</strong>.
                         @else
                             Belum ada laporan hari sebelumnya untuk cabang ini. Sisa kemarin diawali dari <strong>0</strong>.
                         @endif
@@ -72,17 +114,17 @@
         </div>
 
         <!-- Table of 57 Menu Items -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h3 class="font-bold text-gray-900">Daftar Porsi Masakan Dapur ({{ count($preparedItems) }} Menu)</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Semua kalkulasi dilakukan secara live tanpa perlu me-reload halaman.</p>
+                    <h3 class="font-bold text-slate-900">Daftar Porsi Masakan Dapur ({{ count($preparedItems) }} Menu)</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Semua kalkulasi dilakukan secara live tanpa perlu me-reload halaman.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-100">
                         Merah: Cepat Basi (Sayur/Mie)
                     </span>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-teal-50 text-teal-700 border border-teal-100">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100">
                         Hijau: Lauk Biasa (Bisa Diinepin)
                     </span>
                 </div>
@@ -90,34 +132,34 @@
 
             <div class="overflow-x-auto max-h-[600px]">
                 <table class="w-full text-left border-collapse text-xs">
-                    <thead class="sticky top-0 bg-gray-100 border-b border-gray-200 z-10 text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                    <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 z-10 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
                         <tr>
                             <th class="py-3 px-3 text-center w-12">No</th>
                             <th class="py-3 px-4 min-w-[200px]">Nama Masakan</th>
-                            <th class="py-3 px-3 text-center w-28 bg-gray-50">Sisa Kemarin</th>
+                            <th class="py-3 px-3 text-center w-28 bg-slate-50">Sisa Kemarin</th>
                             <th class="py-3 px-3 text-center w-28 bg-amber-50/50 text-amber-900">Masak Hari Ini</th>
-                            <th class="py-3 px-3 text-center w-28 bg-gray-50">Total Masakan</th>
+                            <th class="py-3 px-3 text-center w-28 bg-slate-50">Total Masakan</th>
                             <th class="py-3 px-3 text-center w-28 bg-blue-50/50 text-blue-900">Terjual</th>
-                            <th class="py-3 px-3 text-center w-24 bg-gray-50">Sisa Hari Ini</th>
+                            <th class="py-3 px-3 text-center w-24 bg-slate-50">Sisa Hari Ini</th>
                             <th class="py-3 px-3 text-right w-28">Harga (Rp)</th>
                             <th class="py-3 px-4 text-right w-36 bg-emerald-50/40 text-emerald-900">Total Penjualan</th>
                             <th class="py-3 px-3 text-right w-32 bg-cyan-50/40 text-cyan-900">Sisa Bisa Dijual</th>
                             <th class="py-3 px-3 text-right w-32 bg-rose-50/40 text-rose-900">Lauk Terbuang</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 text-gray-800 font-medium">
+                    <tbody class="divide-y divide-slate-100 text-slate-800 font-medium">
                         @foreach($preparedItems as $index => $item)
-                        <tr class="hover:bg-gray-50/60 transition item-row" data-index="{{ $index }}" data-perishable="{{ $item['is_perishable'] ? '1' : '0' }}">
+                        <tr class="hover:bg-slate-50/60 transition item-row" data-index="{{ $index }}" data-perishable="{{ $item['is_perishable'] ? '1' : '0' }}">
                             <!-- Hidden ID -->
                             <input type="hidden" name="items[{{ $index }}][menu_id]" value="{{ $item['menu_id'] }}">
 
                             <!-- No -->
-                            <td class="py-2.5 px-3 text-center text-gray-400 font-semibold">
+                            <td class="py-2.5 px-3 text-center text-slate-400 font-semibold">
                                 {{ $item['order_number'] ?? ($index + 1) }}
                             </td>
 
                             <!-- Nama Masakan -->
-                            <td class="py-2.5 px-4 font-semibold text-gray-900">
+                            <td class="py-2.5 px-4 font-bold text-slate-900">
                                 <div class="flex items-center gap-2">
                                     <span>{{ $item['menu_name'] }}</span>
                                     @if($item['is_perishable'])
@@ -127,32 +169,32 @@
                             </td>
 
                             <!-- Sisa Kemarin (Readonly/Disabled) -->
-                            <td class="py-2.5 px-3 text-center bg-gray-50/50">
-                                <input type="number" name="items[{{ $index }}][yesterday_remaining]" value="{{ $item['yesterday_remaining'] }}" class="w-20 text-center py-1.5 px-2 bg-gray-100 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 cursor-not-allowed yesterday-rem-input" readonly>
+                            <td class="py-2.5 px-3 text-center bg-slate-50/50">
+                                <input type="number" name="items[{{ $index }}][yesterday_remaining]" value="{{ $item['yesterday_remaining'] }}" class="w-20 text-center py-1.5 px-2 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-not-allowed yesterday-rem-input" readonly>
                             </td>
 
                             <!-- Masak Hari Ini (Interactive Input) -->
                             <td class="py-2.5 px-3 text-center bg-amber-50/20">
-                                <input type="number" name="items[{{ $index }}][cooked_today]" value="{{ $item['cooked_today'] }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-xs font-bold text-gray-900 cooked-today-input">
+                                <input type="number" name="items[{{ $index }}][cooked_today]" value="{{ $item['cooked_today'] }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-xs font-bold text-slate-900 cooked-today-input">
                             </td>
 
                             <!-- Total Masakan (Auto Calculated) -->
-                            <td class="py-2.5 px-3 text-center bg-gray-50/50">
-                                <span class="font-bold text-gray-900 total-cooked-label">0</span>
+                            <td class="py-2.5 px-3 text-center bg-slate-50/50">
+                                <span class="font-bold text-slate-900 total-cooked-label">0</span>
                             </td>
 
                             <!-- Terjual (Interactive Input) -->
                             <td class="py-2.5 px-3 text-center bg-blue-50/20">
-                                <input type="number" name="items[{{ $index }}][sold]" value="{{ $item['sold'] }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-xs font-bold text-gray-900 sold-input">
+                                <input type="number" name="items[{{ $index }}][sold]" value="{{ $item['sold'] }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-xs font-bold text-slate-900 sold-input">
                             </td>
 
                             <!-- Sisa Hari Ini (Auto Calculated) -->
-                            <td class="py-2.5 px-3 text-center bg-gray-50/50">
-                                <span class="font-bold text-gray-800 remaining-label">0</span>
+                            <td class="py-2.5 px-3 text-center bg-slate-50/50">
+                                <span class="font-bold text-slate-800 remaining-label">0</span>
                             </td>
 
                             <!-- Harga (Hidden + Display) -->
-                            <td class="py-2.5 px-3 text-right text-gray-600">
+                            <td class="py-2.5 px-3 text-right text-slate-600 font-semibold">
                                 <input type="hidden" name="items[{{ $index }}][unit_price]" value="{{ $item['unit_price'] }}" class="unit-price-val">
                                 {{ number_format($item['unit_price'], 0, ',', '.') }}
                             </td>
@@ -163,12 +205,12 @@
                             </td>
 
                             <!-- Sisa Bisa Dijual (Lauk Biasa) -->
-                            <td class="py-2.5 px-3 text-right text-[#0A97B0] bg-cyan-50/30 sellable-cell">
+                            <td class="py-2.5 px-3 text-right text-[#0A97B0] font-semibold bg-cyan-50/30 sellable-cell">
                                 Rp 0
                             </td>
 
                             <!-- Lauk Terbuang (Cepat Basi) -->
-                            <td class="py-2.5 px-3 text-right text-rose-600 bg-rose-50/30 wasted-cell">
+                            <td class="py-2.5 px-3 text-right text-rose-600 font-semibold bg-rose-50/30 wasted-cell">
                                 Rp 0
                             </td>
                         </tr>
@@ -176,14 +218,14 @@
                     </tbody>
 
                     <!-- Sticky Bottom Grand Total -->
-                    <tfoot class="sticky bottom-0 bg-gray-900 text-white font-bold text-xs border-t-2 border-gray-800 z-10">
+                    <tfoot class="sticky bottom-0 bg-slate-900 text-white font-bold text-xs border-t-2 border-slate-800 z-10">
                         <tr>
-                            <td colspan="4" class="py-3 px-4 uppercase tracking-wider text-right text-gray-300">
+                            <td colspan="4" class="py-3 px-4 uppercase tracking-wider text-right text-slate-300">
                                 GRAND TOTAL PERHITUNGAN MASAKAN:
                             </td>
                             <td class="py-3 px-3 text-center text-amber-300" id="grandTotalCooked">0</td>
                             <td class="py-3 px-3 text-center text-blue-300" id="grandTotalSold">0</td>
-                            <td class="py-3 px-3 text-center text-gray-300" id="grandTotalRemaining">0</td>
+                            <td class="py-3 px-3 text-center text-slate-300" id="grandTotalRemaining">0</td>
                             <td class="py-3 px-3"></td>
                             <td class="py-3 px-4 text-right text-emerald-400 text-sm font-extrabold" id="grandTotalSalesLabel">Rp 0</td>
                             <td class="py-3 px-3 text-right text-cyan-300" id="grandTotalSellableLabel">Rp 0</td>
@@ -197,37 +239,37 @@
         <!-- Settlement & Discrepancy Warning Section (Sesuai Box Kuning Excel) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <!-- Left: Rekapan Uang Kasir (Cash, QRIS, Online) -->
-            <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                <div class="border-b border-gray-100 pb-3">
-                    <h3 class="text-base font-bold text-gray-900">Rekapan Pembayaran Uang Kasir</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Input jumlah fisik uang yang diterima di kasir cabang hari ini.</p>
+            <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <div class="border-b border-slate-200 pb-3">
+                    <h3 class="text-base font-bold text-slate-900">Rekapan Pembayaran Uang Kasir</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Input jumlah fisik uang yang diterima di kasir cabang hari ini.</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <!-- Pendapatan Cash -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Pendapatan Cash (Laci)</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pendapatan Cash (Laci)</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-gray-400 font-semibold">Rp</span>
-                            <input type="text" name="cash_income" id="cashIncomeInput" value="0" oninput="formatRupiahInput(this); calculateSettlement();" class="w-full text-sm font-bold pl-9 pr-3 py-2.5 bg-gray-50 focus:bg-white border border-gray-200 rounded-xl focus:ring-1 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-semibold">Rp</span>
+                            <input type="text" name="cash_income" id="cashIncomeInput" value="0" oninput="formatRupiahInput(this); calculateSettlement();" class="w-full text-sm font-bold pl-9 pr-3 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition">
                         </div>
                     </div>
 
                     <!-- Pendapatan QRIS -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Pendapatan QRIS / Transfer</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pendapatan QRIS / Transfer</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-gray-400 font-semibold">Rp</span>
-                            <input type="text" name="qris_income" id="qrisIncomeInput" value="0" oninput="formatRupiahInput(this); calculateSettlement();" class="w-full text-sm font-bold pl-9 pr-3 py-2.5 bg-gray-50 focus:bg-white border border-gray-200 rounded-xl focus:ring-1 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-semibold">Rp</span>
+                            <input type="text" name="qris_income" id="qrisIncomeInput" value="0" oninput="formatRupiahInput(this); calculateSettlement();" class="w-full text-sm font-bold pl-9 pr-3 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition">
                         </div>
                     </div>
 
                     <!-- Pendapatan Online Food -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Pendapatan Online Food</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pendapatan Online Food</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-gray-400 font-semibold">Rp</span>
-                            <input type="text" name="online_food_income" id="onlineFoodIncomeInput" value="0" oninput="formatRupiahInput(this); calculateSettlement();" class="w-full text-sm font-bold pl-9 pr-3 py-2.5 bg-gray-50 focus:bg-white border border-gray-200 rounded-xl focus:ring-1 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-semibold">Rp</span>
+                            <input type="text" name="online_food_income" id="onlineFoodIncomeInput" value="0" oninput="formatRupiahInput(this); calculateSettlement();" class="w-full text-sm font-bold pl-9 pr-3 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition">
                         </div>
                     </div>
                 </div>
@@ -245,8 +287,8 @@
 
                 <!-- Catatan Tambahan -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">Catatan Dapur / Keterangan (Opsional)</label>
-                    <textarea name="notes" rows="2" placeholder="Tulis catatan jika ada lauk rusak, retur, atau kendala dapur..." class="w-full text-xs border border-gray-200 rounded-xl p-3 bg-gray-50 focus:bg-white focus:ring-1 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition"></textarea>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Catatan Dapur / Keterangan (Opsional)</label>
+                    <textarea name="notes" rows="2" placeholder="Tulis catatan jika ada lauk rusak, retur, atau kendala dapur..." class="w-full text-xs border border-slate-200 rounded-xl p-3 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#0A97B0] focus:border-[#0A97B0] transition"></textarea>
                 </div>
             </div>
 
@@ -273,26 +315,70 @@
                 </div>
 
                 <!-- Submit Button -->
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2">
-                    <button type="submit" class="w-full py-3.5 px-6 bg-[#0B192C] hover:bg-[#142B4D] text-white font-bold text-sm rounded-xl shadow-sm transition duration-150 flex items-center justify-center">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col gap-2">
+                    <button type="submit" class="w-full py-3.5 px-6 bg-[#0B192C] hover:bg-[#142B4D] text-white font-bold text-sm rounded-xl shadow-sm transition duration-150 flex items-center justify-center cursor-pointer">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                         Simpan Laporan Masakan Dapur
                     </button>
-                    <p class="text-[11px] text-gray-400 text-center">Pastikan data porsi masak dan penjualan sudah dicek sebelum disimpan.</p>
+                    <p class="text-[11px] text-slate-400 text-center">Pastikan data porsi masak dan penjualan sudah dicek sebelum disimpan.</p>
                 </div>
             </div>
         </div>
     </form>
 </div>
 
-<!-- JavaScript Live Calculation -->
+<!-- JavaScript Live Calculation & Flatpickr -->
 <script>
-    function changeBranchOrDate() {
-        const branchSelect = document.getElementById('branchSelector');
-        const branchId = branchSelect ? branchSelect.value : "{{ $activeBranch->id }}";
-        const reportDate = document.getElementById('reportDateInput').value;
+    let reportFlatpickr = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        reportFlatpickr = flatpickr("#reportDateInput", {
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "j F Y",
+            allowInput: false,
+            disableMobile: "true",
+            onChange: function(selectedDates, dateStr) {
+                changeBranchOrDate(dateStr);
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('createBranchDropdownMenu');
+            const wrapper = document.getElementById('createBranchDropdownWrapper');
+            if (dropdown && wrapper && !wrapper.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Initial row calculations
+        const rows = document.querySelectorAll('.item-row');
+        rows.forEach((row, idx) => {
+            calculateRow(idx);
+        });
+    });
+
+    function toggleKitchenDropdown(id) {
+        const menu = document.getElementById(id);
+        if (menu) {
+            menu.classList.toggle('hidden');
+        }
+    }
+
+    function selectCreateBranch(id, name) {
+        document.getElementById('createBranchInput').value = id;
+        document.getElementById('createSelectedBranchLabel').innerText = name;
+        document.getElementById('createBranchDropdownMenu').classList.add('hidden');
+        changeBranchOrDate();
+    }
+
+    function changeBranchOrDate(selectedDate) {
+        const branchId = document.getElementById('createBranchInput').value;
+        const reportDate = selectedDate || document.getElementById('reportDateInput').value;
 
         window.location.href = `{{ route('kitchen-reports.create') }}?branch_id=${branchId}&report_date=${reportDate}`;
     }
@@ -404,11 +490,11 @@
         const discrepancyDiffValue = document.getElementById('discrepancyDiffValue');
 
         if (totalOmset === 0 && grandTotalSales === 0) {
-            discrepancyBox.className = 'p-5 rounded-2xl border bg-gray-50 border-gray-200 text-gray-700';
+            discrepancyBox.className = 'p-5 rounded-2xl border bg-slate-50 border-slate-200 text-slate-700';
             discrepancyTitle.innerText = 'Menunggu Input Data';
             discrepancyMsg.innerText = 'Silakan isi jumlah masakan yang dimasak & terjual serta rekapan uang kasir.';
             discrepancyDiffValue.innerText = 'Rp 0';
-            discrepancyDiffValue.className = 'font-bold text-sm text-gray-700';
+            discrepancyDiffValue.className = 'font-bold text-sm text-slate-700';
         } else if (Math.abs(diff) < 1) {
             discrepancyBox.className = 'p-5 rounded-2xl border bg-emerald-50 border-emerald-200 text-emerald-900';
             discrepancyTitle.innerText = 'Sempurna: Omset Kasir Cocok!';
@@ -429,13 +515,5 @@
             discrepancyDiffValue.className = 'font-bold text-sm text-rose-700';
         }
     }
-
-    // Jalankan kalkulasi awal saat halaman dimuat
-    document.addEventListener('DOMContentLoaded', function() {
-        const rows = document.querySelectorAll('.item-row');
-        rows.forEach((row, idx) => {
-            calculateRow(idx);
-        });
-    });
 </script>
 @endsection
