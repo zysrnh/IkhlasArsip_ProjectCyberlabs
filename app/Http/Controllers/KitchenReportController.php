@@ -17,13 +17,19 @@ class KitchenReportController extends Controller
     /**
      * Tampilkan daftar riwayat input masakan dapur harian per cabang.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $user = auth()->user();
+
+        // Admin Dapur hanya mengelola master menu masakan & harga
+        if ($user->isAdminDapur()) {
+            return redirect()->route('menus.index')->with('info', 'Akun Admin Dapur bertugas mengelola master menu masakan & harga cabang. Pencatatan harian diinput oleh Admin Cabang.');
+        }
+
         $query = DailyKitchenReport::with(['branch', 'user'])->orderBy('report_date', 'desc');
 
         // Scoping akses berdasarkan role
-        if ($user->isAdminDapur() || $user->isAdminCabang()) {
+        if ($user->isAdminCabang()) {
             $query->where('branch_id', $user->branch_id);
         } elseif ($user->isKepalaCabang()) {
             if ($user->managedBranches()->count() > 0) {
@@ -76,6 +82,11 @@ class KitchenReportController extends Controller
     {
         $user = auth()->user();
 
+        // Admin Dapur hanya mengelola master menu masakan & harga
+        if ($user->isAdminDapur()) {
+            return redirect()->route('menus.index')->with('info', 'Akun Admin Dapur bertugas mengelola master menu masakan & harga cabang. Pencatatan harian diinput oleh Admin Cabang.');
+        }
+
         // Tentukan cabang yang aktif
         $branchId = $request->get('branch_id');
         if (!$branchId) {
@@ -83,7 +94,7 @@ class KitchenReportController extends Controller
         }
 
         // Validasi akses cabang
-        if (($user->isAdminDapur() || $user->isAdminCabang()) && $user->branch_id && $branchId != $user->branch_id) {
+        if ($user->isAdminCabang() && $user->branch_id && $branchId != $user->branch_id) {
             $branchId = $user->branch_id;
         }
 
@@ -166,8 +177,10 @@ class KitchenReportController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        if (auth()->user()->isViewer()) {
-            return redirect()->route('kitchen-reports.index')->with('error', 'Akun Viewer tidak memiliki izin menginput laporan.');
+        $user = auth()->user();
+
+        if ($user->isViewer() || $user->isAdminDapur()) {
+            return redirect()->route('kitchen-reports.index')->with('error', 'Anda tidak memiliki izin menginput laporan harian.');
         }
 
         // Bersihkan format rupiah
@@ -294,8 +307,12 @@ class KitchenReportController extends Controller
     /**
      * Tampilkan detail rincian laporan masakan dapur.
      */
-    public function show(DailyKitchenReport $kitchenReport): View
+    public function show(DailyKitchenReport $kitchenReport): View|RedirectResponse
     {
+        if (auth()->user()->isAdminDapur()) {
+            return redirect()->route('menus.index')->with('info', 'Akun Admin Dapur bertugas mengelola master menu masakan & harga cabang.');
+        }
+
         $kitchenReport->load(['branch', 'user', 'items.menu' => function ($q) {
             $q->orderBy('order_number', 'asc')->orderBy('id', 'asc');
         }]);
@@ -306,13 +323,17 @@ class KitchenReportController extends Controller
     /**
      * Buka form edit laporan masakan dapur.
      */
-    public function edit(DailyKitchenReport $kitchenReport): View
+    public function edit(DailyKitchenReport $kitchenReport): View|RedirectResponse
     {
+        $user = auth()->user();
+        if ($user->isViewer() || $user->isAdminDapur()) {
+            return redirect()->route('kitchen-reports.index')->with('error', 'Anda tidak memiliki izin mengubah laporan.');
+        }
+
         $kitchenReport->load(['branch', 'user', 'items.menu' => function ($q) {
             $q->orderBy('order_number', 'asc')->orderBy('id', 'asc');
         }]);
 
-        $user = auth()->user();
         if ($user->isSuperAdmin()) {
             $branches = Branch::where('status', 'active')->orderBy('name')->get();
         } elseif ($user->isKepalaCabang() && $user->managedBranches()->count() > 0) {
@@ -329,8 +350,9 @@ class KitchenReportController extends Controller
      */
     public function update(Request $request, DailyKitchenReport $kitchenReport): RedirectResponse
     {
-        if (auth()->user()->isViewer()) {
-            return redirect()->route('kitchen-reports.index')->with('error', 'Akun Viewer tidak memiliki izin mengubah laporan.');
+        $user = auth()->user();
+        if ($user->isViewer() || $user->isAdminDapur()) {
+            return redirect()->route('kitchen-reports.index')->with('error', 'Anda tidak memiliki izin mengubah laporan.');
         }
 
         $cleanCash = (float) str_replace(['.', ','], ['', '.'], $request->input('cash_income', '0'));
@@ -427,8 +449,9 @@ class KitchenReportController extends Controller
      */
     public function destroy(DailyKitchenReport $kitchenReport): RedirectResponse
     {
-        if (auth()->user()->isViewer()) {
-            return redirect()->route('kitchen-reports.index')->with('error', 'Akun Viewer tidak memiliki izin menghapus laporan.');
+        $user = auth()->user();
+        if ($user->isViewer() || $user->isAdminDapur()) {
+            return redirect()->route('kitchen-reports.index')->with('error', 'Anda tidak memiliki izin menghapus laporan.');
         }
 
         $dateStr = $kitchenReport->report_date->translatedFormat('d F Y');

@@ -262,7 +262,8 @@
                     <span class="sidebar-hide-on-collapse truncate">Dashboard</span>
                 </a>
 
-                <!-- Input Dapur Harian Tab -->
+                <!-- Input Dapur Harian Tab (Khusus Admin Cabang, Kepala Cabang, Super Admin) -->
+                @if(!auth()->user()->isAdminDapur())
                 <a 
                     href="{{ route('kitchen-reports.index') }}" 
                     title="Input Dapur Harian"
@@ -285,6 +286,7 @@
                     </svg>
                     <span class="sidebar-hide-on-collapse truncate">Data Transaksi</span>
                 </a>
+                @endif
 
                 <!-- Master Menu Masakan & Harga Tab -->
                 <a 
