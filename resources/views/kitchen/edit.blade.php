@@ -35,7 +35,7 @@
                 type="button" 
                 onclick="switchKitchenTab('tab-dishes')" 
                 id="tabBtnDishes"
-                class="px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs"
+                class="px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -48,7 +48,7 @@
                 type="button" 
                 onclick="switchKitchenTab('tab-settlement')" 
                 id="tabBtnSettlement"
-                class="px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200"
+                class="px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -90,7 +90,7 @@
                         type="button" 
                         onclick="setCategoryFilter('all')" 
                         id="catBtnAll"
-                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white transition"
+                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white transition cursor-pointer"
                     >
                         Semua ({{ $kitchenReport->items->count() }})
                     </button>
@@ -98,7 +98,7 @@
                         type="button" 
                         onclick="setCategoryFilter('non_perishable')" 
                         id="catBtnNonPerishable"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition cursor-pointer"
                     >
                         Lauk Biasa
                     </button>
@@ -106,7 +106,7 @@
                         type="button" 
                         onclick="setCategoryFilter('perishable')" 
                         id="catBtnPerishable"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer"
                     >
                         Sayur (Cepat Basi)
                     </button>
@@ -114,7 +114,7 @@
                         type="button" 
                         onclick="setCategoryFilter('filled_only')" 
                         id="catBtnFilled"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 transition"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 transition cursor-pointer"
                     >
                         Hanya yang Diisi
                     </button>
@@ -123,21 +123,21 @@
 
             <!-- Table Card -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                <div class="overflow-x-auto max-h-[560px]">
+                <div class="overflow-x-auto max-h-[600px]">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 z-10 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
                             <tr>
-                                <th class="py-3 px-3 text-center w-12">No</th>
+                                <th class="py-3 px-3 text-center w-12 shrink-0">No</th>
                                 <th class="py-3 px-4 min-w-[200px]">Nama Masakan</th>
-                                <th class="py-3 px-3 text-center w-28 bg-slate-50">Sisa Kemarin</th>
-                                <th class="py-3 px-3 text-center w-28 bg-amber-50/60 text-amber-900 font-black">Masak Hari Ini</th>
-                                <th class="py-3 px-3 text-center w-28 bg-slate-50">Total Masakan</th>
-                                <th class="py-3 px-3 text-center w-28 bg-blue-50/60 text-blue-900 font-black">Terjual</th>
-                                <th class="py-3 px-3 text-center w-24 bg-slate-50">Sisa Hari Ini</th>
-                                <th class="py-3 px-3 text-right w-28">Harga (Rp)</th>
-                                <th class="py-3 px-4 text-right w-36 bg-emerald-50/40 text-emerald-900">Total Penjualan</th>
-                                <th class="py-3 px-3 text-right w-32 bg-cyan-50/40 text-cyan-900">Sisa Bisa Dijual</th>
-                                <th class="py-3 px-3 text-right w-32 bg-rose-50/40 text-rose-900">Lauk Terbuang</th>
+                                <th class="py-3 px-3 text-center w-24 bg-slate-50 shrink-0">Sisa Kemarin</th>
+                                <th class="py-3 px-3 text-center w-28 bg-amber-50/60 text-amber-900 font-black shrink-0">Masak Hari Ini</th>
+                                <th class="py-3 px-3 text-center w-24 bg-slate-50 shrink-0">Total Masakan</th>
+                                <th class="py-3 px-3 text-center w-28 bg-blue-50/60 text-blue-900 font-black shrink-0">Terjual</th>
+                                <th class="py-3 px-3 text-center w-24 bg-slate-50 shrink-0">Sisa Hari Ini</th>
+                                <th class="py-3 px-3 text-right w-28 shrink-0">Harga (Rp)</th>
+                                <th class="py-3 px-4 text-right w-36 bg-emerald-50/40 text-emerald-900 shrink-0">Total Penjualan</th>
+                                <th class="py-3 px-3 text-right w-32 bg-cyan-50/40 text-cyan-900 shrink-0">Sisa Bisa Dijual</th>
+                                <th class="py-3 px-3 text-right w-32 bg-rose-50/40 text-rose-900 shrink-0">Lauk Terbuang</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-800 font-medium" id="dishesTableBody">
@@ -152,37 +152,37 @@
 
                                 <!-- Nama Masakan -->
                                 <td class="py-2.5 px-4 font-bold text-slate-900">
-                                    <div class="flex items-center gap-2">
-                                        <span>{{ $item->menu->name ?? 'Menu' }}</span>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="leading-snug">{{ $item->menu->name ?? 'Menu' }}</span>
                                         @if($item->menu && $item->menu->is_perishable)
-                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-600 border border-rose-100">Basi</span>
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-200 shrink-0">Basi</span>
                                         @endif
                                     </div>
                                 </td>
 
                                 <!-- Sisa Kemarin -->
                                 <td class="py-2.5 px-3 text-center bg-slate-50/50">
-                                    <input type="number" name="items[{{ $index }}][yesterday_remaining]" value="{{ $item->yesterday_remaining }}" class="w-20 text-center py-1.5 px-2 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-not-allowed yesterday-rem-input" readonly>
+                                    <input type="number" name="items[{{ $index }}][yesterday_remaining]" value="{{ $item->yesterday_remaining }}" class="w-16 text-center py-1.5 px-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-not-allowed yesterday-rem-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" readonly>
                                 </td>
 
                                 <!-- Masak Hari Ini -->
                                 <td class="py-2.5 px-3 text-center bg-amber-50/20">
-                                    <input type="number" name="items[{{ $index }}][cooked_today]" value="{{ $item->cooked_today }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-xs font-bold text-slate-900 cooked-today-input">
+                                    <input type="number" name="items[{{ $index }}][cooked_today]" value="{{ $item->cooked_today }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-xs font-black text-slate-900 cooked-today-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                 </td>
 
                                 <!-- Total Masakan -->
                                 <td class="py-2.5 px-3 text-center bg-slate-50/50">
-                                    <span class="font-bold text-slate-900 total-cooked-label">{{ $item->total_cooked }}</span>
+                                    <span class="font-black text-slate-900 total-cooked-label">{{ $item->total_cooked }}</span>
                                 </td>
 
                                 <!-- Terjual -->
                                 <td class="py-2.5 px-3 text-center bg-blue-50/20">
-                                    <input type="number" name="items[{{ $index }}][sold]" value="{{ $item->sold }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-xs font-bold text-slate-900 sold-input">
+                                    <input type="number" name="items[{{ $index }}][sold]" value="{{ $item->sold }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-xs font-black text-slate-900 sold-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                 </td>
 
                                 <!-- Sisa Hari Ini -->
                                 <td class="py-2.5 px-3 text-center bg-slate-50/50">
-                                    <span class="font-bold text-slate-800 remaining-label">{{ $item->remaining }}</span>
+                                    <span class="font-black text-slate-800 remaining-label">{{ $item->remaining }}</span>
                                 </td>
 
                                 <!-- Harga -->
@@ -192,17 +192,17 @@
                                 </td>
 
                                 <!-- Total Penjualan -->
-                                <td class="py-2.5 px-4 text-right font-bold text-emerald-700 bg-emerald-50/30 total-sales-cell">
+                                <td class="py-2.5 px-4 text-right font-bold text-emerald-700 bg-emerald-50/30 total-sales-cell whitespace-nowrap">
                                     Rp {{ number_format($item->total_sales, 0, ',', '.') }}
                                 </td>
 
                                 <!-- Sisa Bisa Dijual -->
-                                <td class="py-2.5 px-3 text-right text-[#0A97B0] font-semibold bg-cyan-50/30 sellable-cell">
+                                <td class="py-2.5 px-3 text-right text-[#0A97B0] font-semibold bg-cyan-50/30 sellable-cell whitespace-nowrap">
                                     Rp {{ number_format($item->remaining_sellable_amount, 0, ',', '.') }}
                                 </td>
 
                                 <!-- Lauk Terbuang -->
-                                <td class="py-2.5 px-3 text-right text-rose-600 font-semibold bg-rose-50/30 wasted-cell">
+                                <td class="py-2.5 px-3 text-right text-rose-600 font-semibold bg-rose-50/30 wasted-cell whitespace-nowrap">
                                     Rp {{ number_format($item->wasted_food_amount, 0, ',', '.') }}
                                 </td>
                             </tr>
@@ -214,19 +214,20 @@
                             </tr>
                         </tbody>
 
-                        <!-- Sticky Bottom Grand Total -->
-                        <tfoot class="sticky bottom-0 bg-slate-900 text-white font-bold text-xs border-t-2 border-slate-800 z-10">
+                        <!-- Sticky Bottom Grand Total (Presisi 11 Kolom) -->
+                        <tfoot class="sticky bottom-0 bg-[#0B192C] text-white font-bold text-xs border-t-2 border-slate-800 z-10 shadow-lg">
                             <tr>
-                                <td colspan="4" class="py-3 px-4 uppercase tracking-wider text-right text-slate-300">
-                                    GRAND TOTAL PENJUALAN MASAKAN:
+                                <td colspan="3" class="py-3 px-4 uppercase tracking-wider text-right text-slate-300 font-extrabold">
+                                    GRAND TOTAL:
                                 </td>
-                                <td class="py-3 px-3 text-center text-amber-300" id="grandTotalCooked">0</td>
-                                <td class="py-3 px-3 text-center text-blue-300" id="grandTotalSold">0</td>
-                                <td class="py-3 px-3 text-center text-slate-300" id="grandTotalRemaining">0</td>
-                                <td class="py-3 px-3"></td>
-                                <td class="py-3 px-4 text-right text-emerald-400 text-sm font-extrabold" id="grandTotalSalesLabel">Rp 0</td>
-                                <td class="py-3 px-3 text-right text-cyan-300" id="grandTotalSellableLabel">Rp 0</td>
-                                <td class="py-3 px-3 text-right text-rose-400" id="grandTotalWastedLabel">Rp 0</td>
+                                <td class="py-3 px-2 text-center text-amber-300 font-black text-xs" id="grandTotalCookedToday">0</td>
+                                <td class="py-3 px-2 text-center text-white font-black text-xs" id="grandTotalCooked">0</td>
+                                <td class="py-3 px-2 text-center text-cyan-300 font-black text-xs" id="grandTotalSold">0</td>
+                                <td class="py-3 px-2 text-center text-white font-black text-xs" id="grandTotalRemaining">0</td>
+                                <td class="py-3 px-2"></td>
+                                <td class="py-3 px-4 text-right text-emerald-400 font-black text-sm whitespace-nowrap" id="grandTotalSalesLabel">Rp 0</td>
+                                <td class="py-3 px-3 text-right text-cyan-300 font-bold whitespace-nowrap" id="grandTotalSellableLabel">Rp 0</td>
+                                <td class="py-3 px-3 text-right text-rose-300 font-bold whitespace-nowrap" id="grandTotalWastedLabel">Rp 0</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -237,7 +238,7 @@
                     <button 
                         type="button" 
                         onclick="switchKitchenTab('tab-settlement')" 
-                        class="px-5 py-2.5 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2"
+                        class="px-5 py-2.5 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
                     >
                         <span>Lanjut ke Rekapan Uang Kasir</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -355,7 +356,7 @@
                 <button 
                     type="button" 
                     onclick="switchKitchenTab('tab-dishes')" 
-                    class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5"
+                    class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     <span>Kembali ke Porsi Masakan</span>
@@ -390,14 +391,14 @@
             tabDishes.classList.remove('hidden');
             tabSettlement.classList.add('hidden');
 
-            btnDishes.className = "px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs";
-            btnSettlement.className = "px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
+            btnDishes.className = "px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer";
+            btnSettlement.className = "px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer";
         } else {
             tabDishes.classList.add('hidden');
             tabSettlement.classList.remove('hidden');
 
-            btnDishes.className = "px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
-            btnSettlement.className = "px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs";
+            btnDishes.className = "px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer";
+            btnSettlement.className = "px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer";
         }
     }
 
@@ -413,12 +414,12 @@
 
         for (const [key, btn] of Object.entries(catButtons)) {
             if (key === cat) {
-                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white transition";
+                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white transition cursor-pointer";
             } else {
-                if (key === 'perishable') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition";
-                else if (key === 'non_perishable') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition";
-                else if (key === 'filled_only') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 transition";
-                else btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+                if (key === 'perishable') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer";
+                else if (key === 'non_perishable') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition cursor-pointer";
+                else if (key === 'filled_only') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 transition cursor-pointer";
+                else btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer";
             }
         }
 
@@ -499,6 +500,7 @@
     let grandTotalSales = 0;
     let grandTotalSellable = 0;
     let grandTotalWasted = 0;
+    let grandTotalCookedToday = 0;
     let grandTotalCooked = 0;
     let grandTotalSold = 0;
     let grandTotalRemaining = 0;
@@ -542,6 +544,7 @@
         grandTotalSales = 0;
         grandTotalSellable = 0;
         grandTotalWasted = 0;
+        grandTotalCookedToday = 0;
         grandTotalCooked = 0;
         grandTotalSold = 0;
         grandTotalRemaining = 0;
@@ -565,6 +568,7 @@
             const sellableAmount = isPerishable ? 0 : (remaining * unitPrice);
             const wastedAmount = isPerishable ? (remaining * unitPrice) : 0;
 
+            grandTotalCookedToday += cookedToday;
             grandTotalCooked += totalCooked;
             grandTotalSold += sold;
             grandTotalRemaining += remaining;
@@ -573,6 +577,7 @@
             grandTotalWasted += wastedAmount;
         });
 
+        document.getElementById('grandTotalCookedToday').innerText = formatNumber(grandTotalCookedToday);
         document.getElementById('grandTotalCooked').innerText = formatNumber(grandTotalCooked);
         document.getElementById('grandTotalSold').innerText = formatNumber(grandTotalSold);
         document.getElementById('grandTotalRemaining').innerText = formatNumber(grandTotalRemaining);
