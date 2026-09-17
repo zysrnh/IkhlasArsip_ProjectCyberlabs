@@ -14,8 +14,15 @@ class MenuController extends Controller
     /**
      * Tampilkan daftar master menu masakan dan harga per cabang.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        $user = auth()->user();
+
+        // Admin Cabang tidak memiliki akses ke dapur/menu
+        if ($user->isAdminCabang()) {
+            return redirect()->route('transactions.index')->with('error', 'Akses ditolak. Pengelolaan menu masakan dikhususkan untuk Admin Dapur dan Kepala Cabang.');
+        }
+
         $query = Menu::with('branchPrices.branch')->orderBy('order_number', 'asc')->orderBy('id', 'asc');
 
         // Filter pencarian nama menu
@@ -42,10 +49,10 @@ class MenuController extends Controller
         $menus = $query->paginate(20)->withQueryString();
 
         // Tentukan daftar cabang yang ditampilkan di tabel
-        if (auth()->user()->isSuperAdmin()) {
+        if ($user->isSuperAdmin()) {
             $branches = Branch::where('status', 'active')->orderBy('name')->get();
-        } elseif (auth()->user()->branch_id) {
-            $branches = Branch::where('id', auth()->user()->branch_id)->get();
+        } elseif ($user->branch_id) {
+            $branches = Branch::where('id', $user->branch_id)->get();
         } else {
             $branches = Branch::where('status', 'active')->orderBy('name')->get();
         }
@@ -65,8 +72,10 @@ class MenuController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        if (auth()->user()->isViewer()) {
-            return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin menambah menu.');
+        $user = auth()->user();
+
+        if ($user->isViewer() || $user->isAdminCabang()) {
+            return redirect()->route('menus.index')->with('error', 'Anda tidak memiliki izin menambah menu.');
         }
 
         // Bersihkan format titik rupiah pada harga
@@ -117,8 +126,10 @@ class MenuController extends Controller
      */
     public function update(Request $request, Menu $menu): RedirectResponse
     {
-        if (auth()->user()->isViewer()) {
-            return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin mengubah menu.');
+        $user = auth()->user();
+
+        if ($user->isViewer() || $user->isAdminCabang()) {
+            return redirect()->route('menus.index')->with('error', 'Anda tidak memiliki izin mengubah menu.');
         }
 
         // Bersihkan format titik rupiah pada harga
@@ -157,8 +168,10 @@ class MenuController extends Controller
      */
     public function updatePrices(Request $request, Menu $menu): RedirectResponse
     {
-        if (auth()->user()->isViewer()) {
-            return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin mengatur harga.');
+        $user = auth()->user();
+
+        if ($user->isViewer() || $user->isAdminCabang()) {
+            return redirect()->route('menus.index')->with('error', 'Anda tidak memiliki izin mengatur harga.');
         }
 
         $rawPrices = $request->input('prices', []);
@@ -174,6 +187,11 @@ class MenuController extends Controller
         ]);
 
         foreach ($validated['prices'] as $branchId => $price) {
+            // Jika admin dapur, hanya boleh update harga cabangnya sendiri
+            if ($user->isAdminDapur() && $user->branch_id && $branchId != $user->branch_id) {
+                continue;
+            }
+
             if ($price !== null) {
                 BranchMenuPrice::updateOrCreate(
                     ['branch_id' => $branchId, 'menu_id' => $menu->id],
@@ -190,8 +208,10 @@ class MenuController extends Controller
      */
     public function destroy(Menu $menu): RedirectResponse
     {
-        if (auth()->user()->isViewer()) {
-            return redirect()->route('menus.index')->with('error', 'Akun Viewer tidak memiliki izin menghapus menu.');
+        $user = auth()->user();
+
+        if ($user->isViewer() || $user->isAdminCabang()) {
+            return redirect()->route('menus.index')->with('error', 'Anda tidak memiliki izin menghapus menu.');
         }
 
         $menuName = $menu->name;

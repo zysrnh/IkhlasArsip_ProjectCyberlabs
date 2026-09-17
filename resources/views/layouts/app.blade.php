@@ -262,8 +262,8 @@
                     <span class="sidebar-hide-on-collapse truncate">Dashboard</span>
                 </a>
 
-                <!-- Input Dapur Harian Tab (Khusus Admin Cabang, Kepala Cabang, Super Admin) -->
-                @if(!auth()->user()->isAdminDapur())
+                <!-- Input Dapur Harian Tab (Khusus Admin Dapur, Kepala Cabang, Super Admin, Viewer) -->
+                @if(auth()->user()->isAdminDapur() || auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang() || auth()->user()->isViewer())
                 <a 
                     href="{{ route('kitchen-reports.index') }}" 
                     title="Input Dapur Harian"
@@ -274,8 +274,10 @@
                     </svg>
                     <span class="sidebar-hide-on-collapse truncate">Input Dapur Harian</span>
                 </a>
+                @endif
 
-                <!-- Transaksi Tab -->
+                <!-- Transaksi Tab (Khusus Admin Cabang, Kepala Cabang, Super Admin, Viewer) -->
+                @if(!auth()->user()->isAdminDapur())
                 <a 
                     href="{{ route('transactions.index') }}" 
                     title="Data Transaksi"
@@ -288,7 +290,8 @@
                 </a>
                 @endif
 
-                <!-- Master Menu Masakan & Harga Tab -->
+                <!-- Master Menu Masakan & Harga Tab (Khusus Admin Dapur, Kepala Cabang, Super Admin, Viewer) -->
+                @if(auth()->user()->isAdminDapur() || auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang() || auth()->user()->isViewer())
                 <a 
                     href="{{ route('menus.index') }}" 
                     title="Master Menu & Harga"
@@ -299,6 +302,7 @@
                     </svg>
                     <span class="sidebar-hide-on-collapse truncate">Menu Masakan & Harga</span>
                 </a>
+                @endif
             </div>
 
             <!-- SECTION: MANAJEMEN -->
@@ -516,7 +520,8 @@
             <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Dashboard</span>
         </a>
 
-        <!-- Transaksi Item -->
+        <!-- Transaksi Item (Non-Admin Dapur) -->
+        @if(!auth()->user()->isAdminDapur())
         <a 
             href="{{ route('transactions.index') }}" 
             class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('transactions.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
@@ -531,6 +536,25 @@
             </div>
             <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Transaksi</span>
         </a>
+        @endif
+
+        <!-- Input Dapur Item (Admin Dapur) -->
+        @if(auth()->user()->isAdminDapur())
+        <a 
+            href="{{ route('kitchen-reports.index') }}" 
+            class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('kitchen-reports.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+        >
+            <div class="relative pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                @if(request()->routeIs('kitchen-reports.*'))
+                    <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
+                @endif
+            </div>
+            <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Dapur</span>
+        </a>
+        @endif
 
         <!-- Pengguna Item (Super Admin & Kepala Cabang) -->
         @if(auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang())

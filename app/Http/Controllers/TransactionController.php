@@ -25,9 +25,14 @@ class TransactionController extends Controller
     /**
      * Tampilkan Halaman Data Transaksi dengan Filter Cerdas
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Http\RedirectResponse
     {
         $user = auth()->user();
+
+        if ($user->isAdminDapur()) {
+            return redirect()->route('kitchen-reports.index')->with('info', 'Akun Admin Dapur bertugas mengelola masakan dapur harian.');
+        }
+
         $query = Transaction::with(['branch', 'user']);
 
         // 1. Otorisasi Cabang (Kepala Cabang & Admin Cabang terkunci ke cabangnya)
@@ -142,8 +147,8 @@ class TransactionController extends Controller
      */
     private function authorizeWriteAccess(): void
     {
-        if (auth()->check() && auth()->user()->isViewer()) {
-            abort(403, 'Akses Ditolak: Akun dengan role Viewer hanya memiliki izin untuk memantau data dan mengunduh laporan.');
+        if (auth()->check() && (auth()->user()->isViewer() || auth()->user()->isAdminDapur())) {
+            abort(403, 'Akses Ditolak: Anda tidak memiliki izin mengelola data transaksi.');
         }
     }
 
