@@ -6,11 +6,13 @@ use App\Models\Branch;
 use App\Models\DailyKitchenReport;
 use App\Models\DailyKitchenReportItem;
 use App\Models\Menu;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class KitchenReportController extends Controller
 {
@@ -461,5 +463,34 @@ class KitchenReportController extends Controller
 
         return redirect()->route('kitchen-reports.index')
             ->with('success', "Laporan dapur {$branchName} tanggal {$dateStr} berhasil dihapus.");
+    }
+
+    /**
+     * Export Laporan Masakan Dapur Harian ke Format PDF Resmi (A4 Landscape)
+     */
+    public function exportPdf(DailyKitchenReport $kitchenReport): Response
+    {
+        $kitchenReport->load(['branch', 'user', 'items.menu' => function ($q) {
+            $q->orderBy('order_number', 'asc')->orderBy('id', 'asc');
+        }]);
+
+        $logoPath = public_path('images/logo.png');
+        $logoBase64 = null;
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+        }
+
+        $pdf = Pdf::loadView('kitchen.pdf', [
+            'kitchenReport' => $kitchenReport,
+            'printedAt' => now()->translatedFormat('d F Y, H:i'),
+            'logoBase64' => $logoBase64,
+        ])->setPaper('a4', 'landscape');
+
+        $branchSlug = str_replace(' ', '_', $kitchenReport->branch->name ?? 'Cabang');
+        $dateSlug = $kitchenReport->report_date->format('Ymd');
+        $fileName = 'Laporan_Dapur_' . $branchSlug . '_' . $dateSlug . '.pdf';
+
+        return $pdf->download($fileName);
     }
 }

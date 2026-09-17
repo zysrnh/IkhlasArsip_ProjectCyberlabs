@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
     // Modul Input Masakan Dapur Harian (Sheet 1)
+    Route::get('/kitchen-reports/{kitchenReport}/export-pdf', [KitchenReportController::class, 'exportPdf'])->name('kitchen-reports.export-pdf');
     Route::resource('kitchen-reports', KitchenReportController::class);
 
     // Modul Data Transaksi & Laporan
