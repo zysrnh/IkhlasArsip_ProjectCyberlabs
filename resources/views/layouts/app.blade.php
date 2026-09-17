@@ -262,8 +262,7 @@
                     <span class="sidebar-hide-on-collapse truncate">Dashboard</span>
                 </a>
 
-                <!-- Input Dapur Harian Tab (Khusus Admin Dapur, Kepala Cabang, Super Admin, Viewer) -->
-                @if(auth()->user()->isAdminDapur() || auth()->user()->isSuperAdmin() || auth()->user()->isKepalaCabang() || auth()->user()->isViewer())
+                <!-- Input Dapur Harian Tab (Utama untuk Seluruh Cabang & Admin) -->
                 <a 
                     href="{{ route('kitchen-reports.index') }}" 
                     title="Input Dapur Harian"
@@ -274,10 +273,9 @@
                     </svg>
                     <span class="sidebar-hide-on-collapse truncate">Input Dapur Harian</span>
                 </a>
-                @endif
 
-                <!-- Transaksi Tab (Khusus Admin Cabang, Kepala Cabang, Super Admin, Viewer) -->
-                @if(!auth()->user()->isAdminDapur())
+                <!-- Transaksi Tab (Hanya Super Admin, di-hide dari Cabang) -->
+                @if(auth()->user()->isSuperAdmin())
                 <a 
                     href="{{ route('transactions.index') }}" 
                     title="Data Transaksi"
@@ -520,26 +518,7 @@
             <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Dashboard</span>
         </a>
 
-        <!-- Transaksi Item (Non-Admin Dapur) -->
-        @if(!auth()->user()->isAdminDapur())
-        <a 
-            href="{{ route('transactions.index') }}" 
-            class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('transactions.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
-        >
-            <div class="relative pointer-events-none">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                @if(request()->routeIs('transactions.*'))
-                    <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
-                @endif
-            </div>
-            <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Transaksi</span>
-        </a>
-        @endif
-
-        <!-- Input Dapur Item (Admin Dapur) -->
-        @if(auth()->user()->isAdminDapur())
+        <!-- Input Dapur Item (Utama untuk Seluruh Cabang & Admin) -->
         <a 
             href="{{ route('kitchen-reports.index') }}" 
             class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('kitchen-reports.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
@@ -553,6 +532,23 @@
                 @endif
             </div>
             <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Dapur</span>
+        </a>
+
+        <!-- Transaksi Item (Hanya Super Admin) -->
+        @if(auth()->user()->isSuperAdmin())
+        <a 
+            href="{{ route('transactions.index') }}" 
+            class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('transactions.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+        >
+            <div class="relative pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                @if(request()->routeIs('transactions.*'))
+                    <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
+                @endif
+            </div>
+            <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Transaksi</span>
         </a>
         @endif
 

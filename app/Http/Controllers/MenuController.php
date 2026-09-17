@@ -18,9 +18,9 @@ class MenuController extends Controller
     {
         $user = auth()->user();
 
-        // Admin Cabang tidak memiliki akses ke dapur/menu
+        // Admin Cabang tidak memiliki akses ke pengaturan menu
         if ($user->isAdminCabang()) {
-            return redirect()->route('transactions.index')->with('error', 'Akses ditolak. Pengelolaan menu masakan dikhususkan untuk Admin Dapur dan Kepala Cabang.');
+            return redirect()->route('kitchen-reports.index')->with('info', 'Pengelolaan master menu masakan dikhususkan untuk Admin Dapur dan Kepala Cabang.');
         }
 
         $query = Menu::with('branchPrices.branch')->orderBy('order_number', 'asc')->orderBy('id', 'asc');

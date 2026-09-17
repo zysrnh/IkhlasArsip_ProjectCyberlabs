@@ -29,8 +29,8 @@ class TransactionController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->isAdminDapur()) {
-            return redirect()->route('kitchen-reports.index')->with('info', 'Akun Admin Dapur bertugas mengelola masakan dapur harian.');
+        if (!$user->isSuperAdmin()) {
+            return redirect()->route('kitchen-reports.index')->with('info', 'Pencatatan harian cabang dialihkan ke modul Input Dapur Harian.');
         }
 
         $query = Transaction::with(['branch', 'user']);
@@ -147,8 +147,8 @@ class TransactionController extends Controller
      */
     private function authorizeWriteAccess(): void
     {
-        if (auth()->check() && (auth()->user()->isViewer() || auth()->user()->isAdminDapur())) {
-            abort(403, 'Akses Ditolak: Anda tidak memiliki izin mengelola data transaksi.');
+        if (auth()->check() && !auth()->user()->isSuperAdmin()) {
+            abort(403, 'Akses Ditolak: Modul data transaksi dialihkan ke modul Input Dapur Harian.');
         }
     }
 
