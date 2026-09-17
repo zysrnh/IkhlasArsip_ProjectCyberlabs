@@ -37,6 +37,14 @@ class Branch extends Model
     }
 
     /**
+     * Relasi ke Laporan Dapur Harian
+     */
+    public function dailyKitchenReports(): HasMany
+    {
+        return $this->hasMany(DailyKitchenReport::class, 'branch_id');
+    }
+
+    /**
      * Relasi ke Harga Menu Cabang
      */
     public function menuPrices(): HasMany

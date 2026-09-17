@@ -10,7 +10,7 @@
         <div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Executive Sales Dashboard</h1>
             <p class="text-xs text-slate-500 mt-1 font-medium">
-                Selamat datang, <strong class="text-slate-800 font-bold">{{ auth()->user()->name }}</strong> &mdash; ringkasan performa penjualan per {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}.
+                Selamat datang, <strong class="text-slate-800 font-bold">{{ auth()->user()->name }}</strong> &mdash; ringkasan performa penjualan dan operasional dapur per {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}.
             </p>
         </div>
 
@@ -87,11 +87,11 @@
     <!-- 4 Primary Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <!-- Total Pendapatan -->
+        <!-- Total Omzet Uang Kasir -->
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group relative overflow-hidden">
             <div class="flex items-center justify-between">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-tealBrand transition-colors">
-                    Total Pendapatan Bersih
+                    Total Omzet Kasir
                 </span>
                 <div class="w-8 h-8 rounded-xl bg-teal-50 text-tealBrand flex items-center justify-center font-bold">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -103,16 +103,16 @@
                 </div>
             </div>
             <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2 border-t border-slate-100">
-                <span>Rata-rata Order (AOV)</span>
-                <span class="font-bold text-slate-700">Rp {{ number_format($avgOrderValue, 0, ',', '.') }}</span>
+                <span>Rata-rata Omzet / Hari</span>
+                <span class="font-bold text-slate-700">Rp {{ number_format($avgDailyOmset, 0, ',', '.') }}</span>
             </div>
         </div>
 
-        <!-- Total Transaksi -->
+        <!-- Total Hari / Laporan -->
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group relative overflow-hidden">
             <div class="flex items-center justify-between">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-cyan-600 transition-colors">
-                    Total Transaksi
+                    Total Laporan Harian
                 </span>
                 <div class="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -120,20 +120,22 @@
             </div>
             <div class="my-3">
                 <div class="text-2xl font-black text-slate-900 tracking-tight">
-                    {{ number_format($totalTransactions, 0, ',', '.') }} <span class="text-xs font-normal text-slate-400">faktur</span>
+                    {{ number_format($totalReports, 0, ',', '.') }} <span class="text-xs font-normal text-slate-400">laporan</span>
                 </div>
             </div>
             <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2 border-t border-slate-100">
-                <span>Rasio Retur Barang</span>
-                <span class="font-bold {{ $returnRate > 5 ? 'text-rose-600' : 'text-slate-700' }}">{{ $returnRate }}%</span>
+                <span>Selisih Kasir Dapur</span>
+                <span class="font-bold {{ $totalDifference < 0 ? 'text-rose-600' : ($totalDifference > 0 ? 'text-emerald-600' : 'text-slate-700') }}">
+                    {{ $totalDifference < 0 ? '-' : '' }}Rp {{ number_format(abs($totalDifference), 0, ',', '.') }}
+                </span>
             </div>
         </div>
 
-        <!-- Total QTY Terjual -->
+        <!-- Total Porsi Terjual -->
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group relative overflow-hidden">
             <div class="flex items-center justify-between">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
-                    Total QTY Terjual
+                    Total Porsi Terjual
                 </span>
                 <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
@@ -141,12 +143,12 @@
             </div>
             <div class="my-3">
                 <div class="text-2xl font-black text-slate-900 tracking-tight">
-                    {{ number_format($totalQty, 0, ',', '.') }} <span class="text-xs font-normal text-slate-400">unit</span>
+                    {{ number_format($totalPortionsSold, 0, ',', '.') }} <span class="text-xs font-normal text-slate-400">porsi</span>
                 </div>
             </div>
             <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2 border-t border-slate-100">
-                <span>Rata-rata Qty/Trx</span>
-                <span class="font-bold text-slate-700">{{ $totalTransactions > 0 ? round($totalQty / $totalTransactions, 1) : 0 }} unit</span>
+                <span>Total Dimasak</span>
+                <span class="font-bold text-slate-700">{{ number_format($totalPortionsCooked, 0, ',', '.') }} porsi</span>
             </div>
         </div>
 
@@ -184,7 +186,7 @@
                         <span>Tren Omzet Penjualan Harian</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-tealBrand">Live Analytics</span>
                     </h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Grafik dinamika pendapatan sepanjang periode berjalan</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Grafik dinamika omzet kasir sepanjang periode berjalan</p>
                 </div>
                 <div class="text-xs text-slate-500 font-bold bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 self-start sm:self-auto">
                     Bulan: {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}
@@ -196,19 +198,19 @@
             </div>
         </div>
 
-        <!-- Komposisi Jenis Transaksi (Donut Chart 4 Cols) -->
+        <!-- Komposisi Pembayaran Kasir (Donut Chart 4 Cols) -->
         <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
             <div class="pb-3 border-b border-slate-100">
-                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Distribusi Transaksi</h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">Persentase omzet per tipe pembayaran</p>
+                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Metode Pembayaran Kasir</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Persentase omzet per kanal penerimaan kasir</p>
             </div>
 
             <div class="relative h-48 w-full my-auto flex items-center justify-center pt-2">
-                <canvas id="typeDonutChart"></canvas>
+                <canvas id="paymentDonutChart"></canvas>
             </div>
 
             <div class="space-y-2 pt-3 border-t border-slate-100 text-xs">
-                @foreach($typeSummaries as $typeName => $tData)
+                @foreach($paymentSummaries as $typeName => $tData)
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
                             <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ $tData['color'] }};"></span>
@@ -222,39 +224,39 @@
 
     </div>
 
-    <!-- Section Middle: Leaderboard Top 5 Pelanggan & Kontribusi Cabang -->
+    <!-- Section Middle: Leaderboard Top 5 Menu Masakan & Kontribusi Cabang -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
-        <!-- Top 5 Pelanggan Terbesar (6 Cols) -->
+        <!-- Top 5 Menu Terlaris (6 Cols) -->
         <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
             <div class="flex items-center justify-between pb-4 mb-3 border-b border-slate-100">
                 <div>
-                    <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Top 5 Pelanggan Terbesar</h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Kontributor omzet dan volume pembelian tertinggi</p>
+                    <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Top 5 Menu Masakan Terlaris</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Menu masakan dengan porsi terjual dan omzet tertinggi</p>
                 </div>
                 <span class="text-[10px] font-bold text-tealBrand uppercase tracking-wider bg-teal-50 px-2 py-1 rounded-lg">Leaderboard</span>
             </div>
 
             <div class="space-y-3">
-                @forelse($topCustomers as $index => $customer)
+                @forelse($topMenus as $index => $item)
                     <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50/80 transition-colors border border-transparent hover:border-slate-100">
                         <div class="flex items-center space-x-3">
                             <div class="w-7 h-7 rounded-lg {{ $index === 0 ? 'bg-amber-100 text-amber-700 font-black' : ($index === 1 ? 'bg-slate-200 text-slate-700 font-bold' : 'bg-slate-100 text-slate-500 font-bold') }} flex items-center justify-center text-xs shrink-0">
                                 #{{ $index + 1 }}
                             </div>
                             <div>
-                                <div class="font-bold text-xs text-slate-900 leading-tight">{{ $customer->customer_name }}</div>
-                                <div class="text-[10px] text-slate-400 font-medium">{{ $customer->count_trx }} Transaksi &bull; {{ $customer->total_qty }} Unit</div>
+                                <div class="font-bold text-xs text-slate-900 leading-tight">{{ $item->menu->name ?? 'Menu #' . $item->menu_id }}</div>
+                                <div class="text-[10px] text-slate-400 font-medium">Terjual {{ number_format($item->total_sold, 0, ',', '.') }} Porsi</div>
                             </div>
                         </div>
                         <div class="text-right">
                             <div class="font-extrabold text-xs text-emerald-600 font-sans">
-                                Rp {{ number_format($customer->total_amount, 0, ',', '.') }}
+                                Rp {{ number_format($item->total_revenue, 0, ',', '.') }}
                             </div>
                         </div>
                     </div>
                 @empty
-                    <div class="text-xs text-slate-400 py-6 text-center">Belum ada data transaksi pelanggan.</div>
+                    <div class="text-xs text-slate-400 py-6 text-center">Belum ada data penjualan menu dapur.</div>
                 @endforelse
             </div>
         </div>
@@ -278,7 +280,7 @@
                                 <span class="font-bold text-slate-800">{{ $bc['name'] }}</span>
                             </div>
                             <span class="text-[11px] text-slate-500 font-semibold font-sans">
-                                <strong class="text-slate-800 font-bold">Rp {{ number_format($bc['amount'], 0, ',', '.') }}</strong> ({{ $bc['count'] }} trx)
+                                <strong class="text-slate-800 font-bold">Rp {{ number_format($bc['amount'], 0, ',', '.') }}</strong> ({{ $bc['count'] }} lap)
                             </span>
                         </div>
                         <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
@@ -293,14 +295,14 @@
 
     </div>
 
-    <!-- Section Bottom: Transaksi Terkini -->
+    <!-- Section Bottom: Laporan Dapur Terkini -->
     <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs">
         <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
             <div>
-                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Transaksi Terbaru</h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">Entri resume data penjualan terbaru yang tercatat di sistem</p>
+                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Laporan Dapur Harian Terbaru</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Entri laporan penjualan porsi masakan dan setoran kasir terbaru</p>
             </div>
-            <a href="{{ route('transactions.index') }}" class="text-xs font-bold text-tealBrand hover:underline flex items-center space-x-1 cursor-pointer">
+            <a href="{{ route('kitchen-reports.index') }}" class="text-xs font-bold text-tealBrand hover:underline flex items-center space-x-1 cursor-pointer">
                 <span>Lihat Semua</span>
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
             </a>
@@ -311,48 +313,46 @@
             <table class="w-full text-left text-xs">
                 <thead>
                     <tr class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 bg-slate-50/50">
-                        <th class="py-3 px-3 rounded-l-lg">KODE / TGL</th>
+                        <th class="py-3 px-3 rounded-l-lg">TANGGAL</th>
                         <th class="py-3 px-3">CABANG</th>
-                        <th class="py-3 px-3">JENIS</th>
-                        <th class="py-3 px-3">CUSTOMER</th>
-                        <th class="py-3 px-3 text-center">QTY</th>
-                        <th class="py-3 px-3 text-right rounded-r-lg">NOMINAL</th>
+                        <th class="py-3 px-3">PIC INPUT</th>
+                        <th class="py-3 px-3 text-right">PENJUALAN LAUK</th>
+                        <th class="py-3 px-3 text-right">OMZET KASIR</th>
+                        <th class="py-3 px-3 text-right">SELISIH</th>
+                        <th class="py-3 px-3 text-center rounded-r-lg">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
-                    @forelse($recentTransactions as $trx)
+                    @forelse($recentReports as $report)
                         <tr class="hover:bg-slate-50/60 transition-colors">
                             <td class="py-3 px-3">
-                                <div class="font-bold text-slate-900 font-mono">{{ $trx->code }}</div>
-                                <div class="text-[10px] text-slate-400 font-medium">{{ \Carbon\Carbon::parse($trx->transaction_date)->translatedFormat('d M Y') }}</div>
+                                <div class="font-bold text-slate-900 font-mono">{{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d M Y') }}</div>
+                                <div class="text-[10px] text-slate-400 font-medium">{{ \Carbon\Carbon::parse($report->report_date)->isoFormat('dddd') }}</div>
                             </td>
                             <td class="py-3 px-3 font-semibold text-slate-800">
-                                {{ $trx->branch->name ?? '-' }}
+                                {{ $report->branch->name ?? '-' }}
                             </td>
-                            <td class="py-3 px-3">
-                                @if($trx->type === 'Penjualan Tunai')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200/60">Tunai</span>
-                                @elseif($trx->type === 'Penjualan Kredit')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200/60">Kredit</span>
-                                @elseif($trx->type === 'Retur Penjualan')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60">Retur</span>
-                                @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60">Transfer</span>
-                                @endif
+                            <td class="py-3 px-3 font-medium text-slate-700">
+                                {{ $report->user->name ?? '-' }}
                             </td>
-                            <td class="py-3 px-3 font-medium text-slate-900">
-                                {{ $trx->customer_name }}
+                            <td class="py-3 px-3 text-right font-bold text-slate-900 font-sans">
+                                Rp {{ number_format($report->grand_total_sales, 0, ',', '.') }}
                             </td>
-                            <td class="py-3 px-3 text-center font-bold text-slate-700 font-mono">
-                                {{ $trx->qty }}
+                            <td class="py-3 px-3 text-right font-black font-sans text-emerald-600">
+                                Rp {{ number_format($report->total_omset, 0, ',', '.') }}
                             </td>
-                            <td class="py-3 px-3 text-right font-black font-sans {{ $trx->amount < 0 ? 'text-rose-600' : 'text-slate-900' }}">
-                                Rp {{ number_format($trx->amount, 0, ',', '.') }}
+                            <td class="py-3 px-3 text-right font-bold font-sans {{ $report->difference_amount < 0 ? 'text-rose-600' : ($report->difference_amount > 0 ? 'text-emerald-600' : 'text-slate-500') }}">
+                                {{ $report->difference_amount < 0 ? '-' : '' }}Rp {{ number_format(abs($report->difference_amount), 0, ',', '.') }}
+                            </td>
+                            <td class="py-3 px-3 text-center">
+                                <a href="{{ route('kitchen-reports.show', $report) }}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                                    Detail
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-slate-400 text-xs">Belum ada transaksi terbaru.</td>
+                            <td colspan="7" class="py-8 text-center text-slate-400 text-xs">Belum ada laporan dapur harian yang tersimpan.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -377,10 +377,10 @@
             new Chart(lineCtx, {
                 type: 'line',
                 data: {
-                    labels: chartLabels,
+                    labels: chartLabels.length > 0 ? chartLabels : ['Belum Ada Data'],
                     datasets: [{
-                        label: 'Pendapatan (Rp)',
-                        data: chartAmounts,
+                        label: 'Omzet Kasir (Rp)',
+                        data: chartAmounts.length > 0 ? chartAmounts : [0],
                         borderColor: '#0A97B0',
                         backgroundColor: 'rgba(10, 151, 176, 0.08)',
                         borderWidth: 2.5,
@@ -440,11 +440,11 @@
             });
         }
 
-        // 2. Transaction Type Donut Chart
-        const donutCtx = document.getElementById('typeDonutChart');
+        // 2. Payment Channel Donut Chart
+        const donutCtx = document.getElementById('paymentDonutChart');
         if (donutCtx) {
-            const donutLabels = @json($typeChartLabels);
-            const donutData = @json($typeChartData);
+            const donutLabels = @json($paymentChartLabels);
+            const donutData = @json($paymentChartData);
 
             new Chart(donutCtx, {
                 type: 'doughnut',
@@ -452,7 +452,7 @@
                     labels: donutLabels,
                     datasets: [{
                         data: donutData,
-                        backgroundColor: ['#0A97B0', '#0284c7', '#f43f5e', '#f59e0b'],
+                        backgroundColor: ['#0A97B0', '#0284c7', '#f59e0b'],
                         borderWidth: 2,
                         borderColor: '#ffffff',
                         hoverOffset: 4
