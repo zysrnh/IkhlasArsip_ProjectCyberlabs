@@ -17,40 +17,70 @@ use Symfony\Component\HttpFoundation\Response;
 class KitchenReportController extends Controller
 {
     /**
-     * Tampilkan daftar riwayat input masakan dapur harian per cabang.
+     * Tampilkan daftar riwayat input masakan dapur harian per cabang dengan filter, search & sorting lengkap.
      */
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $query = DailyKitchenReport::with(['branch', 'user'])->orderBy('report_date', 'desc');
+        $query = DailyKitchenReport::with(['branch', 'user']);
 
         // Scoping akses berdasarkan role
         if ($user->isAdminCabang() || $user->isAdminDapur()) {
             $query->where('branch_id', $user->branch_id);
+            $selectedBranchId = $user->branch_id;
         } elseif ($user->isKepalaCabang()) {
             if ($user->managedBranches()->count() > 0) {
                 $query->whereIn('branch_id', $user->managedBranches()->pluck('branches.id'));
             } elseif ($user->branch_id) {
                 $query->where('branch_id', $user->branch_id);
             }
+            $selectedBranchId = $request->get('branch_id');
+        } else {
+            $selectedBranchId = $request->get('branch_id');
         }
 
         // Filter Cabang (Super Admin / Kepala Cabang)
-        if ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isKepalaCabang())) {
-            $query->where('branch_id', $request->get('branch_id'));
+        if (!empty($selectedBranchId)) {
+            $query->where('branch_id', $selectedBranchId);
         }
 
-        // Filter Tanggal
+        // Search Keyword (PIC / Nama Cabang / Catatan)
+        if ($request->filled('search')) {
+            $search = trim($request->get('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('notes', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('branch', function ($bq) use ($search) {
+                      $bq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter Status Selisih Kasir
+        if ($request->filled('diff_status')) {
+            $diffStatus = $request->get('diff_status');
+            if ($diffStatus === 'match') {
+                $query->whereRaw('ABS(difference_amount) < 1');
+            } elseif ($diffStatus === 'over') {
+                $query->where('difference_amount', '>=', 1);
+            } elseif ($diffStatus === 'under') {
+                $query->where('difference_amount', '<=', -1);
+            }
+        }
+
+        // Filter Tanggal Dari
         if ($request->filled('date_from')) {
             $query->whereDate('report_date', '>=', $request->get('date_from'));
         }
+
+        // Filter Tanggal Sampai
         if ($request->filled('date_to')) {
             $query->whereDate('report_date', '<=', $request->get('date_to'));
         }
 
-        $reports = $query->paginate(15)->withQueryString();
-
-        // Data cabang untuk dropdown filter
+        // Data Cabang untuk Dropdown Filter
         if ($user->isSuperAdmin()) {
             $branches = Branch::where('status', 'active')->orderBy('name')->get();
         } elseif ($user->isKepalaCabang() && $user->managedBranches()->count() > 0) {
@@ -61,14 +91,46 @@ class KitchenReportController extends Controller
             $branches = Branch::where('status', 'active')->orderBy('name')->get();
         }
 
+        // Hitung Statistik Dinamis Sesuai Filter
         $stats = [
             'total_reports' => (clone $query)->count(),
-            'total_omset' => (clone $query)->sum('total_omset'),
-            'total_wasted' => (clone $query)->sum('total_wasted_food'),
-            'total_sellable' => (clone $query)->sum('total_remaining_sellable'),
+            'total_sales' => (float) (clone $query)->sum('grand_total_sales'),
+            'total_omset' => (float) (clone $query)->sum('total_omset'),
+            'total_wasted' => (float) (clone $query)->sum('total_wasted_food'),
+            'total_sellable' => (float) (clone $query)->sum('total_remaining_sellable'),
+            'total_diff' => (float) (clone $query)->sum('difference_amount'),
+            'total_cash' => (float) (clone $query)->sum('cash_income'),
+            'total_qris' => (float) (clone $query)->sum('qris_income'),
+            'total_online' => (float) (clone $query)->sum('online_food_income'),
         ];
 
-        return view('kitchen.index', compact('reports', 'branches', 'stats'));
+        // Sorting
+        $sort = $request->get('sort', 'terbaru');
+        switch ($sort) {
+            case 'terlama':
+                $query->orderBy('report_date', 'asc')->orderBy('id', 'asc');
+                break;
+            case 'omset_terbanyak':
+                $query->orderBy('total_omset', 'desc');
+                break;
+            case 'omset_tersedikit':
+                $query->orderBy('total_omset', 'asc');
+                break;
+            case 'penjualan_terbanyak':
+                $query->orderBy('grand_total_sales', 'desc');
+                break;
+            case 'selisih_terbesar':
+                $query->orderByRaw('ABS(difference_amount) DESC');
+                break;
+            case 'terbaru':
+            default:
+                $query->orderBy('report_date', 'desc')->orderBy('id', 'desc');
+                break;
+        }
+
+        $reports = $query->paginate(15)->withQueryString();
+
+        return view('kitchen.index', compact('reports', 'branches', 'stats', 'selectedBranchId'));
     }
 
     /**
