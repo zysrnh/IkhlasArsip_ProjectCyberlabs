@@ -187,7 +187,7 @@
 
                                 <!-- Harga -->
                                 <td class="py-2.5 px-3 text-right text-slate-600 font-semibold">
-                                    <input type="hidden" name="items[{{ $index }}][unit_price]" value="{{ $item->unit_price }}" class="unit-price-val">
+                                    <input type="hidden" name="items[{{ $index }}][unit_price]" value="{{ (float) $item->unit_price }}" class="unit-price-val">
                                     {{ number_format($item->unit_price, 0, ',', '.') }}
                                 </td>
 
@@ -482,9 +482,16 @@
     }
 
     function cleanNumber(str) {
-        if (!str) return 0;
-        const cleaned = str.toString().replace(/\./g, '').replace(/,/g, '.');
-        const parsed = parseFloat(cleaned);
+        if (str === null || str === undefined || str === '') return 0;
+        if (typeof str === 'number') return isNaN(str) ? 0 : str;
+
+        let s = str.toString().trim();
+        if (/^-?\d+(\.\d{1,2})?$/.test(s)) {
+            const val = parseFloat(s);
+            return isNaN(val) ? 0 : val;
+        }
+        s = s.replace(/\./g, '').replace(/,/g, '.');
+        const parsed = parseFloat(s);
         return isNaN(parsed) ? 0 : parsed;
     }
 
