@@ -286,10 +286,20 @@
                                 Urutan: Terlama
                             @elseif(request('sort') === 'omset_terbesar')
                                 Urutan: Omset Terbesar
+                            @elseif(request('sort') === 'omset_terkecil')
+                                Urutan: Omset Terkecil
+                            @elseif(request('sort') === 'cash_terbesar')
+                                Urutan: Cash Terbesar
+                            @elseif(request('sort') === 'cash_terkecil')
+                                Urutan: Cash Terkecil
                             @elseif(request('sort') === 'belanja_terbesar')
                                 Urutan: Belanja Terbesar
+                            @elseif(request('sort') === 'belanja_terkecil')
+                                Urutan: Belanja Terkecil
                             @elseif(request('sort') === 'sisa_terbesar')
                                 Urutan: Sisa Kas Terbesar
+                            @elseif(request('sort') === 'sisa_terkecil')
+                                Urutan: Sisa Kas Terkecil
                             @else
                                 Urutan: Terbaru
                             @endif
@@ -299,22 +309,72 @@
                         </svg>
                     </button>
 
-                    <div id="summarySortMenu" class="hidden absolute right-0 left-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1.5 animate-fadeIn">
+                    <div id="summarySortMenu" class="hidden absolute right-0 left-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1.5 max-h-64 overflow-y-auto animate-fadeIn">
                         <div class="px-3 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">Urutkan Berdasarkan</div>
+                        
                         <button type="button" onclick="selectSummarySortOption('terbaru')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort', 'terbaru') == 'terbaru' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
                             <span>Terbaru</span>
+                            @if(request('sort', 'terbaru') == 'terbaru')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
                         </button>
                         <button type="button" onclick="selectSummarySortOption('terlama')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'terlama' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
                             <span>Terlama</span>
+                            @if(request('sort') == 'terlama')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
                         </button>
+
+                        <div class="px-3 py-1 text-[9px] font-extrabold text-slate-400 uppercase tracking-wider border-t border-slate-100 mt-1">Omset & Pendapatan</div>
                         <button type="button" onclick="selectSummarySortOption('omset_terbesar')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'omset_terbesar' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
                             <span>Omset Terbesar</span>
+                            @if(request('sort') == 'omset_terbesar')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
                         </button>
+                        <button type="button" onclick="selectSummarySortOption('omset_terkecil')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'omset_terkecil' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
+                            <span>Omset Terkecil</span>
+                            @if(request('sort') == 'omset_terkecil')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
+                        <button type="button" onclick="selectSummarySortOption('cash_terbesar')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'cash_terbesar' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
+                            <span>Pendapatan Cash Terbesar</span>
+                            @if(request('sort') == 'cash_terbesar')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
+                        <button type="button" onclick="selectSummarySortOption('cash_terkecil')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'cash_terkecil' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
+                            <span>Pendapatan Cash Terkecil</span>
+                            @if(request('sort') == 'cash_terkecil')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
+
+                        <div class="px-3 py-1 text-[9px] font-extrabold text-slate-400 uppercase tracking-wider border-t border-slate-100 mt-1">Belanja & Sisa Setoran</div>
                         <button type="button" onclick="selectSummarySortOption('belanja_terbesar')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'belanja_terbesar' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
                             <span>Belanja Terbesar</span>
+                            @if(request('sort') == 'belanja_terbesar')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
+                        <button type="button" onclick="selectSummarySortOption('belanja_terkecil')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'belanja_terkecil' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
+                            <span>Belanja Terkecil</span>
+                            @if(request('sort') == 'belanja_terkecil')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
                         </button>
                         <button type="button" onclick="selectSummarySortOption('sisa_terbesar')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'sisa_terbesar' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
                             <span>Sisa Setoran Terbesar</span>
+                            @if(request('sort') == 'sisa_terbesar')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
+                        <button type="button" onclick="selectSummarySortOption('sisa_terkecil')" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 {{ request('sort') == 'sisa_terkecil' ? 'text-tealBrand font-bold bg-teal-50/50' : 'text-slate-700' }}">
+                            <span>Sisa Setoran Terkecil</span>
+                            @if(request('sort') == 'sisa_terkecil')
+                                <svg class="w-4 h-4 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
                         </button>
                     </div>
                 </div>

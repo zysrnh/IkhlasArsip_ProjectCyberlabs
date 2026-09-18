@@ -277,11 +277,26 @@ class TransactionController extends Controller
             case 'omset_terbesar':
                 $query->orderByDesc('total_omset');
                 break;
+            case 'omset_terkecil':
+                $query->orderBy('total_omset', 'asc');
+                break;
+            case 'cash_terbesar':
+                $query->orderByDesc('cash_income');
+                break;
+            case 'cash_terkecil':
+                $query->orderBy('cash_income', 'asc');
+                break;
             case 'belanja_terbesar':
                 $query->orderByDesc('total_expense');
                 break;
+            case 'belanja_terkecil':
+                $query->orderBy('total_expense', 'asc');
+                break;
             case 'sisa_terbesar':
-                $query->orderByDesc('net_cash_income');
+                $query->orderByRaw('(cash_income - COALESCE(total_expense, 0)) DESC');
+                break;
+            case 'sisa_terkecil':
+                $query->orderByRaw('(cash_income - COALESCE(total_expense, 0)) ASC');
                 break;
             case 'terbaru':
             default:
