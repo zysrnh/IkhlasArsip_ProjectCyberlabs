@@ -131,7 +131,9 @@
             border-radius: 14px !important;
             box-shadow: 0 15px 30px -5px rgba(11, 25, 44, 0.15) !important;
             font-family: inherit !important;
-            padding: 8px !important;
+            padding: 10px !important;
+            width: 320px !important;
+            box-sizing: border-box !important;
         }
         .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after {
             border-bottom-color: #ffffff !important;
@@ -148,19 +150,56 @@
         .flatpickr-current-month .flatpickr-monthDropdown-months {
             font-weight: 800 !important;
         }
+        .flatpickr-innerContainer {
+            width: 100% !important;
+            display: block !important;
+        }
+        .flatpickr-rContainer {
+            width: 100% !important;
+            display: block !important;
+        }
+        .flatpickr-weekdays {
+            width: 100% !important;
+            display: flex !important;
+        }
+        .flatpickr-weekdaycontainer {
+            width: 100% !important;
+            display: flex !important;
+        }
         span.flatpickr-weekday {
+            flex: 1 0 14.2857% !important;
+            width: 14.2857% !important;
+            max-width: 14.2857% !important;
             color: #94a3b8 !important;
             font-size: 10px !important;
             font-weight: 800 !important;
             text-transform: uppercase !important;
+            text-align: center !important;
+        }
+        .flatpickr-days {
+            width: 100% !important;
+        }
+        .dayContainer {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            justify-content: flex-start !important;
+            padding: 0 !important;
         }
         .flatpickr-day {
             border-radius: 8px !important;
             font-size: 12px !important;
             font-weight: 600 !important;
             color: #334155 !important;
-            height: 34px !important;
-            line-height: 34px !important;
+            height: 36px !important;
+            line-height: 36px !important;
+            width: 14.2857% !important;
+            max-width: 14.2857% !important;
+            flex-basis: 14.2857% !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
         }
         .flatpickr-day:hover {
             background: #f1f5f9 !important;
