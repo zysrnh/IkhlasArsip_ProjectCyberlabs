@@ -7,6 +7,7 @@ use App\Http\Controllers\DailyExpenseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KitchenReportController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\MonthlyCostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TrashController;
@@ -46,6 +47,9 @@ Route::middleware('auth')->group(function () {
     // Modul Belanja Harian Cabang (Bahan Baku, Non Bahan Baku, Pribadi)
     Route::get('/daily-expenses', [DailyExpenseController::class, 'index'])->name('daily-expenses.index');
     Route::post('/daily-expenses', [DailyExpenseController::class, 'store'])->name('daily-expenses.store');
+
+    // Modul Biaya Bulanan / Cost Cabang (Fixed Operational Cost + Rekap Belanja Harian)
+    Route::resource('monthly-costs', MonthlyCostController::class)->except(['create', 'show', 'edit']);
 
     // Modul Data Transaksi & Laporan
     Route::get('/transactions/download-template', [TransactionController::class, 'downloadTemplate'])->name('transactions.download-template');
