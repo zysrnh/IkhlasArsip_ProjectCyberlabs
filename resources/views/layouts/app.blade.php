@@ -288,6 +288,18 @@
                     <span class="sidebar-hide-on-collapse truncate">Laporan Dapur Harian</span>
                 </a>
 
+                <!-- Belanja Harian Cabang Tab -->
+                <a 
+                    href="{{ route('daily-expenses.index') }}" 
+                    title="Belanja Harian Cabang"
+                    class="sidebar-nav-item flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded transition-all duration-150 {{ request()->routeIs('daily-expenses.*') ? 'bg-tealBrand text-white font-bold' : 'text-slate-300 hover:bg-navy-800 hover:text-white' }}"
+                >
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span class="sidebar-hide-on-collapse truncate">Belanja Harian</span>
+                </a>
+
                 <!-- Transaksi Tab (Hanya Super Admin, di-hide dari Cabang) -->
                 @if(auth()->user()->isSuperAdmin())
                 <a 
@@ -546,6 +558,22 @@
                 @endif
             </div>
             <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Dapur</span>
+        </a>
+
+        <!-- Belanja Harian Item -->
+        <a 
+            href="{{ route('daily-expenses.index') }}" 
+            class="mobile-nav-btn flex-1 flex flex-col items-center py-1 px-1 transition-colors {{ request()->routeIs('daily-expenses.*') ? 'text-tealBrand' : 'text-slate-400 hover:text-slate-200' }}"
+        >
+            <div class="relative pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                @if(request()->routeIs('daily-expenses.*'))
+                    <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-tealBrand"></span>
+                @endif
+            </div>
+            <span class="text-[10px] font-bold mt-1 leading-none pointer-events-none">Belanja</span>
         </a>
 
         <!-- Transaksi Item (Hanya Super Admin) -->

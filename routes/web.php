@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\DailyExpenseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KitchenReportController;
 use App\Http\Controllers\MenuController;
@@ -38,9 +39,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
-    // Modul Input Masakan Dapur Harian (Sheet 1)
+    // Modul Input Masakan Dapur Harian
     Route::get('/kitchen-reports/{kitchenReport}/export-pdf', [KitchenReportController::class, 'exportPdf'])->name('kitchen-reports.export-pdf');
     Route::resource('kitchen-reports', KitchenReportController::class);
+
+    // Modul Belanja Harian Cabang (Bahan Baku, Non Bahan Baku, Pribadi)
+    Route::get('/daily-expenses', [DailyExpenseController::class, 'index'])->name('daily-expenses.index');
+    Route::post('/daily-expenses', [DailyExpenseController::class, 'store'])->name('daily-expenses.store');
 
     // Modul Data Transaksi & Laporan
     Route::get('/transactions/download-template', [TransactionController::class, 'downloadTemplate'])->name('transactions.download-template');

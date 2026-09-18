@@ -30,12 +30,12 @@
         @method('PUT')
 
         <!-- Section Navigation Tabs -->
-        <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <div class="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
             <button 
                 type="button" 
                 onclick="switchKitchenTab('tab-dishes')" 
                 id="tabBtnDishes"
-                class="px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer"
+                class="px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer shrink-0"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -48,13 +48,26 @@
                 type="button" 
                 onclick="switchKitchenTab('tab-settlement')" 
                 id="tabBtnSettlement"
-                class="px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
+                class="px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>2. Rekapan Uang Kasir & Settlement</span>
                 <span id="tabSettlementStatusBadge" class="px-2 py-0.5 text-[10px] bg-slate-300 text-slate-700 rounded-full font-bold">Pending</span>
+            </button>
+
+            <button 
+                type="button" 
+                onclick="switchKitchenTab('tab-expense')" 
+                id="tabBtnExpense"
+                class="px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <span>3. Belanja Harian Cabang</span>
+                <span id="tabExpenseBadge" class="px-2 py-0.5 text-[10px] bg-slate-300 text-slate-700 rounded-full font-bold">Rp {{ number_format($kitchenReport->total_expense ?? 0, 0, ',', '.') }}</span>
             </button>
         </div>
 
@@ -153,7 +166,7 @@
                                 <!-- Nama Masakan -->
                                 <td class="py-2.5 px-4 font-bold text-slate-900">
                                     <div class="flex items-center gap-1.5 flex-wrap">
-                                        <span class="leading-snug">{{ $item->menu->name ?? 'Menu' }}</span>
+                                        <span class="menu-name-label leading-snug">{{ $item->menu->name ?? 'Menu' }}</span>
                                         @if($item->menu && $item->menu->is_perishable)
                                             <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-200 shrink-0">Basi</span>
                                         @endif
@@ -207,6 +220,7 @@
                                 </td>
                             </tr>
                             @endforeach
+                            <!-- Empty Search Row -->
                             <tr id="emptySearchRow" class="hidden">
                                 <td colspan="11" class="py-8 text-center text-slate-400">
                                     Tidak ada menu masakan yang cocok dengan kata kunci pencarian.
@@ -214,27 +228,28 @@
                             </tr>
                         </tbody>
 
-                        <!-- Sticky Bottom Grand Total (Presisi 11 Kolom) -->
+                        <!-- Sticky Bottom Grand Total -->
                         <tfoot class="sticky bottom-0 bg-[#0B192C] text-white font-bold text-xs border-t-2 border-slate-800 z-10 shadow-lg">
                             <tr>
                                 <td colspan="3" class="py-3 px-4 uppercase tracking-wider text-right text-slate-300 font-extrabold">
                                     GRAND TOTAL:
                                 </td>
-                                <td class="py-3 px-2 text-center text-amber-300 font-black text-xs" id="grandTotalCookedToday">0</td>
-                                <td class="py-3 px-2 text-center text-white font-black text-xs" id="grandTotalCooked">0</td>
-                                <td class="py-3 px-2 text-center text-cyan-300 font-black text-xs" id="grandTotalSold">0</td>
-                                <td class="py-3 px-2 text-center text-white font-black text-xs" id="grandTotalRemaining">0</td>
+                                <td class="py-3 px-2 text-center text-amber-300 font-black text-xs" id="grandTotalCookedToday">{{ number_format($kitchenReport->items->sum('cooked_today')) }}</td>
+                                <td class="py-3 px-2 text-center text-white font-black text-xs" id="grandTotalCooked">{{ number_format($kitchenReport->items->sum('total_cooked')) }}</td>
+                                <td class="py-3 px-2 text-center text-cyan-300 font-black text-xs" id="grandTotalSold">{{ number_format($kitchenReport->items->sum('sold')) }}</td>
+                                <td class="py-3 px-2 text-center text-white font-black text-xs" id="grandTotalRemaining">{{ number_format($kitchenReport->items->sum('remaining')) }}</td>
                                 <td class="py-3 px-2"></td>
-                                <td class="py-3 px-4 text-right text-emerald-400 font-black text-sm whitespace-nowrap" id="grandTotalSalesLabel">Rp 0</td>
-                                <td class="py-3 px-3 text-right text-cyan-300 font-bold whitespace-nowrap" id="grandTotalSellableLabel">Rp 0</td>
-                                <td class="py-3 px-3 text-right text-rose-300 font-bold whitespace-nowrap" id="grandTotalWastedLabel">Rp 0</td>
+                                <td class="py-3 px-4 text-right text-emerald-400 font-black text-sm whitespace-nowrap" id="grandTotalSalesLabel">Rp {{ number_format($kitchenReport->grand_total_sales, 0, ',', '.') }}</td>
+                                <td class="py-3 px-3 text-right text-cyan-300 font-bold whitespace-nowrap" id="grandTotalSellableLabel">Rp {{ number_format($kitchenReport->total_remaining_sellable, 0, ',', '.') }}</td>
+                                <td class="py-3 px-3 text-right text-rose-300 font-bold whitespace-nowrap" id="grandTotalWastedLabel">Rp {{ number_format($kitchenReport->total_wasted_food, 0, ',', '.') }}</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
 
+                <!-- Next Button to Step 2 -->
                 <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                    <span class="text-xs text-slate-500">Selesai menyesuaikan porsi masakan? Lanjut ke rekapan kasir.</span>
+                    <span class="text-xs text-slate-500">Selesai edit porsi masakan? Lanjut ke input rekapan uang kasir & belanja.</span>
                     <button 
                         type="button" 
                         onclick="switchKitchenTab('tab-settlement')" 
@@ -252,10 +267,10 @@
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Rekapan Pembayaran Uang Kasir Hari Ini</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Penyesuaian rekapan kasir fisik.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Input jumlah uang fisik & digital yang diterima kasir. Sistem akan mencocokkannya dengan grand total masakan yang laku.</p>
                 </div>
 
-                <!-- 4 Box Layout Grid (Sesuai Excel) -->
+                <!-- 4 Box Layout Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- 1. PENDAPATAN CASH -->
                     <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-[#0A97B0] focus-within:bg-white transition">
@@ -344,6 +359,33 @@
                     </div>
                 </div>
 
+                <!-- Ringkasan Belanja & Sisa Setoran Bersih di Tab 2 -->
+                <div class="p-5 bg-gradient-to-br from-slate-50 to-slate-100/70 rounded-2xl border border-slate-200">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                                <span>Potongan Belanja Harian Cabang</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">
+                                Belanja harian yang diisi pada Tab 3 memotong kas tunai laci untuk menghitung sisa setoran bersih.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Total Belanja (Tab 3)</span>
+                                <span class="text-sm font-extrabold text-rose-600" id="tab2TotalExpenseLabel">Rp {{ number_format($kitchenReport->total_expense ?? 0, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="text-right pl-4 border-l border-slate-300">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Sisa Kas Setoran</span>
+                                <span class="text-base font-black text-tealBrand" id="tab2NetCashLabel">Rp {{ number_format($kitchenReport->net_cash_income ?? ($kitchenReport->cash_income - ($kitchenReport->total_expense ?? 0)), 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Notes -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Catatan Dapur / Keterangan</label>
@@ -362,6 +404,145 @@
                     <span>Kembali ke Porsi Masakan</span>
                 </button>
 
+                <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    <button 
+                        type="button" 
+                        onclick="switchKitchenTab('tab-expense')" 
+                        class="w-full sm:w-auto px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                        <span>Lanjut ke Belanja Harian</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </button>
+                    <button 
+                        type="submit" 
+                        class="w-full sm:w-auto px-7 py-3 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition duration-150 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>Simpan Perubahan Laporan</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: BELANJA HARIAN CABANG -->
+        <div id="tabContentExpense" class="hidden space-y-5">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Pencatatan Belanja Harian Cabang</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Input pengeluaran belanja bahan baku, non bahan baku, dan pengeluaran pribadi cabang.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            Sinkron Otomatis
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 3 Box Input Pengeluaran Belanja -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- 1. Belanja Bahan Baku -->
+                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-tealBrand focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-2">1. Belanja Bahan Baku</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <input 
+                                type="text" 
+                                name="expense_raw_material" 
+                                id="expenseRawMaterialInput" 
+                                value="{{ number_format($kitchenReport->expense_raw_material ?? 0, 0, ',', '.') }}" 
+                                oninput="formatRupiahInput(this); calculateExpenses();" 
+                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                            >
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1.5">Bumbu, sayur pasar, daging, santan, dsb.</p>
+                    </div>
+
+                    <!-- 2. Belanja Non Bahan Baku -->
+                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-tealBrand focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-2">2. Belanja Non Bahan Baku</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <input 
+                                type="text" 
+                                name="expense_non_raw_material" 
+                                id="expenseNonRawMaterialInput" 
+                                value="{{ number_format($kitchenReport->expense_non_raw_material ?? 0, 0, ',', '.') }}" 
+                                oninput="formatRupiahInput(this); calculateExpenses();" 
+                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                            >
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1.5">Gas LPG, plastik kresek, sabun cuci, kertas nasi.</p>
+                    </div>
+
+                    <!-- 3. Belanja Pribadi -->
+                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-tealBrand focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-2">3. Belanja Pribadi / Lainnya</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <input 
+                                type="text" 
+                                name="expense_personal" 
+                                id="expensePersonalInput" 
+                                value="{{ number_format($kitchenReport->expense_personal ?? 0, 0, ',', '.') }}" 
+                                oninput="formatRupiahInput(this); calculateExpenses();" 
+                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                            >
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1.5">Konsumsi staff harian, transport darurat, dsb.</p>
+                    </div>
+                </div>
+
+                <!-- Rekap Perhitungan Belanja & Sisa Bersih Kasir -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Total Belanja Harian -->
+                    <div class="bg-rose-50/80 p-5 rounded-2xl border border-rose-200 flex flex-col justify-between">
+                        <div>
+                            <span class="block text-[11px] font-black text-rose-900 uppercase tracking-wider">TOTAL BELANJA HARIAN</span>
+                            <div class="text-2xl font-black text-rose-700 mt-1" id="totalExpenseLabel">
+                                Rp {{ number_format($kitchenReport->total_expense ?? 0, 0, ',', '.') }}
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-rose-600 mt-2">Bahan Baku + Non Bahan Baku + Pribadi</p>
+                    </div>
+
+                    <!-- Sisa Setoran Bersih Kasir -->
+                    <div class="bg-emerald-50/80 p-5 rounded-2xl border border-emerald-200 flex flex-col justify-between">
+                        <div>
+                            <span class="block text-[11px] font-black text-emerald-900 uppercase tracking-wider">SISA SETORAN KASIR BERSIH</span>
+                            <div class="text-2xl font-black text-emerald-700 mt-1" id="netCashIncomeLabel">
+                                Rp {{ number_format($kitchenReport->net_cash_income ?? ($kitchenReport->cash_income - ($kitchenReport->total_expense ?? 0)), 0, ',', '.') }}
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-emerald-600 mt-2">Pendapatan Kas Tunai Laci dikurangi Total Belanja</p>
+                    </div>
+                </div>
+
+                <!-- Rincian Catatan Belanja -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Rincian / Catatan Belanja Harian (Opsional)</label>
+                    <textarea 
+                        name="expense_notes" 
+                        rows="2" 
+                        placeholder="Contoh: Beli cabai 5kg Rp 150.000, Gas 3kg 2 tabung Rp 44.000, Minyak 2 liter Rp 32.000..." 
+                        class="w-full text-xs border border-slate-200 rounded-xl p-3 bg-slate-50 focus:bg-white focus:outline-none focus:border-tealBrand transition"
+                    >{{ $kitchenReport->expense_notes }}</textarea>
+                </div>
+            </div>
+
+            <!-- Bottom Actions Bar Tab 3 -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                <button 
+                    type="button" 
+                    onclick="switchKitchenTab('tab-settlement')" 
+                    class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                    <span>Kembali ke Rekapan Uang Kasir</span>
+                </button>
+
                 <button 
                     type="submit" 
                     class="w-full sm:w-auto px-7 py-3 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition duration-150 flex items-center justify-center gap-2 cursor-pointer"
@@ -369,7 +550,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>Simpan Perubahan Laporan</span>
+                    <span>Simpan Seluruh Perubahan Laporan</span>
                 </button>
             </div>
         </div>
@@ -384,21 +565,31 @@
     function switchKitchenTab(tabId) {
         const tabDishes = document.getElementById('tabContentDishes');
         const tabSettlement = document.getElementById('tabContentSettlement');
+        const tabExpense = document.getElementById('tabContentExpense');
+
         const btnDishes = document.getElementById('tabBtnDishes');
         const btnSettlement = document.getElementById('tabBtnSettlement');
+        const btnExpense = document.getElementById('tabBtnExpense');
+
+        // Hide all contents
+        tabDishes.classList.add('hidden');
+        tabSettlement.classList.add('hidden');
+        tabExpense.classList.add('hidden');
+
+        // Reset all button styles
+        btnDishes.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0";
+        btnSettlement.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0";
+        btnExpense.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0";
 
         if (tabId === 'tab-dishes') {
             tabDishes.classList.remove('hidden');
-            tabSettlement.classList.add('hidden');
-
-            btnDishes.className = "px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer";
-            btnSettlement.className = "px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer";
-        } else {
-            tabDishes.classList.add('hidden');
+            btnDishes.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer shrink-0";
+        } else if (tabId === 'tab-settlement') {
             tabSettlement.classList.remove('hidden');
-
-            btnDishes.className = "px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer";
-            btnSettlement.className = "px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer";
+            btnSettlement.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer shrink-0";
+        } else if (tabId === 'tab-expense') {
+            tabExpense.classList.remove('hidden');
+            btnExpense.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer shrink-0";
         }
     }
 
@@ -597,6 +788,22 @@
         calculateSettlement();
     }
 
+    function calculateExpenses() {
+        const raw = cleanNumber(document.getElementById('expenseRawMaterialInput').value);
+        const nonRaw = cleanNumber(document.getElementById('expenseNonRawMaterialInput').value);
+        const personal = cleanNumber(document.getElementById('expensePersonalInput').value);
+
+        const totalExpense = raw + nonRaw + personal;
+        document.getElementById('totalExpenseLabel').innerText = 'Rp ' + formatNumber(totalExpense);
+        document.getElementById('tabExpenseBadge').innerText = 'Rp ' + formatNumber(totalExpense);
+        document.getElementById('tab2TotalExpenseLabel').innerText = 'Rp ' + formatNumber(totalExpense);
+
+        const cash = cleanNumber(document.getElementById('cashIncomeInput').value);
+        const netCash = cash - totalExpense;
+        document.getElementById('netCashIncomeLabel').innerText = (netCash < 0 ? '- Rp ' : 'Rp ') + formatNumber(Math.abs(netCash));
+        document.getElementById('tab2NetCashLabel').innerText = (netCash < 0 ? '- Rp ' : 'Rp ') + formatNumber(Math.abs(netCash));
+    }
+
     function calculateSettlement() {
         const cash = cleanNumber(document.getElementById('cashIncomeInput').value);
         const qris = cleanNumber(document.getElementById('qrisIncomeInput').value);
@@ -645,10 +852,13 @@
             tabStatusBadge.innerText = `-Rp ${formatNumber(Math.abs(diff))}`;
             tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-rose-600 text-white rounded-full font-bold';
         }
+
+        calculateExpenses();
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         calculateAllTotals();
+        calculateExpenses();
     });
 </script>
 @endsection

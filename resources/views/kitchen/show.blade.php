@@ -208,11 +208,11 @@
         </div>
     </div>
 
-    <!-- Settlement Breakdown Bottom Card -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        <!-- Rincian Kasir -->
+    <!-- Settlement & Expenses Breakdown Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        <!-- 1. Rincian Kasir -->
         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-            <h4 class="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2.5">Rincian Pembayaran Kasir</h4>
+            <h4 class="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2.5">1. Rincian Pembayaran Kasir</h4>
             <div class="space-y-2 text-xs">
                 <div class="flex justify-between py-1 border-b border-gray-50">
                     <span class="text-gray-500">Pendapatan Cash (Laci):</span>
@@ -233,18 +233,67 @@
             </div>
         </div>
 
-        <!-- Catatan & Discrepancy Info -->
+        <!-- 2. Rincian Belanja Harian Cabang -->
         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-            <h4 class="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2.5">Catatan & Evaluasi Laporan</h4>
-            @if($kitchenReport->notes)
-                <p class="text-xs text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    {{ $kitchenReport->notes }}
-                </p>
-            @else
-                <p class="text-xs text-gray-400 italic">Tidak ada catatan khusus pada laporan ini.</p>
-            @endif
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                <h4 class="font-bold text-sm text-gray-900">2. Belanja Harian Cabang</h4>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800">
+                    Total: Rp {{ number_format($kitchenReport->total_expense ?? 0, 0, ',', '.') }}
+                </span>
+            </div>
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between py-1 border-b border-gray-50">
+                    <span class="text-gray-500">Belanja Bahan Baku:</span>
+                    <span class="font-bold text-gray-900">Rp {{ number_format($kitchenReport->expense_raw_material ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-gray-50">
+                    <span class="text-gray-500">Belanja Non Bahan Baku:</span>
+                    <span class="font-bold text-gray-900">Rp {{ number_format($kitchenReport->expense_non_raw_material ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-gray-50">
+                    <span class="text-gray-500">Belanja Pribadi / Lainnya:</span>
+                    <span class="font-bold text-gray-900">Rp {{ number_format($kitchenReport->expense_personal ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between py-2.5 bg-rose-50/75 rounded-xl px-3 text-rose-950 font-bold">
+                    <span>TOTAL PENGELUARAN BELANJA:</span>
+                    <span class="text-rose-700 text-sm">Rp {{ number_format($kitchenReport->total_expense ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between py-2.5 bg-teal-50/75 rounded-xl px-3 text-teal-950 font-bold">
+                    <span>SISA SETORAN KAS BERSIH:</span>
+                    <span class="text-tealBrand text-sm font-black">Rp {{ number_format($kitchenReport->net_cash_income ?? ($kitchenReport->cash_income - ($kitchenReport->total_expense ?? 0)), 0, ',', '.') }}</span>
+                </div>
+            </div>
+        </div>
 
-            <div class="pt-2 text-xs text-gray-500 space-y-1">
+        <!-- 3. Catatan & Evaluasi Laporan -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+            <h4 class="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2.5">3. Catatan & Keterangan</h4>
+            
+            <div class="space-y-2 text-xs">
+                @if($kitchenReport->expense_notes)
+                    <div>
+                        <span class="font-bold text-slate-700 block mb-1">Catatan Belanja:</span>
+                        <p class="text-xs text-gray-700 bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
+                            {{ $kitchenReport->expense_notes }}
+                        </p>
+                    </div>
+                @endif
+
+                @if($kitchenReport->notes)
+                    <div>
+                        <span class="font-bold text-slate-700 block mb-1">Catatan Dapur / Kasir:</span>
+                        <p class="text-xs text-gray-700 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                            {{ $kitchenReport->notes }}
+                        </p>
+                    </div>
+                @endif
+
+                @if(!$kitchenReport->notes && !$kitchenReport->expense_notes)
+                    <p class="text-xs text-gray-400 italic">Tidak ada catatan khusus pada laporan ini.</p>
+                @endif
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 text-[11px] text-gray-500 space-y-1">
                 <div>Dibuat pada: <strong>{{ $kitchenReport->created_at->translatedFormat('d F Y H:i') }}</strong></div>
                 <div>Terakhir diperbarui: <strong>{{ $kitchenReport->updated_at->translatedFormat('d F Y H:i') }}</strong></div>
             </div>

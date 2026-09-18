@@ -245,15 +245,22 @@ class KitchenReportController extends Controller
             $request->merge(['branch_id' => $user->branch_id]);
         }
 
-        // Bersihkan format rupiah
+        // Bersihkan format rupiah uang kasir & belanja
         $cleanCash = (float) str_replace(['.', ','], ['', '.'], $request->input('cash_income', '0'));
         $cleanQris = (float) str_replace(['.', ','], ['', '.'], $request->input('qris_income', '0'));
         $cleanOnline = (float) str_replace(['.', ','], ['', '.'], $request->input('online_food_income', '0'));
+
+        $cleanRawExpense = (float) str_replace(['.', ','], ['', '.'], $request->input('expense_raw_material', '0'));
+        $cleanNonRawExpense = (float) str_replace(['.', ','], ['', '.'], $request->input('expense_non_raw_material', '0'));
+        $cleanPersonalExpense = (float) str_replace(['.', ','], ['', '.'], $request->input('expense_personal', '0'));
 
         $request->merge([
             'cash_income' => $cleanCash,
             'qris_income' => $cleanQris,
             'online_food_income' => $cleanOnline,
+            'expense_raw_material' => $cleanRawExpense,
+            'expense_non_raw_material' => $cleanNonRawExpense,
+            'expense_personal' => $cleanPersonalExpense,
         ]);
 
         $validated = $request->validate([
@@ -262,6 +269,10 @@ class KitchenReportController extends Controller
             'cash_income' => 'required|numeric|min:0',
             'qris_income' => 'required|numeric|min:0',
             'online_food_income' => 'required|numeric|min:0',
+            'expense_raw_material' => 'nullable|numeric|min:0',
+            'expense_non_raw_material' => 'nullable|numeric|min:0',
+            'expense_personal' => 'nullable|numeric|min:0',
+            'expense_notes' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:1000',
             'items' => 'required|array|min:1',
             'items.*.menu_id' => 'required|exists:menus,id',
@@ -334,6 +345,9 @@ class KitchenReportController extends Controller
             $totalOmset = $cleanCash + $cleanQris + $cleanOnline;
             $diffAmount = $totalOmset - $grandTotalSales;
 
+            $totalExpense = $cleanRawExpense + $cleanNonRawExpense + $cleanPersonalExpense;
+            $netCashIncome = $totalOmset - $totalExpense;
+
             $report = DailyKitchenReport::create([
                 'branch_id' => $validated['branch_id'],
                 'report_date' => $validated['report_date'],
@@ -346,6 +360,12 @@ class KitchenReportController extends Controller
                 'online_food_income' => $cleanOnline,
                 'total_omset' => $totalOmset,
                 'difference_amount' => $diffAmount,
+                'expense_raw_material' => $cleanRawExpense,
+                'expense_non_raw_material' => $cleanNonRawExpense,
+                'expense_personal' => $cleanPersonalExpense,
+                'total_expense' => $totalExpense,
+                'net_cash_income' => $netCashIncome,
+                'expense_notes' => $validated['expense_notes'] ?? null,
                 'notes' => $validated['notes'] ?? null,
                 'status' => 'completed',
             ]);
@@ -431,16 +451,27 @@ class KitchenReportController extends Controller
         $cleanQris = (float) str_replace(['.', ','], ['', '.'], $request->input('qris_income', '0'));
         $cleanOnline = (float) str_replace(['.', ','], ['', '.'], $request->input('online_food_income', '0'));
 
+        $cleanRawExpense = (float) str_replace(['.', ','], ['', '.'], $request->input('expense_raw_material', '0'));
+        $cleanNonRawExpense = (float) str_replace(['.', ','], ['', '.'], $request->input('expense_non_raw_material', '0'));
+        $cleanPersonalExpense = (float) str_replace(['.', ','], ['', '.'], $request->input('expense_personal', '0'));
+
         $request->merge([
             'cash_income' => $cleanCash,
             'qris_income' => $cleanQris,
             'online_food_income' => $cleanOnline,
+            'expense_raw_material' => $cleanRawExpense,
+            'expense_non_raw_material' => $cleanNonRawExpense,
+            'expense_personal' => $cleanPersonalExpense,
         ]);
 
         $validated = $request->validate([
             'cash_income' => 'required|numeric|min:0',
             'qris_income' => 'required|numeric|min:0',
             'online_food_income' => 'required|numeric|min:0',
+            'expense_raw_material' => 'nullable|numeric|min:0',
+            'expense_non_raw_material' => 'nullable|numeric|min:0',
+            'expense_personal' => 'nullable|numeric|min:0',
+            'expense_notes' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:1000',
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:daily_kitchen_report_items,id',
@@ -494,6 +525,9 @@ class KitchenReportController extends Controller
             $totalOmset = $cleanCash + $cleanQris + $cleanOnline;
             $diffAmount = $totalOmset - $grandTotalSales;
 
+            $totalExpense = $cleanRawExpense + $cleanNonRawExpense + $cleanPersonalExpense;
+            $netCashIncome = $totalOmset - $totalExpense;
+
             $kitchenReport->update([
                 'grand_total_sales' => $grandTotalSales,
                 'total_remaining_sellable' => $totalRemainingSellable,
@@ -503,6 +537,12 @@ class KitchenReportController extends Controller
                 'online_food_income' => $cleanOnline,
                 'total_omset' => $totalOmset,
                 'difference_amount' => $diffAmount,
+                'expense_raw_material' => $cleanRawExpense,
+                'expense_non_raw_material' => $cleanNonRawExpense,
+                'expense_personal' => $cleanPersonalExpense,
+                'total_expense' => $totalExpense,
+                'net_cash_income' => $netCashIncome,
+                'expense_notes' => $validated['expense_notes'] ?? null,
                 'notes' => $validated['notes'] ?? null,
             ]);
 
