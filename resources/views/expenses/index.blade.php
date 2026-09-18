@@ -491,15 +491,41 @@
 
             <!-- Cabang & Tanggal Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <!-- Pilihan Cabang -->
-                <div>
+                <!-- Pilihan Cabang (Custom Styled Dropdown) -->
+                <div class="relative" id="modalBranchDropdownWrapper">
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cabang Outlet</label>
                     @if(auth()->user()->isSuperAdmin() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
-                        <select name="branch_id" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-tealBrand transition cursor-pointer" required>
+                        <input type="hidden" name="branch_id" id="modalBranchInput" value="{{ $selectedBranchId ?: ($branches->first()?->id ?? '') }}">
+                        <button 
+                            type="button" 
+                            onclick="toggleExpenseDropdown('modalBranchDropdownMenu')" 
+                            class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition cursor-pointer"
+                        >
+                            <div class="flex items-center space-x-2 truncate">
+                                <span class="w-2 h-2 rounded-full bg-tealBrand shrink-0"></span>
+                                <span id="modalSelectedBranchLabel" class="truncate font-bold text-slate-900">
+                                    {{ $branches->firstWhere('id', $selectedBranchId)?->name ?? ($branches->first()?->name ?? 'Pilih Cabang') }}
+                                </span>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div id="modalBranchDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-56 overflow-y-auto animate-fadeIn">
                             @foreach($branches as $b)
-                                <option value="{{ $b->id }}" {{ $selectedBranchId == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
+                                <button 
+                                    type="button" 
+                                    onclick="selectModalBranch('{{ $b->id }}', '{{ $b->name }}')" 
+                                    class="w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 flex items-center justify-between {{ ($selectedBranchId == $b->id || (empty($selectedBranchId) && $loop->first)) ? 'font-bold text-tealBrand bg-teal-50/50' : 'text-slate-700' }}"
+                                >
+                                    <span>{{ $b->name }}</span>
+                                    <span class="modal-branch-check {{ ($selectedBranchId == $b->id || (empty($selectedBranchId) && $loop->first)) ? '' : 'hidden' }}" id="modalCheck-{{ $b->id }}">
+                                        <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    </span>
+                                </button>
                             @endforeach
-                        </select>
+                        </div>
                     @else
                         <input type="hidden" name="branch_id" value="{{ auth()->user()->branch_id }}">
                         <div class="px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-between">
@@ -668,7 +694,8 @@
         document.addEventListener('click', function(e) {
             const wrappers = [
                 { wrapper: 'expenseBranchWrapper', menu: 'expenseBranchMenu' },
-                { wrapper: 'expenseSortWrapper', menu: 'expenseSortMenu' }
+                { wrapper: 'expenseSortWrapper', menu: 'expenseSortMenu' },
+                { wrapper: 'modalBranchDropdownWrapper', menu: 'modalBranchDropdownMenu' }
             ];
 
             wrappers.forEach(item => {
@@ -684,6 +711,19 @@
     function toggleExpenseDropdown(menuId) {
         const menu = document.getElementById(menuId);
         if (menu) menu.classList.toggle('hidden');
+    }
+
+    function selectModalBranch(id, name) {
+        const input = document.getElementById('modalBranchInput');
+        const label = document.getElementById('modalSelectedBranchLabel');
+        const menu = document.getElementById('modalBranchDropdownMenu');
+        if (input) input.value = id;
+        if (label) label.innerText = name;
+        if (menu) menu.classList.add('hidden');
+
+        document.querySelectorAll('.modal-branch-check').forEach(el => el.classList.add('hidden'));
+        const check = document.getElementById('modalCheck-' + id);
+        if (check) check.classList.remove('hidden');
     }
 
     function selectExpenseBranchOption(val, label) {
