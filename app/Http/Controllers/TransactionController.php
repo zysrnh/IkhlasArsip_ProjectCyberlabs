@@ -88,17 +88,19 @@ class TransactionController extends Controller
 
         // 6. Hitung Metrik Agregat Ringkasan (Statistik Dinamis Sesuai Filter)
         $statQuery = clone $query;
+        $totalCash = (float) (clone $statQuery)->sum('cash_income');
+        $totalExpense = (float) (clone $statQuery)->sum('total_expense');
         $stats = [
-            'total_cash_income' => (clone $statQuery)->sum('cash_income'),
+            'total_cash_income' => $totalCash,
             'total_qris_income' => (clone $statQuery)->sum('qris_income'),
             'total_online_income' => (clone $statQuery)->sum('online_food_income'),
             'total_omset' => (clone $statQuery)->sum('total_omset'),
             'total_sales' => (clone $statQuery)->sum('grand_total_sales'),
-            'total_expense' => (clone $statQuery)->sum('total_expense'),
+            'total_expense' => $totalExpense,
             'total_raw_expense' => (clone $statQuery)->sum('expense_raw_material'),
             'total_non_raw_expense' => (clone $statQuery)->sum('expense_non_raw_material'),
             'total_personal_expense' => (clone $statQuery)->sum('expense_personal'),
-            'total_net_cash_income' => (clone $statQuery)->sum('net_cash_income'),
+            'total_net_cash_income' => $totalCash - $totalExpense,
             'total_records' => (clone $statQuery)->count(),
         ];
 
@@ -302,7 +304,7 @@ class TransactionController extends Controller
             'total_online_income' => $reports->sum('online_food_income'),
             'total_omset' => $reports->sum('total_omset'),
             'total_expense' => $reports->sum('total_expense'),
-            'total_net_cash_income' => $reports->sum('net_cash_income'),
+            'total_net_cash_income' => $reports->sum('cash_income') - $reports->sum('total_expense'),
         ];
 
         $pdf = Pdf::loadView('transactions.pdf', compact('reports', 'stats', 'request'))

@@ -382,11 +382,11 @@
 
     <!-- Summary Records Table (Desktop) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden hidden md:block">
-        <div class="p-4 bg-slate-50/75 border-b border-slate-200 flex items-center justify-between">
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <div class="flex items-center space-x-2">
                 <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Rekapitulasi Summary Transaksi Cabang</span>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-tealBrand border border-teal-200">
-                    {{ $summaryReports->total() }} Data
+                    {{ number_format($summaryReports->total()) }} Data
                 </span>
             </div>
             <div class="text-xs text-slate-500 font-medium">
@@ -398,21 +398,24 @@
             <table class="w-full text-left border-collapse text-xs">
                 <thead>
                     <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                        <th class="py-3 px-3 text-center w-12 shrink-0">No</th>
-                        <th class="py-3 px-3 text-center w-28 shrink-0">Tanggal</th>
-                        <th class="py-3 px-4 min-w-[150px]">Cabang</th>
-                        <th class="py-3 px-3 text-right w-32 shrink-0">1. Pendapatan Cash</th>
-                        <th class="py-3 px-3 text-right w-32 shrink-0">2. Pendapatan QRIS</th>
-                        <th class="py-3 px-3 text-right w-28 shrink-0">3. Online Food</th>
-                        <th class="py-3 px-4 text-right w-36 bg-emerald-50/60 text-emerald-950 font-black shrink-0">Total Omset</th>
-                        <th class="py-3 px-3 text-right w-32 bg-rose-50/60 text-rose-950 font-black shrink-0">Total Belanja</th>
-                        <th class="py-3 px-4 text-right w-36 bg-cyan-50/60 text-cyan-950 font-black shrink-0">Sisa Kas Setoran</th>
-                        <th class="py-3 px-3 text-center w-24 shrink-0">Aksi</th>
+                        <th class="py-3.5 px-3 text-center w-12 shrink-0">No</th>
+                        <th class="py-3.5 px-3 text-center w-28 shrink-0">Tanggal</th>
+                        <th class="py-3.5 px-4 min-w-[150px]">Cabang</th>
+                        <th class="py-3.5 px-3 text-right w-32 shrink-0">Cash (Laci)</th>
+                        <th class="py-3.5 px-3 text-right w-32 shrink-0">QRIS / Transfer</th>
+                        <th class="py-3.5 px-3 text-right w-28 shrink-0">Online Food</th>
+                        <th class="py-3.5 px-4 text-right w-36 shrink-0">Total Omset</th>
+                        <th class="py-3.5 px-3 text-right w-32 shrink-0">Total Belanja</th>
+                        <th class="py-3.5 px-4 text-right w-36 shrink-0">Sisa Kas Setoran</th>
+                        <th class="py-3.5 px-3 text-center w-24 shrink-0">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-800 font-medium">
                     @forelse($summaryReports as $index => $r)
-                        <tr class="hover:bg-slate-50/75 transition">
+                        @php
+                            $rowNetCash = $r->cash_income - ($r->total_expense ?? 0);
+                        @endphp
+                        <tr class="hover:bg-slate-50 transition">
                             <!-- No -->
                             <td class="py-3 px-3 text-center text-slate-400 font-semibold">
                                 {{ $summaryReports->firstItem() + $index }}
@@ -447,25 +450,25 @@
                             </td>
 
                             <!-- Total Omset -->
-                            <td class="py-3 px-4 text-right font-black text-emerald-700 bg-emerald-50/30 whitespace-nowrap">
+                            <td class="py-3 px-4 text-right font-black text-emerald-700 whitespace-nowrap">
                                 Rp {{ number_format($r->total_omset, 0, ',', '.') }}
                             </td>
 
                             <!-- Total Belanja -->
-                            <td class="py-3 px-3 text-right font-black text-rose-600 bg-rose-50/30 whitespace-nowrap">
+                            <td class="py-3 px-3 text-right font-black text-rose-600 whitespace-nowrap">
                                 Rp {{ number_format($r->total_expense ?? 0, 0, ',', '.') }}
                             </td>
 
                             <!-- Sisa Kas Setoran Bersih -->
-                            <td class="py-3 px-4 text-right font-black text-tealBrand bg-cyan-50/30 whitespace-nowrap">
-                                Rp {{ number_format($r->net_cash_income ?? ($r->cash_income - ($r->total_expense ?? 0)), 0, ',', '.') }}
+                            <td class="py-3 px-4 text-right font-black text-tealBrand whitespace-nowrap">
+                                Rp {{ number_format($rowNetCash, 0, ',', '.') }}
                             </td>
 
                             <!-- Aksi Detail -->
                             <td class="py-3 px-3 text-center whitespace-nowrap">
                                 <a 
                                     href="{{ route('kitchen-reports.show', $r->id) }}" 
-                                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-[#0B192C] hover:text-white text-slate-700 transition"
+                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-[#0B192C] hover:text-white text-slate-700 transition"
                                 >
                                     Detail
                                 </a>
@@ -491,7 +494,7 @@
                         <td colspan="3" class="py-3.5 px-4 uppercase tracking-wider text-right text-slate-300 font-extrabold">
                             GRAND TOTAL:
                         </td>
-                        <td class="py-3.5 px-3 text-right text-slate-200 font-black whitespace-nowrap">
+                        <td class="py-3.5 px-3 text-right text-slate-100 font-black whitespace-nowrap">
                             Rp {{ number_format($stats['total_cash_income'], 0, ',', '.') }}
                         </td>
                         <td class="py-3.5 px-3 text-right text-teal-300 font-black whitespace-nowrap">
@@ -525,6 +528,9 @@
     <!-- Mobile Card View -->
     <div class="space-y-3.5 md:hidden">
         @forelse($summaryReports as $r)
+            @php
+                $rowNetCashMobile = $r->cash_income - ($r->total_expense ?? 0);
+            @endphp
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                     <div>
@@ -560,7 +566,7 @@
 
                 <div class="p-3 bg-cyan-50/80 rounded-xl border border-cyan-200 flex items-center justify-between text-xs">
                     <span class="font-black text-cyan-950 uppercase">Sisa Kas Setoran Bersih:</span>
-                    <span class="font-black text-tealBrand text-sm">Rp {{ number_format($r->net_cash_income ?? ($r->cash_income - ($r->total_expense ?? 0)), 0, ',', '.') }}</span>
+                    <span class="font-black text-tealBrand text-sm">Rp {{ number_format($rowNetCashMobile, 0, ',', '.') }}</span>
                 </div>
             </div>
         @empty

@@ -168,7 +168,7 @@
                     <td class="text-right">Rp {{ number_format($r->online_food_income, 0, ',', '.') }}</td>
                     <td class="text-right font-bold" style="color: #047857;">Rp {{ number_format($r->total_omset, 0, ',', '.') }}</td>
                     <td class="text-right font-bold" style="color: #b91c1c;">Rp {{ number_format($r->total_expense ?? 0, 0, ',', '.') }}</td>
-                    <td class="text-right font-bold" style="color: #0A97B0;">Rp {{ number_format($r->net_cash_income ?? ($r->cash_income - ($r->total_expense ?? 0)), 0, ',', '.') }}</td>
+                    <td class="text-right font-bold" style="color: #0A97B0;">Rp {{ number_format($r->cash_income - ($r->total_expense ?? 0), 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
