@@ -383,7 +383,25 @@
                         </div>
                         <div>
                             <span class="text-[10px] text-slate-400 uppercase font-bold block">Cabang:</span>
-                            <span class="font-bold text-slate-800">{{ $user->branch->name ?? 'Semua Cabang (Global)' }}</span>
+                            @if($user->role === 'kepala_cabang')
+                                @if($user->managedBranches->isNotEmpty())
+                                    <div class="flex flex-wrap gap-1 mt-0.5">
+                                        @foreach($user->managedBranches as $mb)
+                                            <span class="inline-block px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                                                {{ $mb->name }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @elseif($user->branch)
+                                    <span class="font-bold text-slate-800">{{ $user->branch->name }}</span>
+                                @else
+                                    <span class="text-slate-400 italic">Belum Ditentukan</span>
+                                @endif
+                            @elseif($user->branch)
+                                <span class="font-bold text-slate-800">{{ $user->branch->name }}</span>
+                            @else
+                                <span class="text-slate-400 italic">Semua Cabang (Global)</span>
+                            @endif
                         </div>
                     </div>
 
@@ -392,7 +410,7 @@
                         @if(auth()->user()->isSuperAdmin() || (!in_array($user->role, ['superadmin', 'kepala_cabang']) || $user->id === auth()->id()))
                             <button 
                                 type="button" 
-                                onclick="openEditModal({{ json_encode($user) }})"
+                                onclick="openEditModal({{ json_encode($user->load('managedBranches')) }})"
                                 class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -455,7 +473,7 @@
                                     <div class="font-bold text-slate-900">
                                         {{ $user->name }}
                                         @if($user->id === auth()->id())
-                                            <span class="ml-1 text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold">Anda</span>
+                                             <span class="ml-1 text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold">Anda</span>
                                         @endif
                                     </div>
                                 </div>
@@ -476,6 +494,10 @@
                                     <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/80">
                                         Admin Cabang
                                     </span>
+                                @elseif($user->role === 'admin_dapur')
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                                        Admin Dapur
+                                    </span>
                                 @else
                                     <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
                                         Viewer
@@ -483,7 +505,21 @@
                                 @endif
                             </td>
                             <td class="py-3 px-3.5">
-                                @if($user->branch)
+                                @if($user->role === 'kepala_cabang')
+                                    @if($user->managedBranches->isNotEmpty())
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach($user->managedBranches as $mb)
+                                                <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                                                    {{ $mb->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @elseif($user->branch)
+                                        <span class="font-bold text-slate-800">{{ $user->branch->name }}</span>
+                                    @else
+                                        <span class="text-slate-400 italic">Belum Ditentukan</span>
+                                    @endif
+                                @elseif($user->branch)
                                     <span class="font-bold text-slate-800">{{ $user->branch->name }}</span>
                                 @else
                                     <span class="text-slate-400 italic">Semua Cabang (Global)</span>
@@ -674,12 +710,14 @@
                                 $modalRoles = auth()->user()->isSuperAdmin()
                                     ? [
                                         'admin_cabang' => 'Admin Cabang',
+                                        'admin_dapur' => 'Admin Dapur',
                                         'kepala_cabang' => 'Kepala Cabang',
                                         'superadmin' => 'Super Admin',
                                         'viewer' => 'Viewer (Read-Only)'
                                     ]
                                     : [
                                         'admin_cabang' => 'Admin Cabang',
+                                        'admin_dapur' => 'Admin Dapur',
                                         'viewer' => 'Viewer (Read-Only)'
                                     ];
                             @endphp
@@ -698,8 +736,8 @@
                     </div>
                 </div>
 
-                <!-- Branch -->
-                <div id="createBranchContainer">
+                <!-- Single Branch (Admin Cabang / Admin Dapur) -->
+                <div id="createSingleBranchContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">PILIH CABANG</label>
                     <div class="relative" id="createBranchDropdownContainer">
                         <input type="hidden" name="branch_id" id="createBranchId" value="{{ auth()->user()->isKepalaCabang() && auth()->user()->branch_id ? auth()->user()->branch_id : '' }}">
@@ -722,9 +760,9 @@
                         </button>
 
                         <div id="createBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
-                            @if(!auth()->user()->isKepalaCabang() || !auth()->user()->branch_id)
+                            @if(!auth()->user()->isKepalaCabang())
                                 <button 
-                                    type="button"
+                                    type="button" 
                                     id="createBranchOpt_"
                                     onclick="selectModalDropdown('create', 'Branch', '', '-- Pilih Cabang --')"
                                     class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
@@ -735,7 +773,7 @@
                             @endif
                             @foreach($branches as $branch)
                                 <button 
-                                    type="button"
+                                    type="button" 
                                     id="createBranchOpt_{{ $branch->id }}"
                                     onclick="selectModalDropdown('create', 'Branch', '{{ $branch->id }}', '{{ addslashes($branch->name) }}')"
                                     class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors hover:bg-slate-50 font-medium text-slate-700"
@@ -746,6 +784,24 @@
                             @endforeach
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Multi Branch Checkbox (Khusus Kepala Cabang) -->
+            <div id="createMultiBranchContainer" class="hidden space-y-1.5 pt-1">
+                <div class="flex items-center justify-between">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
+                        WILAYAH CABANG YANG DIKELOLA (BISA PILIH LEBIH DARI 1)
+                    </label>
+                    <span class="text-[10px] text-tealBrand font-bold">Multi-Cabang</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/50 p-3 rounded-xl border border-slate-200 max-h-48 overflow-y-auto">
+                    @foreach($branches as $branch)
+                        <label class="flex items-center space-x-2.5 p-2 bg-white rounded-lg border border-slate-200/80 hover:border-tealBrand cursor-pointer transition">
+                            <input type="checkbox" name="branch_ids[]" value="{{ $branch->id }}" class="create-branch-cb rounded border-slate-300 text-tealBrand focus:ring-tealBrand w-4 h-4 cursor-pointer">
+                            <span class="text-xs font-bold text-slate-800 select-none truncate">{{ $branch->name }}</span>
+                        </label>
+                    @endforeach
                 </div>
             </div>
 
@@ -951,8 +1007,8 @@
                     </div>
                 </div>
 
-                <!-- Branch -->
-                <div id="editBranchContainer">
+                <!-- Single Branch (Admin Cabang / Admin Dapur) -->
+                <div id="editSingleBranchContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">PILIH CABANG</label>
                     <div class="relative" id="editBranchDropdownContainer">
                         <input type="hidden" name="branch_id" id="editBranchId" value="">
@@ -969,9 +1025,9 @@
                         </button>
 
                         <div id="editBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-fadeIn">
-                            @if(!auth()->user()->isKepalaCabang() || !auth()->user()->branch_id)
+                            @if(!auth()->user()->isKepalaCabang())
                                 <button 
-                                    type="button"
+                                    type="button" 
                                     id="editBranchOpt_"
                                     onclick="selectModalDropdown('edit', 'Branch', '', '-- Pilih Cabang --')"
                                     class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors text-tealBrand font-bold bg-teal-50/60"
@@ -982,7 +1038,7 @@
                             @endif
                             @foreach($branches as $branch)
                                 <button 
-                                    type="button"
+                                    type="button" 
                                     id="editBranchOpt_{{ $branch->id }}"
                                     onclick="selectModalDropdown('edit', 'Branch', '{{ $branch->id }}', '{{ addslashes($branch->name) }}')"
                                     class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors hover:bg-slate-50 font-medium text-slate-700"
@@ -993,6 +1049,24 @@
                             @endforeach
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Multi Branch Checkbox (Khusus Kepala Cabang) -->
+            <div id="editMultiBranchContainer" class="hidden space-y-1.5 pt-1">
+                <div class="flex items-center justify-between">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
+                        WILAYAH CABANG YANG DIKELOLA (BISA PILIH LEBIH DARI 1)
+                    </label>
+                    <span class="text-[10px] text-tealBrand font-bold">Multi-Cabang</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/50 p-3 rounded-xl border border-slate-200 max-h-48 overflow-y-auto">
+                    @foreach($branches as $branch)
+                        <label class="flex items-center space-x-2.5 p-2 bg-white rounded-lg border border-slate-200/80 hover:border-tealBrand cursor-pointer transition">
+                            <input type="checkbox" name="branch_ids[]" value="{{ $branch->id }}" class="edit-branch-cb rounded border-slate-300 text-tealBrand focus:ring-tealBrand w-4 h-4 cursor-pointer">
+                            <span class="text-xs font-bold text-slate-800 select-none truncate">{{ $branch->name }}</span>
+                        </label>
+                    @endforeach
                 </div>
             </div>
 
@@ -1064,6 +1138,7 @@
         'superadmin': 'Super Admin',
         'kepala_cabang': 'Kepala Cabang',
         'admin_cabang': 'Admin Cabang',
+        'admin_dapur': 'Admin Dapur',
         'viewer': 'Viewer (Read-Only)'
     };
 
@@ -1259,19 +1334,19 @@
     function toggleBranchField(type) {
         const roleInput = document.getElementById(type + 'Role');
         const role = roleInput ? roleInput.value : 'admin_cabang';
-        const container = document.getElementById(type + 'BranchContainer');
+        const singleContainer = document.getElementById(type + 'SingleBranchContainer');
+        const multiContainer = document.getElementById(type + 'MultiBranchContainer');
 
-        if (role === 'superadmin') {
-            if (container) {
-                container.style.opacity = '0.4';
-                container.style.pointerEvents = 'none';
+        if (role === 'kepala_cabang') {
+            if (singleContainer) singleContainer.classList.add('hidden');
+            if (multiContainer) multiContainer.classList.remove('hidden');
+        } else if (role === 'admin_cabang' || role === 'admin_dapur') {
+            if (singleContainer) {
+                singleContainer.classList.remove('hidden');
+                singleContainer.style.opacity = '1';
+                singleContainer.style.pointerEvents = 'auto';
             }
-            setModalDropdownValue(type, 'Branch', '', 'Semua Cabang (Global)');
-        } else {
-            if (container) {
-                container.style.opacity = '1';
-                container.style.pointerEvents = 'auto';
-            }
+            if (multiContainer) multiContainer.classList.add('hidden');
             
             // If logged in as Kepala Cabang, lock to their branch
             if (isUserKepalaCabang && userDefaultBranchId) {
@@ -1283,6 +1358,11 @@
                 const curLabel = curVal && branchesMap[curVal] ? branchesMap[curVal] : '-- Pilih Cabang --';
                 setModalDropdownValue(type, 'Branch', curVal, curLabel);
             }
+        } else {
+            // superadmin / viewer
+            if (singleContainer) singleContainer.classList.add('hidden');
+            if (multiContainer) multiContainer.classList.add('hidden');
+            setModalDropdownValue(type, 'Branch', '', 'Semua Cabang (Global)');
         }
     }
 
@@ -1350,6 +1430,9 @@
             checkPasswordStrength('', 'create');
         }
 
+        // Reset multi-branch checkboxes
+        document.querySelectorAll('.create-branch-cb').forEach(cb => cb.checked = false);
+
         setModalDropdownValue('create', 'Role', 'admin_cabang', 'Admin Cabang');
         
         if (isUserKepalaCabang && userDefaultBranchId) {
@@ -1395,6 +1478,12 @@
         const branchVal = user.branch_id ? String(user.branch_id) : '';
         const branchLabel = branchVal && branchesMap[branchVal] ? branchesMap[branchVal] : '-- Pilih Cabang --';
         setModalDropdownValue('edit', 'Branch', branchVal, branchLabel);
+
+        // Prepopulate multi-branch checkboxes
+        const managedIds = (user.managed_branches || []).map(b => b.id);
+        document.querySelectorAll('.edit-branch-cb').forEach(cb => {
+            cb.checked = managedIds.includes(parseInt(cb.value));
+        });
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');

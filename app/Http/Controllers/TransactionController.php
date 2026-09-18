@@ -23,7 +23,17 @@ class TransactionController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $selectedBranchId = (!$user->canAccessAllBranches() && !$user->isViewer()) ? $user->branch_id : $request->get('branch_id');
+        $selectedBranchId = $request->get('branch_id');
+        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
+            if ($user->isKepalaCabang()) {
+                $accessibleIds = $user->getAccessibleBranchIds();
+                if ($selectedBranchId && !in_array($selectedBranchId, $accessibleIds)) {
+                    $selectedBranchId = null;
+                }
+            } else {
+                $selectedBranchId = $user->branch_id;
+            }
+        }
         $selectedMonth = $request->get('month');
 
         $query = $this->buildSummaryQuery($request);
@@ -47,7 +57,7 @@ class TransactionController extends Controller
         ];
 
         $summaryReports = $query->paginate(15)->withQueryString();
-        $branches = Branch::where('status', 'active')->orderBy('name')->get();
+        $branches = $user->getAccessibleBranches();
 
         // Ambil Daftar Bulan yang Tersedia di Database untuk Dropdown Cepat
         $availableMonths = DailyKitchenReport::selectRaw("DATE_FORMAT(report_date, '%Y-%m') as ym")
@@ -214,10 +224,12 @@ class TransactionController extends Controller
 
         $user = auth()->user();
         $branchLabel = 'Semua Cabang';
-        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
-            $branchLabel = $user->branch->name ?? 'Cabang Anda';
-        } elseif ($request->filled('branch_id')) {
+        if ($request->filled('branch_id')) {
             $branchLabel = Branch::find($request->branch_id)?->name ?? 'Cabang ' . $request->branch_id;
+        } elseif ($user->isKepalaCabang()) {
+            $branchLabel = 'Wilayah Cabang ' . $user->name;
+        } elseif (!$user->canAccessAllBranches() && !$user->isViewer()) {
+            $branchLabel = $user->branch->name ?? 'Cabang Anda';
         }
 
         $pdf = Pdf::loadView('transactions.pdf', compact('reports', 'stats', 'request', 'branchLabel'))
@@ -236,7 +248,16 @@ class TransactionController extends Controller
 
         // 1. Otorisasi Cabang
         if (!$user->canAccessAllBranches() && !$user->isViewer()) {
-            $query->where('branch_id', $user->branch_id);
+            if ($user->isKepalaCabang()) {
+                $accessibleBranchIds = $user->getAccessibleBranchIds();
+                if ($request->filled('branch_id') && in_array($request->branch_id, $accessibleBranchIds)) {
+                    $query->where('branch_id', $request->branch_id);
+                } else {
+                    $query->whereIn('branch_id', $accessibleBranchIds);
+                }
+            } else {
+                $query->where('branch_id', $user->branch_id);
+            }
         } elseif ($request->filled('branch_id')) {
             $query->where('branch_id', $request->branch_id);
         }

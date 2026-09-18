@@ -20,8 +20,16 @@ class DashboardController extends Controller
         $user = auth()->user();
         $query = DailyKitchenReport::with(['branch', 'user']);
 
-        // Jika user bukan Super Admin & bukan Viewer, batasi hanya cabangnya sendiri
-        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
+        // Filter berdasarkan hak akses user
+        if ($user->isKepalaCabang()) {
+            $accessibleBranchIds = $user->getAccessibleBranchIds();
+            $selectedBranchId = $request->get('branch_id');
+            if (!empty($selectedBranchId) && in_array($selectedBranchId, $accessibleBranchIds)) {
+                $query->where('branch_id', $selectedBranchId);
+            } else {
+                $query->whereIn('branch_id', $accessibleBranchIds);
+            }
+        } elseif (!$user->canAccessAllBranches() && !$user->isViewer()) {
             $query->where('branch_id', $user->branch_id);
             $selectedBranchId = $user->branch_id;
         } else {
@@ -55,7 +63,13 @@ class DashboardController extends Controller
         $activeBranchesCount = Branch::where('status', 'active')->count();
 
         // 3. Perbandingan Cabang & Top Performing Branch
-        $allBranches = Branch::where('status', 'active')->with(['dailyKitchenReports'])->get();
+        if ($user->isKepalaCabang()) {
+            $allBranches = $user->getAccessibleBranches()->load(['dailyKitchenReports']);
+        } elseif (!$user->canAccessAllBranches() && !$user->isViewer()) {
+            $allBranches = Branch::where('id', $user->branch_id)->where('status', 'active')->with(['dailyKitchenReports'])->get();
+        } else {
+            $allBranches = Branch::where('status', 'active')->with(['dailyKitchenReports'])->get();
+        }
         $maxBranchIncome = 1;
         $branchComparisons = [];
         $topBranchName = '-';

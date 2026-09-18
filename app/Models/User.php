@@ -81,11 +81,66 @@ class User extends Authenticatable
     }
 
     /**
-     * Relasi ke Cabang/Branch
+     * Relasi ke Cabang/Branch utama (untuk Admin Cabang / Admin Dapur)
      */
     public function branch(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Branch::class, 'branch_id');
+    }
+
+    /**
+     * Relasi Multi-Cabang untuk Kepala Cabang (Many-to-Many via branch_user)
+     */
+    public function managedBranches(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Branch::class, 'branch_user')->withTimestamps();
+    }
+
+    /**
+     * Dapatkan daftar ID cabang yang berhak diakses user
+     */
+    public function getAccessibleBranchIds(): array
+    {
+        if ($this->isSuperAdmin() || $this->isViewer()) {
+            return Branch::where('status', 'active')->pluck('id')->toArray();
+        }
+
+        if ($this->isKepalaCabang()) {
+            $managedIds = $this->managedBranches()->pluck('branches.id')->toArray();
+            if (!empty($managedIds)) {
+                return $managedIds;
+            }
+            return $this->branch_id ? [$this->branch_id] : [];
+        }
+
+        return $this->branch_id ? [$this->branch_id] : [];
+    }
+
+    /**
+     * Dapatkan daftar model Cabang yang berhak diakses user
+     */
+    public function getAccessibleBranches()
+    {
+        if ($this->isSuperAdmin() || $this->isViewer()) {
+            return Branch::where('status', 'active')->orderBy('name')->get();
+        }
+
+        if ($this->isKepalaCabang()) {
+            $managed = $this->managedBranches()->where('status', 'active')->orderBy('name')->get();
+            if ($managed->isNotEmpty()) {
+                return $managed;
+            }
+            if ($this->branch_id) {
+                return Branch::where('id', $this->branch_id)->where('status', 'active')->get();
+            }
+            return collect();
+        }
+
+        if ($this->branch_id) {
+            return Branch::where('id', $this->branch_id)->where('status', 'active')->get();
+        }
+
+        return collect();
     }
 
     /**
