@@ -384,14 +384,17 @@
                         <div>
                             <span class="text-[10px] text-slate-400 uppercase font-bold block">Cabang:</span>
                             @if($user->role === 'kepala_cabang')
-                                @if($user->managedBranches->isNotEmpty())
-                                    <div class="flex flex-wrap gap-1 mt-0.5">
-                                        @foreach($user->managedBranches as $mb)
-                                            <span class="inline-block px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
-                                                {{ $mb->name }}
-                                            </span>
-                                        @endforeach
+                                @if($user->managedBranches->count() > 1)
+                                    <div class="mt-0.5 space-y-0.5">
+                                        <span class="inline-block px-1.5 py-0.2 rounded text-[9px] font-bold bg-teal-50 text-teal-700 border border-teal-200/80">
+                                            {{ $user->managedBranches->count() }} Cabang
+                                        </span>
+                                        <div class="text-[11px] font-semibold text-slate-700">
+                                            {{ $user->managedBranches->pluck('name')->implode(', ') }}
+                                        </div>
                                     </div>
+                                @elseif($user->managedBranches->count() === 1)
+                                    <span class="font-bold text-slate-800">{{ $user->managedBranches->first()->name }}</span>
                                 @elseif($user->branch)
                                     <span class="font-bold text-slate-800">{{ $user->branch->name }}</span>
                                 @else
@@ -506,23 +509,26 @@
                             </td>
                             <td class="py-3 px-3.5">
                                 @if($user->role === 'kepala_cabang')
-                                    @if($user->managedBranches->isNotEmpty())
-                                        <div class="flex flex-wrap gap-1">
-                                            @foreach($user->managedBranches as $mb)
-                                                <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
-                                                    {{ $mb->name }}
-                                                </span>
-                                            @endforeach
+                                    @if($user->managedBranches->count() > 1)
+                                        <div class="flex items-center gap-1.5 flex-wrap max-w-sm">
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-teal-50 text-teal-700 border border-teal-200/80 shrink-0">
+                                                {{ $user->managedBranches->count() }} Cabang
+                                            </span>
+                                            <span class="text-xs font-semibold text-slate-700">
+                                                {{ $user->managedBranches->pluck('name')->implode(', ') }}
+                                            </span>
                                         </div>
+                                    @elseif($user->managedBranches->count() === 1)
+                                        <span class="text-xs font-semibold text-slate-700">{{ $user->managedBranches->first()->name }}</span>
                                     @elseif($user->branch)
-                                        <span class="font-bold text-slate-800">{{ $user->branch->name }}</span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ $user->branch->name }}</span>
                                     @else
-                                        <span class="text-slate-400 italic">Belum Ditentukan</span>
+                                        <span class="text-xs text-slate-400 italic">Belum Ditentukan</span>
                                     @endif
                                 @elseif($user->branch)
-                                    <span class="font-bold text-slate-800">{{ $user->branch->name }}</span>
+                                    <span class="text-xs font-semibold text-slate-700">{{ $user->branch->name }}</span>
                                 @else
-                                    <span class="text-slate-400 italic">Semua Cabang (Global)</span>
+                                    <span class="text-xs text-slate-400 italic">Semua Cabang (Global)</span>
                                 @endif
                             </td>
                             <td class="py-3 px-3.5 text-center">
@@ -541,7 +547,7 @@
                                     @if(auth()->user()->isSuperAdmin() || (!in_array($user->role, ['superadmin', 'kepala_cabang']) || $user->id === auth()->id()))
                                         <button 
                                             type="button" 
-                                            onclick="openEditModal({{ json_encode($user) }})"
+                                            onclick="openEditModal({{ json_encode($user->load('managedBranches')) }})"
                                             class="p-1 text-slate-400 hover:text-tealBrand transition-colors cursor-pointer"
                                             title="Edit Pengguna"
                                         >
