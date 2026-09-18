@@ -466,13 +466,22 @@
 
 <!-- Modal Input Cepat Belanja Harian -->
 <div id="expenseInputModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-5 animate-fadeIn">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div>
-                <h3 class="text-base font-extrabold text-slate-900">Catat Belanja Harian Cabang</h3>
-                <p class="text-xs text-slate-500">Sesuai format Excel Belanja Cabang.</p>
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-5 animate-fadeIn border border-slate-100">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900">Catat Belanja Harian Cabang</h3>
+                    <p class="text-xs text-slate-500">Sesuai format Excel Belanja Cabang.</p>
+                </div>
             </div>
-            <button type="button" onclick="toggleExpenseInputModal()" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer">
+            <button type="button" onclick="toggleExpenseInputModal()" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
@@ -480,110 +489,147 @@
         <form action="{{ route('daily-expenses.store') }}" method="POST" class="space-y-4">
             @csrf
 
-            <!-- Cabang & Tanggal -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Cabang & Tanggal Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- Pilihan Cabang -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Cabang</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cabang Outlet</label>
                     @if(auth()->user()->isSuperAdmin() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
-                        <select name="branch_id" class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-tealBrand" required>
+                        <select name="branch_id" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-tealBrand transition cursor-pointer" required>
                             @foreach($branches as $b)
                                 <option value="{{ $b->id }}" {{ $selectedBranchId == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
                             @endforeach
                         </select>
                     @else
                         <input type="hidden" name="branch_id" value="{{ auth()->user()->branch_id }}">
-                        <div class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700">
-                            {{ auth()->user()->branch->name ?? 'Cabang Anda' }}
+                        <div class="px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-between">
+                            <span>{{ auth()->user()->branch->name ?? 'Cabang Anda' }}</span>
+                            <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider bg-slate-200/70 px-1.5 py-0.5 rounded">Terkunci</span>
                         </div>
                     @endif
                 </div>
 
+                <!-- Pilihan Tanggal (Flatpickr) -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Tanggal</label>
-                    <input 
-                        type="date" 
-                        name="report_date" 
-                        value="{{ date('Y-m-d') }}" 
-                        class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-tealBrand cursor-pointer"
-                        required
-                    >
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Belanja</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <input 
+                            type="text" 
+                            name="report_date" 
+                            id="modalReportDateInput" 
+                            value="{{ date('Y-m-d') }}" 
+                            class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-tealBrand transition cursor-pointer"
+                            required
+                        >
+                    </div>
                 </div>
             </div>
 
-            <!-- 1. Belanja Bahan Baku -->
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">1. Belanja Bahan Baku</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
-                    <input 
-                        type="text" 
-                        name="expense_raw_material" 
-                        id="modalRawExpense" 
-                        value="0" 
-                        oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
-                        class="w-full text-base font-extrabold pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
-                    >
+            <!-- 3 Input Pos Belanja -->
+            <div class="space-y-3 pt-1">
+                <!-- 1. Belanja Bahan Baku -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-bold text-slate-800">1. Belanja Bahan Baku</label>
+                        <span class="text-[10px] text-slate-400 font-medium">Daging, ayam, sayur, bumbu</span>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
+                        <input 
+                            type="text" 
+                            name="expense_raw_material" 
+                            id="modalRawExpense" 
+                            value="0" 
+                            onfocus="if(this.value==='0') this.select();"
+                            oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
+                            class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
+                        >
+                    </div>
                 </div>
-                <p class="text-[10px] text-slate-400">Daging, ayam, beras, sayur, bumbu</p>
+
+                <!-- 2. Belanja Non Bahan Baku -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-bold text-slate-800">2. Belanja Non Bahan Baku</label>
+                        <span class="text-[10px] text-slate-400 font-medium">Gas LPG, plastik, sabun, listrik</span>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
+                        <input 
+                            type="text" 
+                            name="expense_non_raw_material" 
+                            id="modalNonRawExpense" 
+                            value="0" 
+                            onfocus="if(this.value==='0') this.select();"
+                            oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
+                            class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
+                        >
+                    </div>
+                </div>
+
+                <!-- 3. Belanja Pribadi -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-bold text-slate-800">3. Belanja Pribadi / Kasbon</label>
+                        <span class="text-[10px] text-slate-400 font-medium">Kasbon, keperluan pribadi/staf</span>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
+                        <input 
+                            type="text" 
+                            name="expense_personal" 
+                            id="modalPersonalExpense" 
+                            value="0" 
+                            onfocus="if(this.value==='0') this.select();"
+                            oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
+                            class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
+                        >
+                    </div>
+                </div>
             </div>
 
-            <!-- 2. Belanja Non Bahan Baku -->
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">2. Belanja Non Bahan Baku</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
-                    <input 
-                        type="text" 
-                        name="expense_non_raw_material" 
-                        id="modalNonRawExpense" 
-                        value="0" 
-                        oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
-                        class="w-full text-base font-extrabold pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
-                    >
+            <!-- Total Belanja Live Summary Card -->
+            <div class="p-4 bg-rose-50/80 border border-rose-200 rounded-xl flex items-center justify-between">
+                <div>
+                    <span class="block text-[10px] font-black text-rose-900 uppercase tracking-wider">TOTAL PENGELUARAN BELANJA</span>
+                    <span class="text-[11px] text-rose-600 font-medium">Akumulasi Bahan Baku + Non Bahan Baku + Pribadi</span>
                 </div>
-                <p class="text-[10px] text-slate-400">Gas LPG, plastik, sabun cuci, listrik</p>
-            </div>
-
-            <!-- 3. Belanja Pribadi -->
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">3. Belanja Pribadi</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
-                    <input 
-                        type="text" 
-                        name="expense_personal" 
-                        id="modalPersonalExpense" 
-                        value="0" 
-                        oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
-                        class="w-full text-base font-extrabold pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
-                    >
+                <div class="text-xl font-black text-rose-600 font-sans tracking-tight" id="modalTotalExpenseLabel">
+                    Rp 0
                 </div>
-                <p class="text-[10px] text-slate-400">Kasbon, prive, keperluan pribadi/karyawan</p>
-            </div>
-
-            <!-- Total Belanja Preview -->
-            <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
-                <span class="text-xs font-bold text-rose-900 uppercase">Total Belanja:</span>
-                <span class="text-lg font-black text-rose-600 font-sans" id="modalTotalExpenseLabel">Rp 0</span>
             </div>
 
             <!-- Catatan Belanja -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Rincian / Catatan Belanja (Opsional)</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Rincian / Catatan Belanja (Opsional)</label>
                 <textarea 
                     name="expense_notes" 
                     rows="2" 
                     placeholder="Contoh: Beli ayam 10kg Rp 350.000, Gas LPG 2 tabung Rp 44.000..." 
-                    class="w-full p-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-tealBrand"
+                    class="w-full p-3 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-tealBrand transition"
                 ></textarea>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button type="button" onclick="toggleExpenseInputModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">
+            <!-- Actions Footer -->
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                <button 
+                    type="button" 
+                    onclick="toggleExpenseInputModal()" 
+                    class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                >
                     Batal
                 </button>
-                <button type="submit" class="px-5 py-2 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer">
-                    Simpan Belanja
+                <button 
+                    type="submit" 
+                    class="px-6 py-2.5 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <span>Simpan Belanja</span>
                 </button>
             </div>
         </form>
@@ -602,6 +648,15 @@
         });
 
         flatpickr("#filterExpenseDateTo", {
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "j F Y",
+            allowInput: false,
+            disableMobile: "true"
+        });
+
+        flatpickr("#modalReportDateInput", {
             locale: "id",
             dateFormat: "Y-m-d",
             altInput: true,
