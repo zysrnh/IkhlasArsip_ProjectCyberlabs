@@ -23,70 +23,12 @@ class TransactionController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-
-        $query = DailyKitchenReport::with(['branch', 'user']);
-
-        // 1. Otorisasi Cabang
-        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
-            $query->where('branch_id', $user->branch_id);
-            $selectedBranchId = $user->branch_id;
-        } else {
-            $selectedBranchId = $request->get('branch_id');
-            if (!empty($selectedBranchId)) {
-                $query->where('branch_id', $selectedBranchId);
-            }
-        }
-
-        // 2. Filter Cepat Bulan (Format: YYYY-MM)
+        $selectedBranchId = (!$user->canAccessAllBranches() && !$user->isViewer()) ? $user->branch_id : $request->get('branch_id');
         $selectedMonth = $request->get('month');
-        if (!empty($selectedMonth)) {
-            [$year, $month] = explode('-', $selectedMonth);
-            $query->whereYear('report_date', $year)->whereMonth('report_date', $month);
-        }
 
-        // 3. Filter Rentang Tanggal
-        if ($request->filled('date_from')) {
-            $query->whereDate('report_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('report_date', '<=', $request->date_to);
-        }
+        $query = $this->buildSummaryQuery($request);
 
-        // 4. Pencarian Cepat (Cabang, Catatan, Penginput)
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('branch', function ($qb) use ($search) {
-                    $qb->where('name', 'like', "%{$search}%");
-                })->orWhereHas('user', function ($qu) use ($search) {
-                    $qu->where('name', 'like', "%{$search}%");
-                })->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhere('expense_notes', 'like', "%{$search}%");
-            });
-        }
-
-        // 5. Sorting
-        $sort = $request->get('sort', 'terbaru');
-        switch ($sort) {
-            case 'terlama':
-                $query->oldest('report_date')->oldest('id');
-                break;
-            case 'omset_terbesar':
-                $query->orderByDesc('total_omset');
-                break;
-            case 'belanja_terbesar':
-                $query->orderByDesc('total_expense');
-                break;
-            case 'sisa_terbesar':
-                $query->orderByDesc('net_cash_income');
-                break;
-            case 'terbaru':
-            default:
-                $query->latest('report_date')->latest('id');
-                break;
-        }
-
-        // 6. Hitung Metrik Agregat Ringkasan (Statistik Dinamis Sesuai Filter)
+        // Hitung Metrik Agregat Ringkasan (Statistik Dinamis Sesuai Filter)
         $statQuery = clone $query;
         $totalCash = (float) (clone $statQuery)->sum('cash_income');
         $totalExpense = (float) (clone $statQuery)->sum('total_expense');
@@ -107,7 +49,7 @@ class TransactionController extends Controller
         $summaryReports = $query->paginate(15)->withQueryString();
         $branches = Branch::where('status', 'active')->orderBy('name')->get();
 
-        // 7. Ambil Daftar Bulan yang Tersedia di Database untuk Dropdown Cepat
+        // Ambil Daftar Bulan yang Tersedia di Database untuk Dropdown Cepat
         $availableMonths = DailyKitchenReport::selectRaw("DATE_FORMAT(report_date, '%Y-%m') as ym")
             ->distinct()
             ->orderByDesc('ym')
@@ -135,29 +77,7 @@ class TransactionController extends Controller
      */
     public function exportExcel(Request $request): StreamedResponse
     {
-        $query = DailyKitchenReport::with(['branch', 'user']);
-
-        // Otorisasi Cabang
-        $user = auth()->user();
-        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
-        }
-
-        if ($request->filled('month')) {
-            [$year, $month] = explode('-', $request->month);
-            $query->whereYear('report_date', $year)->whereMonth('report_date', $month);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('report_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('report_date', '<=', $request->date_to);
-        }
-
-        $reports = $query->latest('report_date')->get();
+        $reports = $this->buildSummaryQuery($request)->get();
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -213,6 +133,8 @@ class TransactionController extends Controller
         $totalNetCash = 0;
 
         foreach ($reports as $index => $r) {
+            $netCash = $r->cash_income - ($r->total_expense ?? 0);
+
             $sheet->setCellValue('A' . $row, $index + 1);
             $sheet->setCellValue('B' . $row, $r->report_date->translatedFormat('d/m/Y'));
             $sheet->setCellValue('C' . $row, $r->branch->name ?? '-');
@@ -221,14 +143,14 @@ class TransactionController extends Controller
             $sheet->setCellValue('F' . $row, $r->online_food_income);
             $sheet->setCellValue('G' . $row, $r->total_omset);
             $sheet->setCellValue('H' . $row, $r->total_expense ?? 0);
-            $sheet->setCellValue('I' . $row, $r->net_cash_income ?? ($r->cash_income - ($r->total_expense ?? 0)));
+            $sheet->setCellValue('I' . $row, $netCash);
 
             $totalCash += $r->cash_income;
             $totalQris += $r->qris_income;
             $totalOnline += $r->online_food_income;
             $totalOmset += $r->total_omset;
             $totalExpense += ($r->total_expense ?? 0);
-            $totalNetCash += ($r->net_cash_income ?? ($r->cash_income - ($r->total_expense ?? 0)));
+            $totalNetCash += $netCash;
 
             $sheet->getStyle('D' . $row . ':I' . $row)->getNumberFormat()->setFormatCode('#,##0');
             $sheet->getStyle('A' . $row . ':C' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -275,20 +197,57 @@ class TransactionController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $query = DailyKitchenReport::with(['branch', 'user']);
+        $reports = $this->buildSummaryQuery($request)->get();
+
+        $totalCash = $reports->sum('cash_income');
+        $totalExpense = $reports->sum('total_expense');
+
+        $stats = [
+            'total_cash_income' => $totalCash,
+            'total_qris_income' => $reports->sum('qris_income'),
+            'total_online_income' => $reports->sum('online_food_income'),
+            'total_omset' => $reports->sum('total_omset'),
+            'total_expense' => $totalExpense,
+            'total_net_cash_income' => $totalCash - $totalExpense,
+            'total_records' => $reports->count(),
+        ];
 
         $user = auth()->user();
+        $branchLabel = 'Semua Cabang';
+        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
+            $branchLabel = $user->branch->name ?? 'Cabang Anda';
+        } elseif ($request->filled('branch_id')) {
+            $branchLabel = Branch::find($request->branch_id)?->name ?? 'Cabang ' . $request->branch_id;
+        }
+
+        $pdf = Pdf::loadView('transactions.pdf', compact('reports', 'stats', 'request', 'branchLabel'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('Summary_Transaksi_' . date('Ymd_His') . '.pdf');
+    }
+
+    /**
+     * Helper Query Builder untuk Rekap Summary Transaksi
+     */
+    private function buildSummaryQuery(Request $request)
+    {
+        $user = auth()->user();
+        $query = DailyKitchenReport::with(['branch', 'user']);
+
+        // 1. Otorisasi Cabang
         if (!$user->canAccessAllBranches() && !$user->isViewer()) {
             $query->where('branch_id', $user->branch_id);
         } elseif ($request->filled('branch_id')) {
             $query->where('branch_id', $request->branch_id);
         }
 
+        // 2. Filter Cepat Bulan (Format: YYYY-MM)
         if ($request->filled('month')) {
             [$year, $month] = explode('-', $request->month);
             $query->whereYear('report_date', $year)->whereMonth('report_date', $month);
         }
 
+        // 3. Filter Rentang Tanggal
         if ($request->filled('date_from')) {
             $query->whereDate('report_date', '>=', $request->date_from);
         }
@@ -296,20 +255,40 @@ class TransactionController extends Controller
             $query->whereDate('report_date', '<=', $request->date_to);
         }
 
-        $reports = $query->latest('report_date')->get();
+        // 4. Pencarian Cepat (Cabang, Catatan, Penginput)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('branch', function ($qb) use ($search) {
+                    $qb->where('name', 'like', "%{$search}%");
+                })->orWhereHas('user', function ($qu) use ($search) {
+                    $qu->where('name', 'like', "%{$search}%");
+                })->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhere('expense_notes', 'like', "%{$search}%");
+            });
+        }
 
-        $stats = [
-            'total_cash_income' => $reports->sum('cash_income'),
-            'total_qris_income' => $reports->sum('qris_income'),
-            'total_online_income' => $reports->sum('online_food_income'),
-            'total_omset' => $reports->sum('total_omset'),
-            'total_expense' => $reports->sum('total_expense'),
-            'total_net_cash_income' => $reports->sum('cash_income') - $reports->sum('total_expense'),
-        ];
+        // 5. Sorting
+        $sort = $request->get('sort', 'terbaru');
+        switch ($sort) {
+            case 'terlama':
+                $query->oldest('report_date')->oldest('id');
+                break;
+            case 'omset_terbesar':
+                $query->orderByDesc('total_omset');
+                break;
+            case 'belanja_terbesar':
+                $query->orderByDesc('total_expense');
+                break;
+            case 'sisa_terbesar':
+                $query->orderByDesc('net_cash_income');
+                break;
+            case 'terbaru':
+            default:
+                $query->latest('report_date')->latest('id');
+                break;
+        }
 
-        $pdf = Pdf::loadView('transactions.pdf', compact('reports', 'stats', 'request'))
-            ->setPaper('a4', 'landscape');
-
-        return $pdf->download('Summary_Transaksi_' . date('Ymd_His') . '.pdf');
+        return $query;
     }
 }
