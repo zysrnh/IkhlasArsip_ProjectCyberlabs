@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/daily-expenses/export-pdf', [DailyExpenseController::class, 'exportPdf'])->name('daily-expenses.export-pdf');
     Route::get('/daily-expenses', [DailyExpenseController::class, 'index'])->name('daily-expenses.index');
     Route::post('/daily-expenses', [DailyExpenseController::class, 'store'])->name('daily-expenses.store');
+    Route::delete('/daily-expenses/{id}', [DailyExpenseController::class, 'destroy'])->name('daily-expenses.destroy');
 
     // Modul Biaya Bulanan / Cost Cabang (Fixed Operational Cost + Rekap Belanja Harian)
     Route::get('/monthly-costs/export-pdf', [MonthlyCostController::class, 'exportPdf'])->name('monthly-costs.export-pdf');

@@ -268,4 +268,44 @@ class DailyExpenseController extends Controller
         $fileName = 'Laporan_Belanja_Harian_' . str_replace(' ', '_', $branchLabel) . '_' . date('Ymd_His') . '.pdf';
         return $pdf->download($fileName);
     }
+
+    /**
+     * Hapus / Reset data belanja harian pada laporan dapur tertentu.
+     */
+    public function destroy($id): RedirectResponse
+    {
+        $user = auth()->user();
+        if ($user->isViewer()) {
+            return redirect()->back()->with('error', 'Akun Viewer tidak memiliki izin menghapus belanja.');
+        }
+
+        $report = DailyKitchenReport::findOrFail($id);
+
+        if (($user->isAdminCabang() || $user->isAdminDapur()) && $user->branch_id && $report->branch_id != $user->branch_id) {
+            abort(403, 'Anda tidak memiliki akses menghapus data belanja cabang lain.');
+        } elseif ($user->isKepalaCabang()) {
+            if ($user->managedBranches()->count() > 0 && !in_array($report->branch_id, $user->managedBranches()->pluck('branches.id')->toArray())) {
+                abort(403, 'Akses ditolak.');
+            }
+        }
+
+        $dateFormatted = $report->report_date ? $report->report_date->translatedFormat('d F Y') : '-';
+
+        // Jika laporan dapur ini murni hanya catatan belanja (tanpa item masakan dan omzet = 0), hapus record
+        if ($report->items()->count() === 0 && (float)$report->total_omset == 0 && (float)$report->grand_total_sales == 0) {
+            $report->delete();
+        } else {
+            // Jika ada laporan masakan / omzet, cukup kosongkan nilai belanja
+            $report->expense_raw_material = 0;
+            $report->expense_non_raw_material = 0;
+            $report->expense_personal = 0;
+            $report->total_expense = 0;
+            $report->expense_notes = null;
+            $report->net_cash_income = $report->total_omset;
+            $report->save();
+        }
+
+        return redirect()->route('daily-expenses.index')
+            ->with('success', "Catatan belanja harian tanggal {$dateFormatted} berhasil dihapus.");
+    }
 }

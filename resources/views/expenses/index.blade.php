@@ -394,12 +394,45 @@
                             </td>
 
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <a 
-                                    href="{{ route('kitchen-reports.show', $exp->id) }}" 
-                                    class="inline-flex items-center px-2.5 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition"
-                                >
-                                    Laporan
-                                </a>
+                                <div class="flex items-center justify-center space-x-1.5">
+                                    <a 
+                                        href="{{ route('kitchen-reports.show', $exp->id) }}" 
+                                        class="p-1.5 text-slate-400 hover:text-tealBrand transition-colors cursor-pointer"
+                                        title="Lihat Laporan Dapur"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+
+                                    @if(!auth()->user()->isViewer())
+                                        <button 
+                                            type="button" 
+                                            onclick="openEditExpenseModal({{ json_encode($exp) }})"
+                                            class="p-1.5 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                                            title="Edit Catatan Belanja"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+
+                                        <form action="{{ route('daily-expenses.destroy', $exp->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Belanja Harian?', text: 'Data belanja harian {{ $exp->branch->name ?? '' }} tanggal {{ $exp->report_date ? $exp->report_date->format('d/m/Y') : '' }} akan dihapus.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus', form: this });" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button 
+                                                type="submit" 
+                                                class="p-1.5 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                                title="Hapus Belanja Harian"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -462,7 +495,35 @@
                         {{ $exp->expense_notes }}
                     </div>
                 @endif
-            </div>
+
+                <!-- Mobile Card Action Buttons -->
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-end space-x-2">
+                    <a 
+                        href="{{ route('kitchen-reports.show', $exp->id) }}" 
+                        class="px-2.5 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition"
+                    >
+                        Laporan
+                    </a>
+                    @if(!auth()->user()->isViewer())
+                        <button 
+                            type="button" 
+                            onclick="openEditExpenseModal({{ json_encode($exp) }})"
+                            class="px-2.5 py-1 text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-lg transition"
+                        >
+                            Edit
+                        </button>
+                        <form action="{{ route('daily-expenses.destroy', $exp->id) }}" method="POST" onsubmit="event.preventDefault(); confirmCustomAction({ title: 'Hapus Belanja Harian?', text: 'Data belanja harian {{ $exp->branch->name ?? '' }} tanggal {{ $exp->report_date ? $exp->report_date->format('d/m/Y') : '' }} akan dihapus.', icon: 'warning', danger: true, confirmButtonText: 'Ya, Hapus', form: this });" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button 
+                                type="submit" 
+                                class="px-2.5 py-1 text-xs font-bold bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 rounded-lg transition"
+                            >
+                                Hapus
+                            </button>
+                        </form>
+                    @endif
+                </div>
         @empty
             <div class="py-10 text-center text-slate-400 text-xs font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                 Belum ada catatan belanja harian.
@@ -789,6 +850,38 @@
 
         const total = raw + nonRaw + personal;
         document.getElementById('modalTotalExpenseLabel').innerText = 'Rp ' + Math.round(total).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function openEditExpenseModal(exp) {
+        const modal = document.getElementById('expenseInputModal');
+        if (modal && modal.classList.contains('hidden')) {
+            modal.classList.remove('hidden');
+        }
+
+        if (exp.branch_id) {
+            selectModalBranch(exp.branch_id, exp.branch ? exp.branch.name : 'Pilih Cabang');
+        }
+
+        if (exp.report_date) {
+            const dateStr = exp.report_date.split('T')[0];
+            const dateInput = document.getElementById('modalReportDateInput');
+            if (dateInput && dateInput._flatpickr) {
+                dateInput._flatpickr.setDate(dateStr, true);
+            } else if (dateInput) {
+                dateInput.value = dateStr;
+            }
+        }
+
+        const rawVal = exp.expense_raw_material ? parseInt(exp.expense_raw_material) : 0;
+        const nonRawVal = exp.expense_non_raw_material ? parseInt(exp.expense_non_raw_material) : 0;
+        const personalVal = exp.expense_personal ? parseInt(exp.expense_personal) : 0;
+
+        document.getElementById('modalRawExpense').value = rawVal > 0 ? rawVal.toLocaleString('id-ID') : '0';
+        document.getElementById('modalNonRawExpense').value = nonRawVal > 0 ? nonRawVal.toLocaleString('id-ID') : '0';
+        document.getElementById('modalPersonalExpense').value = personalVal > 0 ? personalVal.toLocaleString('id-ID') : '0';
+        document.getElementById('modalExpenseNotes').value = exp.expense_notes || '';
+
+        calculateModalTotalExpense();
     }
 </script>
 @endsection
