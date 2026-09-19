@@ -13,16 +13,30 @@
                 Pencatatan biaya operasional tetap bulanan dan rekapitulasi total belanja operasional cabang.
             </p>
         </div>
-        @if(!auth()->user()->isViewer())
-        <button 
-            type="button" 
-            onclick="openCreateModal()" 
-            class="inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer"
-        >
-            <span class="text-sm leading-none">+</span>
-            <span>Catat Cost Bulanan</span>
-        </button>
-        @endif
+        <div class="flex items-center space-x-2">
+            <!-- Tombol Export PDF Rekapitulasi Sesuai Filter -->
+            <a 
+                href="{{ route('monthly-costs.export-pdf', request()->query()) }}" 
+                class="inline-flex items-center justify-center space-x-1.5 px-3.5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer"
+                title="Unduh Rekap Laporan PDF Sesuai Filter"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Export PDF</span>
+            </a>
+
+            @if(!auth()->user()->isViewer())
+            <button 
+                type="button" 
+                onclick="openCreateModal()" 
+                class="inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer"
+            >
+                <span class="text-sm leading-none">+</span>
+                <span>Catat Cost Bulanan</span>
+            </button>
+            @endif
+        </div>
     </div>
 
     <!-- 3 Stat KPI Cards (Biaya Bulanan, Belanja Harian, Grand Total) -->
@@ -271,12 +285,20 @@
 
                     <!-- Action Buttons -->
                     <div class="pt-2 border-t border-slate-200/60 flex items-center justify-end space-x-2">
+                        <a 
+                            href="{{ route('monthly-costs.export-single-pdf', $cost->id) }}" 
+                            class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold rounded-lg transition-colors cursor-pointer inline-flex items-center space-x-1"
+                            title="Unduh Lembar PDF Periode Ini"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <span>PDF</span>
+                        </a>
                         <button 
                             type="button" 
                             onclick="openDetailModal({{ json_encode($cost) }})"
                             class="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
                         >
-                            Detail Rekap
+                            Detail
                         </button>
                         @if(!auth()->user()->isViewer())
                             <button 
@@ -359,6 +381,17 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
                                     </button>
+
+                                    <!-- Export Single PDF Button -->
+                                    <a 
+                                        href="{{ route('monthly-costs.export-single-pdf', $cost->id) }}" 
+                                        class="p-1 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                        title="Unduh Lembar Rincian PDF Periode Ini"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </a>
 
                                     @if(!auth()->user()->isViewer())
                                         <!-- Edit Button -->
@@ -855,7 +888,15 @@
 
         </div>
 
-        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end rounded-b-2xl">
+        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between rounded-b-2xl">
+            <a 
+                id="detailExportPdfBtn" 
+                href="#" 
+                class="inline-flex items-center space-x-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <span>Unduh Lembar PDF</span>
+            </a>
             <button type="button" onclick="closeDetailModal()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer">
                 Tutup
             </button>
@@ -1147,6 +1188,11 @@
             notesContainer.classList.remove('hidden');
         } else {
             notesContainer.classList.add('hidden');
+        }
+
+        const exportPdfBtn = document.getElementById('detailExportPdfBtn');
+        if (exportPdfBtn) {
+            exportPdfBtn.href = `/monthly-costs/${cost.id}/export-pdf`;
         }
 
         modal.classList.remove('hidden');

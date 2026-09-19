@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\BranchMonthlyCost;
 use App\Models\DailyKitchenReport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -377,5 +378,172 @@ class MonthlyCostController extends Controller
         }
 
         return $cleaned;
+    }
+
+    /**
+     * Export PDF Rekapitulasi Cost Cabang & Belanja Harian (A4 Landscape)
+     */
+    public function exportPdf(Request $request)
+    {
+        $user = auth()->user();
+        $query = BranchMonthlyCost::with(['branch', 'user']);
+
+        // Scoping akses berdasarkan role
+        if ($user->isAdminCabang() || $user->isAdminDapur()) {
+            $query->where('branch_id', $user->branch_id);
+            $selectedBranchId = $user->branch_id;
+        } elseif ($user->isKepalaCabang()) {
+            $accessibleIds = $user->getAccessibleBranchIds();
+            $query->whereIn('branch_id', $accessibleIds);
+            $selectedBranchId = $request->get('branch_id');
+        } else {
+            $selectedBranchId = $request->get('branch_id');
+        }
+
+        // Filter Cabang
+        if (!empty($selectedBranchId)) {
+            $query->where('branch_id', $selectedBranchId);
+        }
+
+        // Filter Tahun & Bulan
+        $selectedYear = $request->filled('year') ? (int) $request->get('year') : null;
+        $selectedMonth = $request->filled('month') ? (int) $request->get('month') : null;
+
+        if ($selectedYear) {
+            $query->where('year', $selectedYear);
+        }
+        if ($selectedMonth) {
+            $query->where('month', $selectedMonth);
+        }
+
+        $query->orderBy('year', 'desc')->orderBy('month', 'desc')->orderBy('branch_id', 'asc');
+
+        $costs = $query->get();
+
+        // Ambil data Belanja Harian di bulan dan cabang yang sesuai untuk setiap item
+        foreach ($costs as $cost) {
+            $dailyExpenseData = DailyKitchenReport::where('branch_id', $cost->branch_id)
+                ->whereYear('report_date', $cost->year)
+                ->whereMonth('report_date', $cost->month)
+                ->select(
+                    DB::raw('COALESCE(SUM(total_expense), 0) as total_daily'),
+                    DB::raw('COALESCE(SUM(expense_raw_material), 0) as total_raw'),
+                    DB::raw('COALESCE(SUM(expense_non_raw_material), 0) as total_non_raw'),
+                    DB::raw('COALESCE(SUM(expense_personal), 0) as total_personal'),
+                    DB::raw('COUNT(id) as total_days')
+                )
+                ->first();
+
+            $cost->daily_expense_total = (float) ($dailyExpenseData->total_daily ?? 0);
+            $cost->daily_expense_raw = (float) ($dailyExpenseData->total_raw ?? 0);
+            $cost->daily_expense_non_raw = (float) ($dailyExpenseData->total_non_raw ?? 0);
+            $cost->daily_expense_personal = (float) ($dailyExpenseData->total_personal ?? 0);
+            $cost->daily_expense_days = (int) ($dailyExpenseData->total_days ?? 0);
+            $cost->grand_total_cost = $cost->total_monthly_cost + $cost->daily_expense_total;
+        }
+
+        // Kalkulasi Total Belanja Harian untuk filter aktif (jika ada data harian tanpa data cost bulanan atau sebaliknya)
+        $dailyQuery = DailyKitchenReport::query();
+        if ($user->isAdminCabang() || $user->isAdminDapur()) {
+            $dailyQuery->where('branch_id', $user->branch_id);
+        } elseif ($user->isKepalaCabang()) {
+            $dailyQuery->whereIn('branch_id', $user->getAccessibleBranchIds());
+        }
+        if (!empty($selectedBranchId)) {
+            $dailyQuery->where('branch_id', $selectedBranchId);
+        }
+        if ($selectedYear) {
+            $dailyQuery->whereYear('report_date', $selectedYear);
+        }
+        if ($selectedMonth) {
+            $dailyQuery->whereMonth('report_date', $selectedMonth);
+        }
+
+        $statsMonthlyTotal = (float) $costs->sum('total_monthly_cost');
+        $statsDailyTotal = (float) $dailyQuery->sum('total_expense');
+        $statsGrandTotal = $statsMonthlyTotal + $statsDailyTotal;
+
+        // Label Filter
+        $branchLabel = 'Semua Cabang';
+        if (!empty($selectedBranchId)) {
+            $b = Branch::find($selectedBranchId);
+            if ($b) $branchLabel = $b->name;
+        }
+
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $monthLabel = ($selectedMonth && isset($monthNames[$selectedMonth])) ? $monthNames[$selectedMonth] : 'Semua Bulan';
+        $yearLabel = $selectedYear ? (string) $selectedYear : 'Semua Tahun';
+
+        $pdf = Pdf::loadView('monthly-costs.pdf', compact(
+            'costs',
+            'statsMonthlyTotal',
+            'statsDailyTotal',
+            'statsGrandTotal',
+            'branchLabel',
+            'monthLabel',
+            'yearLabel',
+            'user'
+        ))->setPaper('a4', 'landscape');
+
+        $fileName = 'Laporan_Cost_Cabang_' . str_replace(' ', '_', $branchLabel) . '_' . date('Ymd_His') . '.pdf';
+        return $pdf->download($fileName);
+    }
+
+    /**
+     * Export PDF Lembar Rincian 1 Periode Cost Cabang (A4 Portrait)
+     */
+    public function exportSinglePdf(BranchMonthlyCost $monthlyCost)
+    {
+        $user = auth()->user();
+        if ($user->isAdminCabang() || $user->isAdminDapur()) {
+            if ($monthlyCost->branch_id !== $user->branch_id) {
+                abort(403, 'Akses ditolak.');
+            }
+        } elseif ($user->isKepalaCabang()) {
+            if (!in_array($monthlyCost->branch_id, $user->getAccessibleBranchIds())) {
+                abort(403, 'Akses ditolak.');
+            }
+        }
+
+        $monthlyCost->load(['branch', 'user']);
+
+        $dailyExpenseData = DailyKitchenReport::where('branch_id', $monthlyCost->branch_id)
+            ->whereYear('report_date', $monthlyCost->year)
+            ->whereMonth('report_date', $monthlyCost->month)
+            ->select(
+                DB::raw('COALESCE(SUM(total_expense), 0) as total_daily'),
+                DB::raw('COALESCE(SUM(expense_raw_material), 0) as total_raw'),
+                DB::raw('COALESCE(SUM(expense_non_raw_material), 0) as total_non_raw'),
+                DB::raw('COALESCE(SUM(expense_personal), 0) as total_personal'),
+                DB::raw('COUNT(id) as total_days')
+            )
+            ->first();
+
+        $monthlyCost->daily_expense_total = (float) ($dailyExpenseData->total_daily ?? 0);
+        $monthlyCost->daily_expense_raw = (float) ($dailyExpenseData->total_raw ?? 0);
+        $monthlyCost->daily_expense_non_raw = (float) ($dailyExpenseData->total_non_raw ?? 0);
+        $monthlyCost->daily_expense_personal = (float) ($dailyExpenseData->total_personal ?? 0);
+        $monthlyCost->daily_expense_days = (int) ($dailyExpenseData->total_days ?? 0);
+        $monthlyCost->grand_total_cost = $monthlyCost->total_monthly_cost + $monthlyCost->daily_expense_total;
+
+        // Ambil list detail laporan belanja harian di bulan tersebut
+        $dailyReports = DailyKitchenReport::where('branch_id', $monthlyCost->branch_id)
+            ->whereYear('report_date', $monthlyCost->year)
+            ->whereMonth('report_date', $monthlyCost->month)
+            ->orderBy('report_date', 'asc')
+            ->get();
+
+        $pdf = Pdf::loadView('monthly-costs.pdf-single', compact(
+            'monthlyCost',
+            'dailyReports',
+            'user'
+        ))->setPaper('a4', 'portrait');
+
+        $fileName = 'Rincian_Cost_' . str_replace(' ', '_', $monthlyCost->branch->name) . '_' . $monthlyCost->month_name . '_' . $monthlyCost->year . '.pdf';
+        return $pdf->download($fileName);
     }
 }
