@@ -352,32 +352,92 @@
         <form action="{{ route('monthly-costs.store') }}" method="POST" id="createForm" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
             @csrf
 
-            <!-- Cabang, Bulan, Tahun -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
-                <div>
+            <!-- Cabang, Bulan, Tahun (Custom Popover Dropdowns) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 relative z-20">
+                
+                <!-- 1. Custom Dropdown Cabang -->
+                <div class="relative" id="createBranchDropdownContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">CABANG</label>
-                    <select name="branch_id" id="create_branch_id" onchange="checkAndLoadExistingCost()" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+                    <input type="hidden" name="branch_id" id="create_branch_id" value="{{ $selectedBranchId ?: ($branches->first()->id ?? '') }}">
+                    
+                    <button 
+                        type="button" 
+                        onclick="toggleCreatePopover('createBranchMenu', 'createBranchChevron')"
+                        class="w-full px-3 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                    >
+                        <span id="createBranchText" class="truncate">
+                            {{ $branches->firstWhere('id', $selectedBranchId)->name ?? ($branches->first()->name ?? '-- Pilih Cabang --') }}
+                        </span>
+                        <svg id="createBranchChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+
+                    <div id="createBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 max-h-48 overflow-y-auto animate-fadeIn">
                         @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                            <button 
+                                type="button" 
+                                onclick="selectCreateBranch('{{ $branch->id }}', '{{ $branch->name }}')"
+                                class="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-teal-50 hover:text-teal-900 font-medium transition-colors flex items-center justify-between"
+                            >
+                                <span>{{ $branch->name }}</span>
+                            </button>
                         @endforeach
-                    </select>
+                    </div>
                 </div>
-                <div>
+
+                <!-- 2. Custom Dropdown Bulan -->
+                <div class="relative" id="createMonthDropdownContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">BULAN</label>
-                    <select name="month" id="create_month" onchange="checkAndLoadExistingCost()" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+                    <input type="hidden" name="month" id="create_month" value="{{ (int) date('n') }}">
+                    
+                    <button 
+                        type="button" 
+                        onclick="toggleCreatePopover('createMonthMenu', 'createMonthChevron')"
+                        class="w-full px-3 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                    >
+                        <span id="createMonthText" class="truncate">{{ $monthNames[(int) date('n')] ?? 'Januari' }}</span>
+                        <svg id="createMonthChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+
+                    <div id="createMonthMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 max-h-52 overflow-y-auto animate-fadeIn">
                         @foreach($monthNames as $mNum => $mName)
-                            <option value="{{ $mNum }}" {{ (int) date('n') == $mNum ? 'selected' : '' }}>{{ $mName }}</option>
+                            <button 
+                                type="button" 
+                                onclick="selectCreateMonth('{{ $mNum }}', '{{ $mName }}')"
+                                class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-teal-50 hover:text-teal-900 font-medium transition-colors flex items-center justify-between"
+                            >
+                                <span>{{ $mName }}</span>
+                            </button>
                         @endforeach
-                    </select>
+                    </div>
                 </div>
-                <div>
+
+                <!-- 3. Custom Dropdown Tahun -->
+                <div class="relative" id="createYearDropdownContainer">
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">TAHUN</label>
-                    <select name="year" id="create_year" onchange="checkAndLoadExistingCost()" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+                    <input type="hidden" name="year" id="create_year" value="{{ (int) date('Y') }}">
+                    
+                    <button 
+                        type="button" 
+                        onclick="toggleCreatePopover('createYearMenu', 'createYearChevron')"
+                        class="w-full px-3 py-2 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-lg text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
+                    >
+                        <span id="createYearText" class="truncate">{{ (int) date('Y') }}</span>
+                        <svg id="createYearChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+
+                    <div id="createYearMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 max-h-48 overflow-y-auto animate-fadeIn">
                         @foreach($years as $yr)
-                            <option value="{{ $yr }}" {{ (int) date('Y') == $yr ? 'selected' : '' }}>{{ $yr }}</option>
+                            <button 
+                                type="button" 
+                                onclick="selectCreateYear('{{ $yr }}', '{{ $yr }}')"
+                                class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-teal-50 hover:text-teal-900 font-medium transition-colors flex items-center justify-between"
+                            >
+                                <span>{{ $yr }}</span>
+                            </button>
                         @endforeach
-                    </select>
+                    </div>
                 </div>
+
             </div>
 
             <!-- Existing Data Alert Banner -->
@@ -755,6 +815,80 @@
         });
         document.getElementById('editTotalPreview').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(sum);
     }
+
+    // Custom Dropdown Popover Logic for Create Modal
+    function toggleCreatePopover(menuId, chevronId) {
+        const menu = document.getElementById(menuId);
+        const chevron = document.getElementById(chevronId);
+        if (!menu) return;
+
+        const allMenus = ['createBranchMenu', 'createMonthMenu', 'createYearMenu'];
+        const allChevrons = ['createBranchChevron', 'createMonthChevron', 'createYearChevron'];
+
+        allMenus.forEach((id, idx) => {
+            if (id !== menuId) {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+                const ch = document.getElementById(allChevrons[idx]);
+                if (ch) ch.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            menu.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
+    function selectCreateBranch(id, name) {
+        document.getElementById('create_branch_id').value = id;
+        document.getElementById('createBranchText').textContent = name;
+        document.getElementById('createBranchMenu').classList.add('hidden');
+        const ch = document.getElementById('createBranchChevron');
+        if (ch) ch.classList.remove('rotate-180');
+        checkAndLoadExistingCost();
+    }
+
+    function selectCreateMonth(mNum, mName) {
+        document.getElementById('create_month').value = mNum;
+        document.getElementById('createMonthText').textContent = mName;
+        document.getElementById('createMonthMenu').classList.add('hidden');
+        const ch = document.getElementById('createMonthChevron');
+        if (ch) ch.classList.remove('rotate-180');
+        checkAndLoadExistingCost();
+    }
+
+    function selectCreateYear(yr, yrLabel) {
+        document.getElementById('create_year').value = yr;
+        document.getElementById('createYearText').textContent = yrLabel;
+        document.getElementById('createYearMenu').classList.add('hidden');
+        const ch = document.getElementById('createYearChevron');
+        if (ch) ch.classList.remove('rotate-180');
+        checkAndLoadExistingCost();
+    }
+
+    // Close create popovers on click outside
+    document.addEventListener('click', function(e) {
+        const popovers = [
+            { container: 'createBranchDropdownContainer', menu: 'createBranchMenu', chevron: 'createBranchChevron' },
+            { container: 'createMonthDropdownContainer', menu: 'createMonthMenu', chevron: 'createMonthChevron' },
+            { container: 'createYearDropdownContainer', menu: 'createYearMenu', chevron: 'createYearChevron' },
+        ];
+
+        popovers.forEach(p => {
+            const containerEl = document.getElementById(p.container);
+            const menuEl = document.getElementById(p.menu);
+            const chevronEl = document.getElementById(p.chevron);
+            if (containerEl && menuEl && !containerEl.contains(e.target)) {
+                menuEl.classList.add('hidden');
+                if (chevronEl) chevronEl.classList.remove('rotate-180');
+            }
+        });
+    });
 
     // Auto-load data jika cabang, bulan, dan tahun sudah pernah diinput sebelumnya
     function checkAndLoadExistingCost() {
