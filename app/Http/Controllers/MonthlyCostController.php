@@ -319,6 +319,46 @@ class MonthlyCostController extends Controller
     }
 
     /**
+     * Dapatkan data cost bulanan via AJAX untuk auto-populate saat pilih Cabang, Bulan, dan Tahun
+     */
+    public function getData(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $branchId = (int) $request->get('branch_id');
+        $year = (int) $request->get('year');
+        $month = (int) $request->get('month');
+
+        if (!$branchId || !$year || !$month) {
+            return response()->json(['found' => false]);
+        }
+
+        $cost = BranchMonthlyCost::where('branch_id', $branchId)
+            ->where('year', $year)
+            ->where('month', $month)
+            ->first();
+
+        if ($cost) {
+            return response()->json([
+                'found' => true,
+                'data' => [
+                    'id' => $cost->id,
+                    'rent_cost' => (float) $cost->rent_cost,
+                    'wifi_cost' => (float) $cost->wifi_cost,
+                    'trash_cost' => (float) $cost->trash_cost,
+                    'utilities_cost' => (float) $cost->utilities_cost,
+                    'netflix_cost' => (float) $cost->netflix_cost,
+                    'ipl_cost' => (float) $cost->ipl_cost,
+                    'salary_cost' => (float) $cost->salary_cost,
+                    'other_cost' => (float) $cost->other_cost,
+                    'total_monthly_cost' => (float) $cost->total_monthly_cost,
+                    'notes' => $cost->notes ?? '',
+                ]
+            ]);
+        }
+
+        return response()->json(['found' => false]);
+    }
+
+    /**
      * Helper sanitasi input format rupiah (1.000.000 -> 1000000)
      */
     private function cleanCurrencyInputs(array $inputs): array

@@ -349,22 +349,22 @@
             </button>
         </div>
 
-        <form action="{{ route('monthly-costs.store') }}" method="POST" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
+        <form action="{{ route('monthly-costs.store') }}" method="POST" id="createForm" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
             @csrf
 
             <!-- Cabang, Bulan, Tahun -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
                 <div>
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">CABANG</label>
-                    <select name="branch_id" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+                    <select name="branch_id" id="create_branch_id" onchange="checkAndLoadExistingCost()" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
                         @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                            <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">BULAN</label>
-                    <select name="month" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+                    <select name="month" id="create_month" onchange="checkAndLoadExistingCost()" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
                         @foreach($monthNames as $mNum => $mName)
                             <option value="{{ $mNum }}" {{ (int) date('n') == $mNum ? 'selected' : '' }}>{{ $mName }}</option>
                         @endforeach
@@ -372,11 +372,19 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">TAHUN</label>
-                    <select name="year" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
+                    <select name="year" id="create_year" onchange="checkAndLoadExistingCost()" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-tealBrand">
                         @foreach($years as $yr)
                             <option value="{{ $yr }}" {{ (int) date('Y') == $yr ? 'selected' : '' }}>{{ $yr }}</option>
                         @endforeach
                     </select>
+                </div>
+            </div>
+
+            <!-- Existing Data Alert Banner -->
+            <div id="createExistingNotice" class="hidden p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs font-medium flex items-center justify-between animate-fadeIn">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>Data untuk periode ini sudah pernah diinput. Form otomatis memuat data yang ada untuk diperbarui.</span>
                 </div>
             </div>
 
@@ -388,7 +396,7 @@
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">SEWA LOKASI</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                        <input type="text" name="rent_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
+                        <input type="text" name="rent_cost" id="create_rent_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
                     </div>
                 </div>
 
@@ -397,7 +405,7 @@
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">BIAYA WIFI (INTERNET)</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                        <input type="text" name="wifi_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
+                        <input type="text" name="wifi_cost" id="create_wifi_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
                     </div>
                 </div>
 
@@ -406,7 +414,7 @@
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">BIAYA SAMPAH</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                        <input type="text" name="trash_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
+                        <input type="text" name="trash_cost" id="create_trash_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
                     </div>
                 </div>
 
@@ -415,7 +423,7 @@
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">BIAYA AIR & LISTRIK</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                        <input type="text" name="utilities_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
+                        <input type="text" name="utilities_cost" id="create_utilities_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
                     </div>
                 </div>
 
@@ -424,7 +432,7 @@
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">BIAYA NETFLIX</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                        <input type="text" name="netflix_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
+                        <input type="text" name="netflix_cost" id="create_netflix_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
                     </div>
                 </div>
 
@@ -433,7 +441,7 @@
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">IPL (IURAN PENGELOLAAN)</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                        <input type="text" name="ipl_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
+                        <input type="text" name="ipl_cost" id="create_ipl_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
                     </div>
                 </div>
 
@@ -442,7 +450,7 @@
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">GAJI KARYAWAN</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                        <input type="text" name="salary_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
+                        <input type="text" name="salary_cost" id="create_salary_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
                     </div>
                 </div>
 
@@ -451,7 +459,7 @@
                     <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">BIAYA LAINNYA</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                        <input type="text" name="other_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
+                        <input type="text" name="other_cost" id="create_other_cost" placeholder="0" oninput="formatCurrency(this); recalculateCreateTotal();" class="cost-create-input w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:outline-none focus:border-tealBrand">
                     </div>
                 </div>
 
@@ -466,7 +474,7 @@
             <!-- Notes -->
             <div>
                 <label class="block text-[10px] font-extrabold uppercase text-slate-500 tracking-wider mb-1">CATATAN / KETERANGAN</label>
-                <textarea name="notes" rows="2" placeholder="Catatan tambahan bila ada..." class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand"></textarea>
+                <textarea name="notes" id="create_notes" rows="2" placeholder="Catatan tambahan bila ada..." class="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand"></textarea>
             </div>
 
             <!-- Footer Buttons -->
@@ -474,7 +482,7 @@
                 <button type="button" onclick="closeCreateModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
                     Batal
                 </button>
-                <button type="submit" class="px-5 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm transition cursor-pointer">
+                <button type="submit" id="createSubmitBtn" class="px-5 py-2 bg-tealBrand hover:bg-tealBrand-hover text-white text-xs font-bold rounded-xl shadow-sm transition cursor-pointer">
                     Simpan Cost Cabang
                 </button>
             </div>
@@ -748,11 +756,59 @@
         document.getElementById('editTotalPreview').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(sum);
     }
 
+    // Auto-load data jika cabang, bulan, dan tahun sudah pernah diinput sebelumnya
+    function checkAndLoadExistingCost() {
+        const branchId = document.getElementById('create_branch_id').value;
+        const month = document.getElementById('create_month').value;
+        const year = document.getElementById('create_year').value;
+        const noticeEl = document.getElementById('createExistingNotice');
+        const submitBtn = document.getElementById('createSubmitBtn');
+
+        if (!branchId || !month || !year) return;
+
+        fetch(`/monthly-costs/get-data?branch_id=${branchId}&month=${month}&year=${year}`)
+            .then(res => res.json())
+            .then(res => {
+                const fields = ['rent_cost', 'wifi_cost', 'trash_cost', 'utilities_cost', 'netflix_cost', 'ipl_cost', 'salary_cost', 'other_cost'];
+                
+                if (res.found && res.data) {
+                    noticeEl.classList.remove('hidden');
+                    submitBtn.textContent = 'Perbarui Cost Cabang';
+                    
+                    fields.forEach(f => {
+                        const inp = document.getElementById('create_' + f);
+                        if (inp) {
+                            const val = res.data[f] ? parseInt(res.data[f]) : 0;
+                            inp.value = val > 0 ? new Intl.NumberFormat('id-ID').format(val) : '';
+                        }
+                    });
+                    
+                    const notesInp = document.getElementById('create_notes');
+                    if (notesInp) notesInp.value = res.data.notes || '';
+                } else {
+                    noticeEl.classList.add('hidden');
+                    submitBtn.textContent = 'Simpan Cost Cabang';
+                    
+                    fields.forEach(f => {
+                        const inp = document.getElementById('create_' + f);
+                        if (inp) inp.value = '';
+                    });
+                    
+                    const notesInp = document.getElementById('create_notes');
+                    if (notesInp) notesInp.value = '';
+                }
+                recalculateCreateTotal();
+            })
+            .catch(err => {
+                console.error('Error fetching cost data:', err);
+            });
+    }
+
     function openCreateModal() {
         const modal = document.getElementById('createModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        recalculateCreateTotal();
+        checkAndLoadExistingCost();
     }
 
     function closeCreateModal() {
