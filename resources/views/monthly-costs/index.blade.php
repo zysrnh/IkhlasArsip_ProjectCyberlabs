@@ -73,79 +73,159 @@
     </div>
 
     <!-- Filter Bar -->
-    <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm">
+    <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm relative z-30">
         <form method="GET" action="{{ route('monthly-costs.index') }}" id="costFilterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            
-            <!-- Filter Cabang -->
-            <div>
+            <input type="hidden" name="branch_id" id="filterBranchInput" value="{{ request('branch_id') }}">
+            <input type="hidden" name="month" id="filterMonthInput" value="{{ request('month') }}">
+            <input type="hidden" name="year" id="filterYearInput" value="{{ request('year') }}">
+
+            <!-- 1. Custom Dropdown Filter Cabang -->
+            <div class="relative" id="filterBranchDropdownContainer">
                 <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">CABANG</label>
-                <select 
-                    name="branch_id" 
-                    onchange="document.getElementById('costFilterForm').submit()"
-                    class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer"
+                <button 
+                    type="button" 
+                    onclick="toggleFilterPopover('filterBranchMenu', 'filterBranchChevron')"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
                 >
-                    @if(auth()->user()->isSuperAdmin() || auth()->user()->isViewer() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
-                        <option value="">Semua Cabang</option>
-                    @endif
+                    <span id="filterBranchLabel" class="truncate">
+                        @if(request('branch_id'))
+                            {{ $branches->firstWhere('id', request('branch_id'))->name ?? 'Semua Cabang' }}
+                        @else
+                            Semua Cabang
+                        @endif
+                    </span>
+                    <svg id="filterBranchChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                <div id="filterBranchMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 max-h-52 overflow-y-auto animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectFilterBranch('', 'Semua Cabang')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty(request('branch_id')) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Cabang</span>
+                        @if(empty(request('branch_id')))
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
                     @foreach($branches as $branch)
-                        <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>
-                            {{ $branch->name }}
-                        </option>
+                        <button 
+                            type="button" 
+                            onclick="selectFilterBranch('{{ $branch->id }}', '{{ $branch->name }}')"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ request('branch_id') == $branch->id ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        >
+                            <span>{{ $branch->name }}</span>
+                            @if(request('branch_id') == $branch->id)
+                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
                     @endforeach
-                </select>
+                </div>
             </div>
 
-            <!-- Filter Bulan -->
-            <div>
+            <!-- 2. Custom Dropdown Filter Bulan -->
+            <div class="relative" id="filterMonthDropdownContainer">
                 <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">BULAN</label>
-                <select 
-                    name="month" 
-                    onchange="document.getElementById('costFilterForm').submit()"
-                    class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer"
+                <button 
+                    type="button" 
+                    onclick="toggleFilterPopover('filterMonthMenu', 'filterMonthChevron')"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
                 >
-                    <option value="">Semua Bulan</option>
+                    <span id="filterMonthLabel" class="truncate">
+                        @if(request('month') && isset($monthNames[request('month')]))
+                            {{ $monthNames[request('month')] }}
+                        @else
+                            Semua Bulan
+                        @endif
+                    </span>
+                    <svg id="filterMonthChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                <div id="filterMonthMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 max-h-52 overflow-y-auto animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectFilterMonth('', 'Semua Bulan')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty(request('month')) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Bulan</span>
+                        @if(empty(request('month')))
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
                     @foreach($monthNames as $mNum => $mName)
-                        <option value="{{ $mNum }}" {{ $selectedMonth == $mNum ? 'selected' : '' }}>
-                            {{ $mName }}
-                        </option>
+                        <button 
+                            type="button" 
+                            onclick="selectFilterMonth('{{ $mNum }}', '{{ $mName }}')"
+                            class="w-full text-left px-3.5 py-1.5 text-xs flex items-center justify-between transition-colors {{ request('month') == $mNum ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        >
+                            <span>{{ $mName }}</span>
+                            @if(request('month') == $mNum)
+                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
                     @endforeach
-                </select>
+                </div>
             </div>
 
-            <!-- Filter Tahun -->
-            <div>
+            <!-- 3. Custom Dropdown Filter Tahun -->
+            <div class="relative" id="filterYearDropdownContainer">
                 <label class="block text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1">TAHUN</label>
-                <select 
-                    name="year" 
-                    onchange="document.getElementById('costFilterForm').submit()"
-                    class="w-full px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition cursor-pointer"
+                <button 
+                    type="button" 
+                    onclick="toggleFilterPopover('filterYearMenu', 'filterYearChevron')"
+                    class="w-full px-3.5 py-2.5 text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-xl text-slate-800 font-medium flex items-center justify-between transition cursor-pointer"
                 >
-                    <option value="">Semua Tahun</option>
+                    <span id="filterYearLabel" class="truncate">
+                        @if(request('year'))
+                            {{ request('year') }}
+                        @else
+                            Semua Tahun
+                        @endif
+                    </span>
+                    <svg id="filterYearChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                <div id="filterYearMenu" class="hidden absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 max-h-52 overflow-y-auto animate-fadeIn">
+                    <button 
+                        type="button" 
+                        onclick="selectFilterYear('', 'Semua Tahun')"
+                        class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {{ empty(request('year')) ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                    >
+                        <span>Semua Tahun</span>
+                        @if(empty(request('year')))
+                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        @endif
+                    </button>
                     @foreach($years as $yr)
-                        <option value="{{ $yr }}" {{ $selectedYear == $yr ? 'selected' : '' }}>
-                            {{ $yr }}
-                        </option>
+                        <button 
+                            type="button" 
+                            onclick="selectFilterYear('{{ $yr }}', '{{ $yr }}')"
+                            class="w-full text-left px-3.5 py-1.5 text-xs flex items-center justify-between transition-colors {{ request('year') == $yr ? 'text-tealBrand font-bold bg-teal-50/60' : 'text-slate-700 hover:bg-slate-50 font-medium' }}"
+                        >
+                            <span>{{ $yr }}</span>
+                            @if(request('year') == $yr)
+                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            @endif
+                        </button>
                     @endforeach
-                </select>
+                </div>
             </div>
 
             <!-- Filter Reset / Aksi -->
             <div class="flex items-end space-x-2">
-                <button 
-                    type="submit" 
-                    class="flex-1 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 cursor-pointer"
-                >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-                    <span>Terapkan</span>
-                </button>
                 @if(request()->hasAny(['branch_id', 'month', 'year']))
                     <a 
                         href="{{ route('monthly-costs.index') }}" 
-                        class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer"
+                        class="w-full px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 cursor-pointer"
                         title="Reset Filter"
                     >
-                        Reset
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        <span>Reset Filter</span>
                     </a>
+                @else
+                    <div class="w-full px-3.5 py-2.5 bg-slate-50 text-slate-400 rounded-xl text-xs font-semibold flex items-center justify-center border border-dashed border-slate-200">
+                        Filter Aktif
+                    </div>
                 @endif
             </div>
 
@@ -816,6 +896,61 @@
         document.getElementById('editTotalPreview').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(sum);
     }
 
+    // Custom Dropdown Popover Logic for Filter Bar
+    function toggleFilterPopover(menuId, chevronId) {
+        const menu = document.getElementById(menuId);
+        const chevron = document.getElementById(chevronId);
+        if (!menu) return;
+
+        const allMenus = ['filterBranchMenu', 'filterMonthMenu', 'filterYearMenu'];
+        const allChevrons = ['filterBranchChevron', 'filterMonthChevron', 'filterYearChevron'];
+
+        allMenus.forEach((id, idx) => {
+            if (id !== menuId) {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+                const ch = document.getElementById(allChevrons[idx]);
+                if (ch) ch.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            menu.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
+    function selectFilterBranch(id, name) {
+        document.getElementById('filterBranchInput').value = id;
+        document.getElementById('filterBranchLabel').textContent = name;
+        document.getElementById('filterBranchMenu').classList.add('hidden');
+        const ch = document.getElementById('filterBranchChevron');
+        if (ch) ch.classList.remove('rotate-180');
+        document.getElementById('costFilterForm').submit();
+    }
+
+    function selectFilterMonth(mNum, mName) {
+        document.getElementById('filterMonthInput').value = mNum;
+        document.getElementById('filterMonthLabel').textContent = mName;
+        document.getElementById('filterMonthMenu').classList.add('hidden');
+        const ch = document.getElementById('filterMonthChevron');
+        if (ch) ch.classList.remove('rotate-180');
+        document.getElementById('costFilterForm').submit();
+    }
+
+    function selectFilterYear(yr, yrLabel) {
+        document.getElementById('filterYearInput').value = yr;
+        document.getElementById('filterYearLabel').textContent = yrLabel;
+        document.getElementById('filterYearMenu').classList.add('hidden');
+        const ch = document.getElementById('filterYearChevron');
+        if (ch) ch.classList.remove('rotate-180');
+        document.getElementById('costFilterForm').submit();
+    }
+
     // Custom Dropdown Popover Logic for Create Modal
     function toggleCreatePopover(menuId, chevronId) {
         const menu = document.getElementById(menuId);
@@ -871,9 +1006,12 @@
         checkAndLoadExistingCost();
     }
 
-    // Close create popovers on click outside
+    // Close popovers on click outside
     document.addEventListener('click', function(e) {
         const popovers = [
+            { container: 'filterBranchDropdownContainer', menu: 'filterBranchMenu', chevron: 'filterBranchChevron' },
+            { container: 'filterMonthDropdownContainer', menu: 'filterMonthMenu', chevron: 'filterMonthChevron' },
+            { container: 'filterYearDropdownContainer', menu: 'filterYearMenu', chevron: 'filterYearChevron' },
             { container: 'createBranchDropdownContainer', menu: 'createBranchMenu', chevron: 'createBranchChevron' },
             { container: 'createMonthDropdownContainer', menu: 'createMonthMenu', chevron: 'createMonthChevron' },
             { container: 'createYearDropdownContainer', menu: 'createYearMenu', chevron: 'createYearChevron' },
