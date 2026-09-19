@@ -21,8 +21,20 @@
             </p>
         </div>
 
-        @if(!auth()->user()->isViewer())
-            <div class="flex items-center gap-2.5 self-start sm:self-auto">
+        <div class="flex items-center gap-2.5 self-start sm:self-auto">
+            <!-- Tombol Export PDF Rekapitulasi Sesuai Filter -->
+            <a 
+                href="{{ route('kitchen-reports.export-summary-pdf', request()->query()) }}" 
+                class="px-3.5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center justify-center space-x-1.5 transition-all duration-150 cursor-pointer"
+                title="Unduh Rekap Laporan Dapur PDF Sesuai Filter"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Export PDF</span>
+            </a>
+
+            @if(!auth()->user()->isViewer())
                 <a 
                     href="{{ route('kitchen-reports.create') }}" 
                     class="px-4 py-2.5 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center justify-center space-x-2 transition-all duration-150 cursor-pointer"
@@ -32,8 +44,8 @@
                     </svg>
                     <span>Input Masakan Hari Ini</span>
                 </a>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
     <!-- 6 Primary Stat Overview Cards -->

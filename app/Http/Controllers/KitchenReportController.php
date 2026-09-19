@@ -613,4 +613,94 @@ class KitchenReportController extends Controller
 
         return $pdf->download($fileName);
     }
+
+    /**
+     * Export PDF Rekapitulasi Laporan Dapur Harian (A4 Landscape)
+     */
+    public function exportSummaryPdf(Request $request): Response
+    {
+        $user = auth()->user();
+        $query = DailyKitchenReport::with(['branch', 'user']);
+
+        // Scoping akses berdasarkan role
+        if ($user->isAdminCabang() || $user->isAdminDapur()) {
+            $query->where('branch_id', $user->branch_id);
+            $selectedBranchId = $user->branch_id;
+        } elseif ($user->isKepalaCabang()) {
+            if ($user->managedBranches()->count() > 0) {
+                $query->whereIn('branch_id', $user->managedBranches()->pluck('branches.id'));
+            } elseif ($user->branch_id) {
+                $query->where('branch_id', $user->branch_id);
+            }
+            $selectedBranchId = $request->get('branch_id');
+        } else {
+            $selectedBranchId = $request->get('branch_id');
+        }
+
+        // Filter Cabang
+        if (!empty($selectedBranchId)) {
+            $query->where('branch_id', $selectedBranchId);
+        }
+
+        // Filter Tanggal Dari & Sampai
+        if ($request->filled('date_from')) {
+            $query->whereDate('report_date', '>=', $request->get('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('report_date', '<=', $request->get('date_to'));
+        }
+
+        // Search Keyword
+        if ($request->filled('search')) {
+            $search = trim($request->get('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('notes', 'like', "%{$search}%")
+                  ->orWhere('expense_notes', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('branch', function ($bq) use ($search) {
+                      $bq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $query->orderBy('report_date', 'desc')->orderBy('id', 'desc');
+
+        $reports = $query->get();
+
+        // Hitung Statistik Ringkasan
+        $stats = [
+            'total_reports' => $reports->count(),
+            'grand_total_sales' => (float) $reports->sum('grand_total_sales'),
+            'total_remaining_sellable' => (int) $reports->sum('total_remaining_sellable'),
+            'total_wasted_food' => (int) $reports->sum('total_wasted_food'),
+            'total_omset' => (float) $reports->sum('total_omset'),
+            'total_expense' => (float) $reports->sum('total_expense'),
+            'total_net_cash' => (float) $reports->sum('net_cash_income'),
+            'total_difference' => (float) $reports->sum('difference_amount'),
+        ];
+
+        // Filter Info Labels
+        $branchLabel = 'Semua Cabang';
+        if (!empty($selectedBranchId)) {
+            $b = Branch::find($selectedBranchId);
+            if ($b) $branchLabel = $b->name;
+        }
+
+        $dateRangeLabel = 'Semua Periode Tanggal';
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $dateRangeLabel = Carbon::parse($request->get('date_from'))->translatedFormat('d F Y') . ' s/d ' . Carbon::parse($request->get('date_to'))->translatedFormat('d F Y');
+        } elseif ($request->filled('date_from')) {
+            $dateRangeLabel = 'Dari ' . Carbon::parse($request->get('date_from'))->translatedFormat('d F Y');
+        } elseif ($request->filled('date_to')) {
+            $dateRangeLabel = 'Sampai ' . Carbon::parse($request->get('date_to'))->translatedFormat('d F Y');
+        }
+
+        $pdf = Pdf::loadView('kitchen.summary-pdf', compact('reports', 'stats', 'branchLabel', 'dateRangeLabel', 'user'))
+            ->setPaper('a4', 'landscape');
+
+        $fileName = 'Rekap_Laporan_Dapur_' . str_replace(' ', '_', $branchLabel) . '_' . date('Ymd_His') . '.pdf';
+        return $pdf->download($fileName);
+    }
 }

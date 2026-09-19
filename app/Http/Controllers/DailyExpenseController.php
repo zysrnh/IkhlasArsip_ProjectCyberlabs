@@ -181,4 +181,91 @@ class DailyExpenseController extends Controller
         return redirect()->route('daily-expenses.index')
             ->with('success', 'Data belanja harian tanggal ' . Carbon::parse($validated['report_date'])->translatedFormat('d F Y') . ' berhasil disimpan.');
     }
+
+    /**
+     * Export PDF Rekapitulasi Belanja Harian Cabang (A4 Landscape)
+     */
+    public function exportPdf(Request $request): Response
+    {
+        $user = auth()->user();
+        $query = DailyKitchenReport::with(['branch', 'user'])->where('total_expense', '>', 0);
+
+        // Scoping akses berdasarkan role
+        if ($user->isAdminCabang() || $user->isAdminDapur()) {
+            $query->where('branch_id', $user->branch_id);
+            $selectedBranchId = $user->branch_id;
+        } elseif ($user->isKepalaCabang()) {
+            if ($user->managedBranches()->count() > 0) {
+                $query->whereIn('branch_id', $user->managedBranches()->pluck('branches.id'));
+            } elseif ($user->branch_id) {
+                $query->where('branch_id', $user->branch_id);
+            }
+            $selectedBranchId = $request->get('branch_id');
+        } else {
+            $selectedBranchId = $request->get('branch_id');
+        }
+
+        // Filter Cabang
+        if (!empty($selectedBranchId)) {
+            $query->where('branch_id', $selectedBranchId);
+        }
+
+        // Filter Tanggal Dari & Sampai
+        if ($request->filled('date_from')) {
+            $query->whereDate('report_date', '>=', $request->get('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('report_date', '<=', $request->get('date_to'));
+        }
+
+        // Search Keyword
+        if ($request->filled('search')) {
+            $search = trim($request->get('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('expense_notes', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('branch', function ($bq) use ($search) {
+                      $bq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $query->orderBy('report_date', 'desc')->orderBy('id', 'desc');
+
+        $expenses = $query->get();
+
+        // Hitung Statistik
+        $stats = [
+            'total_records' => $expenses->count(),
+            'total_raw' => (float) $expenses->sum('expense_raw_material'),
+            'total_non_raw' => (float) $expenses->sum('expense_non_raw_material'),
+            'total_personal' => (float) $expenses->sum('expense_personal'),
+            'grand_total_expense' => (float) $expenses->sum('total_expense'),
+        ];
+
+        // Filter Info Labels
+        $branchLabel = 'Semua Cabang';
+        if (!empty($selectedBranchId)) {
+            $b = Branch::find($selectedBranchId);
+            if ($b) $branchLabel = $b->name;
+        }
+
+        $dateRangeLabel = 'Semua Periode Tanggal';
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $dateRangeLabel = Carbon::parse($request->get('date_from'))->translatedFormat('d F Y') . ' s/d ' . Carbon::parse($request->get('date_to'))->translatedFormat('d F Y');
+        } elseif ($request->filled('date_from')) {
+            $dateRangeLabel = 'Dari ' . Carbon::parse($request->get('date_from'))->translatedFormat('d F Y');
+        } elseif ($request->filled('date_to')) {
+            $dateRangeLabel = 'Sampai ' . Carbon::parse($request->get('date_to'))->translatedFormat('d F Y');
+        }
+
+        $pdf = Pdf::loadView('expenses.pdf', compact('expenses', 'stats', 'branchLabel', 'dateRangeLabel', 'user'))
+            ->setPaper('a4', 'landscape');
+
+        $fileName = 'Laporan_Belanja_Harian_' . str_replace(' ', '_', $branchLabel) . '_' . date('Ymd_His') . '.pdf';
+        return $pdf->download($fileName);
+    }
 }

@@ -41,10 +41,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
     // Modul Input Masakan Dapur Harian
+    Route::get('/kitchen-reports/export-summary-pdf', [KitchenReportController::class, 'exportSummaryPdf'])->name('kitchen-reports.export-summary-pdf');
     Route::get('/kitchen-reports/{kitchenReport}/export-pdf', [KitchenReportController::class, 'exportPdf'])->name('kitchen-reports.export-pdf');
     Route::resource('kitchen-reports', KitchenReportController::class);
 
     // Modul Belanja Harian Cabang (Bahan Baku, Non Bahan Baku, Pribadi)
+    Route::get('/daily-expenses/export-pdf', [DailyExpenseController::class, 'exportPdf'])->name('daily-expenses.export-pdf');
     Route::get('/daily-expenses', [DailyExpenseController::class, 'index'])->name('daily-expenses.index');
     Route::post('/daily-expenses', [DailyExpenseController::class, 'store'])->name('daily-expenses.store');
 
