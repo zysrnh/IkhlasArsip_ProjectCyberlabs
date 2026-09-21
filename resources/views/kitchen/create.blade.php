@@ -1408,7 +1408,7 @@
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold tracking-tight text-white">Import Data Masakan dari Excel</h3>
-                    <p class="text-xs text-slate-400 font-medium">Cabang: <span class="text-emerald-400 font-bold">{{ $activeBranch->name }}</span> | Tanggal: <span class="text-slate-200 font-bold">{{ \Carbon\Carbon::parse($reportDate)->translatedFormat('d F Y') }}</span></p>
+                    <p class="text-xs text-slate-400 font-medium">Cabang: <span class="text-emerald-400 font-bold">{{ $activeBranch->name }}</span> | Tanggal: <span class="text-slate-200 font-bold">{{ \Carbon\Carbon::parse($dateString)->translatedFormat('d F Y') }}</span></p>
                 </div>
             </div>
             <button type="button" onclick="closeImportExcelModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer">
