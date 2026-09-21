@@ -561,6 +561,14 @@
                             >
                                 Porsi Dapur (Masak vs Jual)
                             </button>
+                            <button 
+                                type="button" 
+                                id="compareChartTabPayment" 
+                                onclick="switchCompareChartTab('payment')"
+                                class="px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800"
+                            >
+                                Kanal Pembayaran
+                            </button>
                         </div>
                     </div>
 
@@ -572,6 +580,11 @@
                     <!-- 2. Porsi Dapur Grouped Bar Chart -->
                     <div id="comparePortionChartContainer" class="hidden relative h-72 sm:h-80 w-full pt-2">
                         <canvas id="branchComparisonPortionChart"></canvas>
+                    </div>
+
+                    <!-- 3. Kanal Pembayaran Grouped Bar Chart -->
+                    <div id="comparePaymentChartContainer" class="hidden relative h-72 sm:h-80 w-full pt-2">
+                        <canvas id="branchComparisonPaymentChart"></canvas>
                     </div>
                 </div>
 
@@ -982,15 +995,16 @@
         const lineCtx = document.getElementById('dailySalesChart');
         if (lineCtx) {
             const chartLabels = @json($chartLabels);
-            const chartAmounts = @json($chartAmounts);
+            const multiLineDatasets = @json($multiLineDatasets);
+            const hasCompare = @json($hasCompareBranches);
 
             new Chart(lineCtx, {
                 type: 'line',
                 data: {
                     labels: chartLabels.length > 0 ? chartLabels : ['Belum Ada Data'],
-                    datasets: [{
+                    datasets: multiLineDatasets.length > 0 ? multiLineDatasets : [{
                         label: 'Omzet Kasir (Rp)',
-                        data: chartAmounts.length > 0 ? chartAmounts : [0],
+                        data: [0],
                         borderColor: '#0A97B0',
                         backgroundColor: 'rgba(10, 151, 176, 0.08)',
                         borderWidth: 2.5,
@@ -1007,7 +1021,15 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: { 
+                            display: hasCompare,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, weight: 'bold' },
+                                color: '#334155'
+                            }
+                        },
                         tooltip: {
                             backgroundColor: '#0B192C',
                             titleColor: '#ffffff',
@@ -1255,33 +1277,127 @@
                 }
             });
         }
+
+        // 5. Multi-Branch Payment Channel Bar Chart
+        const comparePaymentCtx = document.getElementById('branchComparisonPaymentChart');
+        if (comparePaymentCtx) {
+            const compData = @json($comparisonData);
+            const branchNames = compData.map(d => d.name);
+            const cashSeries = compData.map(d => d.cash || 0);
+            const qrisSeries = compData.map(d => d.qris || 0);
+            const onlineSeries = compData.map(d => d.online || 0);
+
+            new Chart(comparePaymentCtx, {
+                type: 'bar',
+                data: {
+                    labels: branchNames,
+                    datasets: [
+                        {
+                            label: 'Penjualan Tunai (Rp)',
+                            data: cashSeries,
+                            backgroundColor: '#0A97B0',
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'QRIS / Transfer (Rp)',
+                            data: qrisSeries,
+                            backgroundColor: '#0284c7',
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Online Food (Rp)',
+                            data: onlineSeries,
+                            backgroundColor: '#f59e0b',
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, weight: 'bold' },
+                                color: '#334155'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0B192C',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            cornerRadius: 10,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.dataset.label + ': ' + new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11, weight: 'bold' }, color: '#334155' }
+                        },
+                        y: {
+                            border: { dash: [4, 4] },
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                font: { size: 10 },
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    if (Math.abs(value) >= 1000000) {
+                                        return (value / 1000000).toFixed(0) + ' Jt';
+                                    }
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
     });
 
     // Tab Switcher Grafik Komparasi
     function switchCompareChartTab(tabType) {
         const finContainer = document.getElementById('compareFinChartContainer');
         const portionContainer = document.getElementById('comparePortionChartContainer');
+        const paymentContainer = document.getElementById('comparePaymentChartContainer');
         const tabFin = document.getElementById('compareChartTabFin');
         const tabPortion = document.getElementById('compareChartTabPortion');
+        const tabPayment = document.getElementById('compareChartTabPayment');
+
+        const activeClass = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer bg-white text-slate-900 shadow-2xs";
+        const inactiveClass = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800";
+
+        if (finContainer) finContainer.classList.add('hidden');
+        if (portionContainer) portionContainer.classList.add('hidden');
+        if (paymentContainer) paymentContainer.classList.add('hidden');
+
+        if (tabFin) tabFin.className = inactiveClass;
+        if (tabPortion) tabPortion.className = inactiveClass;
+        if (tabPayment) tabPayment.className = inactiveClass;
 
         if (tabType === 'fin') {
             if (finContainer) finContainer.classList.remove('hidden');
-            if (portionContainer) portionContainer.classList.add('hidden');
-            if (tabFin) {
-                tabFin.className = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer bg-white text-slate-900 shadow-2xs";
-            }
-            if (tabPortion) {
-                tabPortion.className = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800";
-            }
-        } else {
-            if (finContainer) finContainer.classList.add('hidden');
+            if (tabFin) tabFin.className = activeClass;
+        } else if (tabType === 'portion') {
             if (portionContainer) portionContainer.classList.remove('hidden');
-            if (tabFin) {
-                tabFin.className = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800";
-            }
-            if (tabPortion) {
-                tabPortion.className = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer bg-white text-slate-900 shadow-2xs";
-            }
+            if (tabPortion) tabPortion.className = activeClass;
+        } else if (tabType === 'payment') {
+            if (paymentContainer) paymentContainer.classList.remove('hidden');
+            if (tabPayment) tabPayment.className = activeClass;
         }
     }
 </script>

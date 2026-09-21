@@ -211,6 +211,10 @@ class DashboardController extends Controller
             $bGrossMargin = $bOmset - $bTotalCost;
             $bGrossMarginPercent = $bOmset > 0 ? round(($bGrossMargin / $bOmset) * 100, 1) : 0;
 
+            $bCash = (float) (clone $bDailyQuery)->sum('cash_income');
+            $bQris = (float) (clone $bDailyQuery)->sum('qris_income');
+            $bOnline = (float) (clone $bDailyQuery)->sum('online_food_income');
+
             $comparisonData[] = [
                 'id' => $cBranch->id,
                 'name' => $cBranch->name,
@@ -225,6 +229,9 @@ class DashboardController extends Controller
                 'portions_sold' => $bPortionsSold,
                 'portions_cooked' => $bPortionsCooked,
                 'total_reports' => $bReportsCount,
+                'cash' => $bCash,
+                'qris' => $bQris,
+                'online' => $bOnline,
             ];
         }
 
@@ -251,24 +258,84 @@ class DashboardController extends Controller
         $paymentChartLabels = array_keys($paymentSummaries);
         $paymentChartData = array_map(fn($item) => $item['amount'], array_values($paymentSummaries));
 
-        // 9. Tren Omzet Penjualan Harian untuk Line Chart (Chart.js)
-        $dailySalesQuery = (clone $query)
-            ->select(
-                'report_date',
-                DB::raw('SUM(total_omset) as total_amount'),
-                DB::raw('SUM(grand_total_sales) as total_food_sales'),
-                DB::raw('COUNT(id) as count_reports')
-            )
-            ->groupBy('report_date')
-            ->orderBy('report_date', 'asc')
-            ->get();
+        // 9. Rentang Tanggal Harian untuk Multi-Line & Single-Line Chart
+        $periodDates = [];
+        $dateCursor = Carbon::parse($dateFrom);
+        $dateEndLimit = Carbon::parse($dateTo);
+        while ($dateCursor->lte($dateEndLimit)) {
+            $periodDates[] = $dateCursor->toDateString();
+            $dateCursor->addDay();
+        }
+        $chartLabels = array_map(fn($d) => Carbon::parse($d)->translatedFormat('d M'), $periodDates);
 
-        $chartLabels = [];
-        $chartAmounts = [];
+        $colorPalette = [
+            ['border' => '#0A97B0', 'bg' => 'rgba(10, 151, 176, 0.08)'],
+            ['border' => '#6366f1', 'bg' => 'rgba(99, 102, 241, 0.08)'],
+            ['border' => '#f59e0b', 'bg' => 'rgba(245, 158, 11, 0.08)'],
+        ];
 
-        foreach ($dailySalesQuery as $daily) {
-            $chartLabels[] = Carbon::parse($daily->report_date)->translatedFormat('d M');
-            $chartAmounts[] = (int) $daily->total_amount;
+        $hasCompareBranches = !empty($compareBranchIds) && count($comparisonData) > 0;
+        $multiLineDatasets = [];
+
+        if ($hasCompareBranches) {
+            foreach ($comparisonData as $cIdx => $cBranchData) {
+                $bReportsByDate = DailyKitchenReport::where('branch_id', $cBranchData['id'])
+                    ->whereDate('report_date', '>=', $dateFrom)
+                    ->whereDate('report_date', '<=', $dateTo)
+                    ->pluck('total_omset', 'report_date')
+                    ->toArray();
+
+                $branchSeries = [];
+                foreach ($periodDates as $pDate) {
+                    $branchSeries[] = (int) ($bReportsByDate[$pDate] ?? 0);
+                }
+
+                $color = $colorPalette[$cIdx % count($colorPalette)];
+                $multiLineDatasets[] = [
+                    'label' => $cBranchData['name'] . ' (Rp)',
+                    'data' => $branchSeries,
+                    'borderColor' => $color['border'],
+                    'backgroundColor' => $color['bg'],
+                    'borderWidth' => 2.5,
+                    'fill' => true,
+                    'tension' => 0.35,
+                    'pointRadius' => 3.5,
+                    'pointHoverRadius' => 6,
+                    'pointBackgroundColor' => $color['border'],
+                    'pointBorderColor' => '#ffffff',
+                    'pointBorderWidth' => 2
+                ];
+            }
+        } else {
+            // Single Line Dataset (Global / Cabang Aktif)
+            $dailySalesQuery = (clone $query)
+                ->select(
+                    'report_date',
+                    DB::raw('SUM(total_omset) as total_amount')
+                )
+                ->groupBy('report_date')
+                ->pluck('total_amount', 'report_date')
+                ->toArray();
+
+            $chartAmounts = [];
+            foreach ($periodDates as $pDate) {
+                $chartAmounts[] = (int) ($dailySalesQuery[$pDate] ?? 0);
+            }
+
+            $multiLineDatasets[] = [
+                'label' => 'Total Omzet Kasir (Rp)',
+                'data' => $chartAmounts,
+                'borderColor' => '#0A97B0',
+                'backgroundColor' => 'rgba(10, 151, 176, 0.08)',
+                'borderWidth' => 2.5,
+                'fill' => true,
+                'tension' => 0.35,
+                'pointRadius' => 3.5,
+                'pointHoverRadius' => 6,
+                'pointBackgroundColor' => '#0A97B0',
+                'pointBorderColor' => '#ffffff',
+                'pointBorderWidth' => 2
+            ];
         }
 
         // 10. Top 5 Menu Masakan Terlaris
@@ -313,11 +380,12 @@ class DashboardController extends Controller
             'branchComparisons',
             'comparisonData',
             'compareBranchIds',
+            'hasCompareBranches',
             'paymentSummaries',
             'paymentChartLabels',
             'paymentChartData',
             'chartLabels',
-            'chartAmounts',
+            'multiLineDatasets',
             'topMenus',
             'recentReports',
             'selectedBranchId',
