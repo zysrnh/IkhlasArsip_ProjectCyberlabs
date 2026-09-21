@@ -672,6 +672,9 @@
             </div>
 
             @php
+                $totalCash = $totalCash ?? ($paymentSummaries['Penjualan Tunai']['amount'] ?? 0);
+                $totalQris = $totalQris ?? ($paymentSummaries['QRIS / Transfer']['amount'] ?? 0);
+                $totalOnline = $totalOnline ?? ($paymentSummaries['Online Food (Grab/Gojek/Shopee)']['amount'] ?? 0);
                 $totalAllPay = $totalCash + $totalQris + $totalOnline;
                 $pctCash = $totalAllPay > 0 ? round(($totalCash / $totalAllPay) * 100, 1) : 0;
                 $pctQris = $totalAllPay > 0 ? round(($totalQris / $totalAllPay) * 100, 1) : 0;
