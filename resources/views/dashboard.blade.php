@@ -184,8 +184,8 @@
             </div>
         </div>
 
-        <!-- Carousel Track Viewport -->
-        <div class="relative overflow-hidden rounded-2xl">
+        <!-- Carousel Track Viewport (Mendukung Touch Swipe & Mouse Drag) -->
+        <div id="kpiCarouselViewport" class="relative overflow-hidden rounded-2xl cursor-grab active:cursor-grabbing select-none">
             <div 
                 id="kpiCarouselTrack" 
                 class="flex transition-transform duration-500 ease-in-out w-full"
@@ -761,6 +761,68 @@
         const prevSlide = (currentKpiSlide - 1 + totalKpiSlides) % totalKpiSlides;
         switchKpiCarousel(prevSlide);
     }
+
+    // Inisialisasi Gesture Touch Swipe & Mouse Drag pada Carousel Viewport
+    document.addEventListener('DOMContentLoaded', function() {
+        const viewport = document.getElementById('kpiCarouselViewport');
+        if (!viewport) return;
+
+        let startX = 0;
+        let isDragging = false;
+
+        // 1. Touch Events (HP / Layar Sentuh)
+        viewport.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        }, { passive: true });
+
+        viewport.addEventListener('touchend', function(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            const endX = e.changedTouches[0].clientX;
+            const diffX = startX - endX;
+            // Ambang batas geser minimal 45px
+            if (Math.abs(diffX) > 45) {
+                if (diffX > 0) {
+                    nextKpiCarousel();
+                } else {
+                    prevKpiCarousel();
+                }
+            }
+        }, { passive: true });
+
+        // 2. Mouse Drag Events (Desktop / Laptop)
+        viewport.addEventListener('mousedown', function(e) {
+            startX = e.clientX;
+            isDragging = true;
+            viewport.classList.add('cursor-grabbing');
+            viewport.classList.remove('cursor-grab');
+        });
+
+        viewport.addEventListener('mouseup', function(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            viewport.classList.remove('cursor-grabbing');
+            viewport.classList.add('cursor-grab');
+            const endX = e.clientX;
+            const diffX = startX - endX;
+            if (Math.abs(diffX) > 45) {
+                if (diffX > 0) {
+                    nextKpiCarousel();
+                } else {
+                    prevKpiCarousel();
+                }
+            }
+        });
+
+        viewport.addEventListener('mouseleave', function() {
+            if (isDragging) {
+                isDragging = false;
+                viewport.classList.remove('cursor-grabbing');
+                viewport.classList.add('cursor-grab');
+            }
+        });
+    });
 
     // Custom Dropdown Filter Cabang Popover
     function toggleDashboardBranchDropdown() {
