@@ -101,7 +101,7 @@ class User extends Authenticatable
      */
     public function getAccessibleBranchIds(): array
     {
-        if ($this->isSuperAdmin() || $this->isViewer()) {
+        if ($this->isSuperAdmin()) {
             return Branch::where('status', 'active')->pluck('id')->toArray();
         }
 
@@ -121,7 +121,7 @@ class User extends Authenticatable
      */
     public function getAccessibleBranches()
     {
-        if ($this->isSuperAdmin() || $this->isViewer()) {
+        if ($this->isSuperAdmin()) {
             return Branch::where('status', 'active')->orderBy('name')->get();
         }
 

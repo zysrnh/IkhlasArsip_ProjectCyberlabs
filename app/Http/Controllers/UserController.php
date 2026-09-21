@@ -98,7 +98,7 @@ class UserController extends Controller
         if ($request->role === User::ROLE_KEPALA_CABANG) {
             $rules['branch_ids'] = ['required', 'array', 'min:1'];
             $rules['branch_ids.*'] = ['exists:branches,id'];
-        } elseif (in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR])) {
+        } elseif (in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR, User::ROLE_VIEWER])) {
             $rules['branch_id'] = ['required', 'exists:branches,id'];
         } else {
             $rules['branch_id'] = ['nullable'];
@@ -122,7 +122,7 @@ class UserController extends Controller
         $rawPassword = $request->password;
         $validated['password'] = Hash::make($rawPassword);
 
-        // Jika Kepala Cabang membuat user admin cabang, pastikan cabangnya adalah wilayah yang dia pegang
+        // Jika Kepala Cabang membuat user admin cabang / viewer, pastikan cabangnya adalah wilayah yang dia pegang
         if ($currentUser->isKepalaCabang()) {
             $allowedBranchIds = $currentUser->getAccessibleBranchIds();
             if (!in_array($validated['branch_id'], $allowedBranchIds)) {
@@ -133,32 +133,26 @@ class UserController extends Controller
         // Tentukan penempatan branch_id
         if ($validated['role'] === User::ROLE_KEPALA_CABANG) {
             $validated['branch_id'] = $request->branch_ids[0] ?? null;
-        } elseif (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR])) {
+        } elseif (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR, User::ROLE_VIEWER])) {
             $validated['branch_id'] = null;
         }
 
         $newUser = User::create($validated);
 
-        // Sinkronisasi Multi-Cabang untuk Kepala Cabang
-        if ($newUser->isKepalaCabang() && $request->filled('branch_ids')) {
+        // Simpan multi-cabang jika kepala cabang
+        if ($newUser->isKepalaCabang() && !empty($request->branch_ids)) {
             $newUser->managedBranches()->sync($request->branch_ids);
         }
 
-        $emailSent = false;
-        if ($request->boolean('send_email', true)) {
-            try {
-                \Illuminate\Support\Facades\Mail::to($newUser->email)->send(new \App\Mail\UserCredentialsMail($newUser, $rawPassword));
-                $emailSent = true;
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Gagal mengirim email kredensial user: ' . $e->getMessage());
-            }
+        // Kirim email kredensial akun baru
+        try {
+            Mail::to($newUser->email)->send(new UserCredentialsMail($newUser, $rawPassword));
+        } catch (\Exception $e) {
+            // Log error jika email gagal terkirim tanpa menggagalkan pembuatan user
+            \Illuminate\Support\Facades\Log::warning("Gagal mengirim email kredensial ke {$newUser->email}: " . $e->getMessage());
         }
 
-        $msg = $emailSent 
-            ? "User {$newUser->name} berhasil ditambahkan dan kredensial login telah dikirim ke {$newUser->email}."
-            : "User {$newUser->name} berhasil ditambahkan.";
-
-        return redirect()->route('users.index')->with('success', $msg);
+        return redirect()->route('users.index')->with('success', 'User baru berhasil ditambahkan dan email kredensial telah dikirim.');
     }
 
     /**
@@ -198,7 +192,7 @@ class UserController extends Controller
         if ($request->role === User::ROLE_KEPALA_CABANG) {
             $rules['branch_ids'] = ['required', 'array', 'min:1'];
             $rules['branch_ids.*'] = ['exists:branches,id'];
-        } elseif (in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR])) {
+        } elseif (in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR, User::ROLE_VIEWER])) {
             $rules['branch_id'] = ['required', 'exists:branches,id'];
         } else {
             $rules['branch_id'] = ['nullable'];
@@ -232,7 +226,7 @@ class UserController extends Controller
         // Tentukan penempatan branch_id
         if ($validated['role'] === User::ROLE_KEPALA_CABANG) {
             $validated['branch_id'] = $request->branch_ids[0] ?? null;
-        } elseif (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR])) {
+        } elseif (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR, User::ROLE_VIEWER])) {
             $validated['branch_id'] = null;
         }
 

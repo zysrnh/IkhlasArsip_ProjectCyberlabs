@@ -1346,7 +1346,7 @@
         if (role === 'kepala_cabang') {
             if (singleContainer) singleContainer.classList.add('hidden');
             if (multiContainer) multiContainer.classList.remove('hidden');
-        } else if (role === 'admin_cabang' || role === 'admin_dapur') {
+        } else if (role === 'admin_cabang' || role === 'admin_dapur' || role === 'viewer') {
             if (singleContainer) {
                 singleContainer.classList.remove('hidden');
                 singleContainer.style.opacity = '1';
@@ -1365,7 +1365,7 @@
                 setModalDropdownValue(type, 'Branch', curVal, curLabel);
             }
         } else {
-            // superadmin / viewer
+            // superadmin
             if (singleContainer) singleContainer.classList.add('hidden');
             if (multiContainer) multiContainer.classList.add('hidden');
             setModalDropdownValue(type, 'Branch', '', 'Semua Cabang (Global)');
