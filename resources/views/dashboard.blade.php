@@ -121,201 +121,265 @@
         </form>
     </div>
 
-    <!-- Section 1: 4 Primary Financial KPI Cards -->
-    <div>
-        <div class="flex items-center justify-between mb-3.5">
-            <div class="flex items-center space-x-2">
-                <span class="w-2 h-2 rounded-full bg-tealBrand"></span>
-                <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Ringkasan Finansial Utama</h2>
-            </div>
-            <span class="text-[11px] font-bold text-slate-400">
-                Periode: {{ \Carbon\Carbon::parse($dateFrom)->translatedFormat('d M Y') }} &ndash; {{ \Carbon\Carbon::parse($dateTo)->translatedFormat('d M Y') }}
-            </span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            
-            <!-- Card 1: Total Omzet Kasir -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-tealBrand transition-colors">
-                        Total Omzet Kasir
-                    </span>
-                    <div class="w-8 h-8 rounded-xl bg-teal-50 text-tealBrand flex items-center justify-center font-bold">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                </div>
-                <div class="my-3">
-                    <div class="text-2xl font-black text-slate-900 tracking-tight font-sans">
-                        Rp {{ number_format($totalIncome, 0, ',', '.') }}
-                    </div>
-                </div>
-                <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
-                    <span>Penjualan Lauk</span>
-                    <span class="font-bold text-slate-700">Rp {{ number_format($totalSalesFood, 0, ',', '.') }}</span>
-                </div>
-            </div>
-
-            <!-- Card 2: Total Biaya Operasional -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-rose-600 transition-colors">
-                        Total Biaya Operasional
-                    </span>
-                    <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                    </div>
-                </div>
-                <div class="my-3">
-                    <div class="text-2xl font-black text-rose-600 tracking-tight font-sans">
-                        Rp {{ number_format($totalCost, 0, ',', '.') }}
-                    </div>
-                </div>
-                <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
-                    <span>Tetap / Belanja</span>
-                    <span class="font-bold text-slate-700">
-                        Rp {{ number_format($totalFixedCost, 0, ',', '.') }} / Rp {{ number_format($totalDailyExpense, 0, ',', '.') }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Card 3: Gross Margin -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
-                        Gross Margin (Laba)
-                    </span>
-                    <div class="w-8 h-8 rounded-xl {{ $grossMargin >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }} flex items-center justify-center font-bold">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                    </div>
-                </div>
-                <div class="my-3 flex items-baseline justify-between">
-                    <div class="text-2xl font-black {{ $grossMargin >= 0 ? 'text-emerald-600' : 'text-rose-600' }} tracking-tight font-sans">
-                        Rp {{ number_format($grossMargin, 0, ',', '.') }}
-                    </div>
-                    <span class="text-xs font-black px-2 py-0.5 rounded-lg {{ $grossMargin >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
-                        {{ $grossMarginPercent }}%
-                    </span>
-                </div>
-                <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
-                    <span>Formula</span>
-                    <span class="font-bold text-slate-700">Omzet &minus; Total Biaya</span>
-                </div>
-            </div>
-
-            <!-- Card 4: Summary Selisih Kasir -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-cyan-600 transition-colors">
-                        Summary Selisih Kasir
-                    </span>
-                    <div class="w-8 h-8 rounded-xl {{ $surplusKasir > 0 ? 'bg-emerald-50 text-emerald-600' : ($surplusKasir < 0 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600') }} flex items-center justify-center font-bold">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                    </div>
-                </div>
-                <div class="my-3 flex items-baseline justify-between">
-                    <div class="text-2xl font-black {{ $surplusKasir > 0 ? 'text-emerald-600' : ($surplusKasir < 0 ? 'text-rose-600' : 'text-slate-800') }} tracking-tight font-sans">
-                        {{ $surplusKasir < 0 ? '-' : ($surplusKasir > 0 ? '+' : '') }}Rp {{ number_format(abs($surplusKasir), 0, ',', '.') }}
-                    </div>
-                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-lg {{ $surplusKasir > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($surplusKasir < 0 ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
-                        {{ $surplusKasir > 0 ? 'Surplus' : ($surplusKasir < 0 ? 'Defisit' : 'Seimbang') }}
-                    </span>
-                </div>
-                <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
-                    <span>Status Kasir</span>
-                    <span class="font-bold text-slate-700">
-                        {{ $surplusKasir > 0 ? 'Uang Lebih' : ($surplusKasir < 0 ? 'Uang Kurang' : 'Klop Sesuai') }}
-                    </span>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Section 2: 4 Operasional Dapur Stat Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+    <!-- Section Carousel: 8 Cards Interaktif (Slide 1: Finansial, Slide 2: Operasional Dapur) -->
+    <div class="space-y-3.5">
         
-        <!-- Total Laporan Dapur -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
-                    Total Laporan Dapur
+        <!-- Carousel Header with Navigation & Tab Switcher -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1">
+            
+            <!-- Left: Tab Switcher (Finansial vs Operasional) -->
+            <div class="inline-flex items-center p-1 bg-slate-100 rounded-2xl border border-slate-200 shadow-2xs self-start">
+                <button 
+                    type="button" 
+                    id="carouselTabFinancial"
+                    onclick="switchKpiCarousel(0)"
+                    class="px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer flex items-center space-x-2 bg-white text-slate-900 shadow-xs"
+                >
+                    <span class="w-2 h-2 rounded-full bg-tealBrand"></span>
+                    <span>Ringkasan Finansial</span>
+                </button>
+
+                <button 
+                    type="button" 
+                    id="carouselTabKitchen"
+                    onclick="switchKpiCarousel(1)"
+                    class="px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer flex items-center space-x-2 text-slate-500 hover:text-slate-800"
+                >
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span>Operasional Dapur</span>
+                </button>
+            </div>
+
+            <!-- Right: Navigation Arrows & Indicator Dots -->
+            <div class="flex items-center space-x-3 self-end sm:self-auto">
+                <span class="text-[11px] font-bold text-slate-400 hidden sm:inline" id="carouselSlideLabel">
+                    Slide 1 dari 2 &bull; Ringkasan Finansial
                 </span>
-                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+
+                <!-- Indicator Dots -->
+                <div class="flex items-center space-x-1.5">
+                    <button type="button" onclick="switchKpiCarousel(0)" id="carouselDot0" class="w-6 h-2 rounded-full bg-tealBrand transition-all duration-300 cursor-pointer" aria-label="Slide 1"></button>
+                    <button type="button" onclick="switchKpiCarousel(1)" id="carouselDot1" class="w-2 h-2 rounded-full bg-slate-300 transition-all duration-300 cursor-pointer" aria-label="Slide 2"></button>
                 </div>
-            </div>
-            <div class="my-3">
-                <div class="text-2xl font-black text-slate-900 tracking-tight font-sans">
-                    {{ number_format($totalReports, 0, ',', '.') }} <span class="text-xs font-normal text-slate-400">laporan</span>
+
+                <!-- Prev & Next Button Controls -->
+                <div class="flex items-center space-x-1.5">
+                    <button 
+                        type="button" 
+                        onclick="prevKpiCarousel()" 
+                        class="w-8 h-8 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 shadow-xs flex items-center justify-center text-slate-600 hover:text-slate-900 transition cursor-pointer"
+                        title="Slide Sebelumnya"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="nextKpiCarousel()" 
+                        class="w-8 h-8 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 shadow-xs flex items-center justify-center text-slate-600 hover:text-slate-900 transition cursor-pointer"
+                        title="Slide Berikutnya"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
                 </div>
-            </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
-                <span>Rata-rata Omzet / Hari</span>
-                <span class="font-bold text-slate-700">Rp {{ number_format($avgDailyOmset, 0, ',', '.') }}</span>
             </div>
         </div>
 
-        <!-- Total Porsi Terjual -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
-                    Total Porsi Terjual
-                </span>
-                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                </div>
-            </div>
-            <div class="my-3">
-                <div class="text-2xl font-black text-slate-900 tracking-tight font-sans">
-                    {{ number_format($totalPortionsSold, 0, ',', '.') }} <span class="text-xs font-normal text-slate-400">porsi</span>
-                </div>
-            </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
-                <span>Total Dimasak</span>
-                <span class="font-bold text-slate-700">{{ number_format($totalPortionsCooked, 0, ',', '.') }} Porsi</span>
-            </div>
-        </div>
+        <!-- Carousel Track Viewport -->
+        <div class="relative overflow-hidden rounded-2xl">
+            <div 
+                id="kpiCarouselTrack" 
+                class="flex transition-transform duration-500 ease-in-out w-full"
+                style="transform: translateX(0%);"
+            >
+                
+                <!-- Slide 1: 4 Primary Financial Cards -->
+                <div class="w-full shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                    
+                    <!-- Card 1: Total Omzet Kasir -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-tealBrand transition-colors">
+                                Total Omzet Kasir
+                            </span>
+                            <div class="w-8 h-8 rounded-xl bg-teal-50 text-tealBrand flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                        </div>
+                        <div class="my-3">
+                            <div class="text-2xl font-black text-slate-900 tracking-tight font-sans">
+                                Rp {{ number_format($totalIncome, 0, ',', '.') }}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
+                            <span>Penjualan Lauk</span>
+                            <span class="font-bold text-slate-700">Rp {{ number_format($totalSalesFood, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
 
-        <!-- Lauk Terbuang (Basi) -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-rose-600 transition-colors">
-                    Lauk Terbuang (Basi)
-                </span>
-                <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                </div>
-            </div>
-            <div class="my-3">
-                <div class="text-2xl font-black text-rose-600 tracking-tight font-sans">
-                    Rp {{ number_format($totalWastedFood, 0, ',', '.') }}
-                </div>
-            </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
-                <span>Sisa Layak Jual</span>
-                <span class="font-bold text-slate-700">Rp {{ number_format($totalRemainingSellable, 0, ',', '.') }}</span>
-            </div>
-        </div>
+                    <!-- Card 2: Total Biaya Operasional -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-rose-600 transition-colors">
+                                Total Biaya Operasional
+                            </span>
+                            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            </div>
+                        </div>
+                        <div class="my-3">
+                            <div class="text-2xl font-black text-rose-600 tracking-tight font-sans">
+                                Rp {{ number_format($totalCost, 0, ',', '.') }}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
+                            <span>Tetap / Belanja</span>
+                            <span class="font-bold text-slate-700">
+                                Rp {{ number_format($totalFixedCost, 0, ',', '.') }} / Rp {{ number_format($totalDailyExpense, 0, ',', '.') }}
+                            </span>
+                        </div>
+                    </div>
 
-        <!-- Top Cabang Penjualan -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-amber-600 transition-colors">
-                    Top Cabang Penjualan
-                </span>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    <!-- Card 3: Gross Margin -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
+                                Gross Margin (Laba)
+                            </span>
+                            <div class="w-8 h-8 rounded-xl {{ $grossMargin >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }} flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            </div>
+                        </div>
+                        <div class="my-3 flex items-baseline justify-between">
+                            <div class="text-2xl font-black {{ $grossMargin >= 0 ? 'text-emerald-600' : 'text-rose-600' }} tracking-tight font-sans">
+                                Rp {{ number_format($grossMargin, 0, ',', '.') }}
+                            </div>
+                            <span class="text-xs font-black px-2 py-0.5 rounded-lg {{ $grossMargin >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
+                                {{ $grossMarginPercent }}%
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
+                            <span>Formula</span>
+                            <span class="font-bold text-slate-700">Omzet &minus; Total Biaya</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Summary Selisih Kasir -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-cyan-600 transition-colors">
+                                Summary Selisih Kasir
+                            </span>
+                            <div class="w-8 h-8 rounded-xl {{ $surplusKasir > 0 ? 'bg-emerald-50 text-emerald-600' : ($surplusKasir < 0 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600') }} flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                            </div>
+                        </div>
+                        <div class="my-3 flex items-baseline justify-between">
+                            <div class="text-2xl font-black {{ $surplusKasir > 0 ? 'text-emerald-600' : ($surplusKasir < 0 ? 'text-rose-600' : 'text-slate-800') }} tracking-tight font-sans">
+                                {{ $surplusKasir < 0 ? '-' : ($surplusKasir > 0 ? '+' : '') }}Rp {{ number_format(abs($surplusKasir), 0, ',', '.') }}
+                            </div>
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-lg {{ $surplusKasir > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($surplusKasir < 0 ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
+                                {{ $surplusKasir > 0 ? 'Surplus' : ($surplusKasir < 0 ? 'Defisit' : 'Seimbang') }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
+                            <span>Status Kasir</span>
+                            <span class="font-bold text-slate-700">
+                                {{ $surplusKasir > 0 ? 'Uang Lebih' : ($surplusKasir < 0 ? 'Uang Kurang' : 'Klop Sesuai') }}
+                            </span>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
-            <div class="my-3">
-                <div class="text-xl font-black text-slate-900 tracking-tight truncate" title="{{ $topBranchName }}">
-                    {{ $topBranchName }}
+
+                <!-- Slide 2: 4 Operasional Dapur Cards -->
+                <div class="w-full shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                    
+                    <!-- Card 5: Total Laporan Dapur -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
+                                Total Laporan Dapur
+                            </span>
+                            <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            </div>
+                        </div>
+                        <div class="my-3">
+                            <div class="text-2xl font-black text-slate-900 tracking-tight font-sans">
+                                {{ number_format($totalReports, 0, ',', '.') }} <span class="text-xs font-normal text-slate-400">laporan</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
+                            <span>Rata-rata Omzet / Hari</span>
+                            <span class="font-bold text-slate-700">Rp {{ number_format($avgDailyOmset, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 6: Total Porsi Terjual -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
+                                Total Porsi Terjual
+                            </span>
+                            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                            </div>
+                        </div>
+                        <div class="my-3">
+                            <div class="text-2xl font-black text-slate-900 tracking-tight font-sans">
+                                {{ number_format($totalPortionsSold, 0, ',', '.') }} <span class="text-xs font-normal text-slate-400">porsi</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
+                            <span>Total Dimasak</span>
+                            <span class="font-bold text-slate-700">{{ number_format($totalPortionsCooked, 0, ',', '.') }} Porsi</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 7: Lauk Terbuang (Basi) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-rose-600 transition-colors">
+                                Lauk Terbuang (Basi)
+                            </span>
+                            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </div>
+                        </div>
+                        <div class="my-3">
+                            <div class="text-2xl font-black text-rose-600 tracking-tight font-sans">
+                                Rp {{ number_format($totalWastedFood, 0, ',', '.') }}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
+                            <span>Sisa Layak Jual</span>
+                            <span class="font-bold text-slate-700">Rp {{ number_format($totalRemainingSellable, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 8: Top Cabang Penjualan -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-amber-600 transition-colors">
+                                Top Cabang Penjualan
+                            </span>
+                            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                            </div>
+                        </div>
+                        <div class="my-3">
+                            <div class="text-xl font-black text-slate-900 tracking-tight truncate" title="{{ $topBranchName }}">
+                                {{ $topBranchName }}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
+                            <span>Omzet Tertinggi</span>
+                            <span class="font-bold text-emerald-600">Rp {{ number_format($topBranchAmount, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium pt-2.5 border-t border-slate-100">
-                <span>Omzet Tertinggi</span>
-                <span class="font-bold text-emerald-600">Rp {{ number_format($topBranchAmount, 0, ',', '.') }}</span>
+
             </div>
         </div>
 
@@ -634,6 +698,70 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
+    // State Carousel KPI Card
+    let currentKpiSlide = 0;
+    const totalKpiSlides = 2;
+
+    function switchKpiCarousel(slideIndex) {
+        currentKpiSlide = slideIndex;
+        const track = document.getElementById('kpiCarouselTrack');
+        const tabFinancial = document.getElementById('carouselTabFinancial');
+        const tabKitchen = document.getElementById('carouselTabKitchen');
+        const dot0 = document.getElementById('carouselDot0');
+        const dot1 = document.getElementById('carouselDot1');
+        const label = document.getElementById('carouselSlideLabel');
+
+        if (track) {
+            track.style.transform = `translateX(-${slideIndex * 100}%)`;
+        }
+
+        if (slideIndex === 0) {
+            // Aktifkan tab Financial
+            if (tabFinancial) {
+                tabFinancial.className = "px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer flex items-center space-x-2 bg-white text-slate-900 shadow-xs";
+            }
+            if (tabKitchen) {
+                tabKitchen.className = "px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer flex items-center space-x-2 text-slate-500 hover:text-slate-800";
+            }
+            if (dot0) {
+                dot0.className = "w-6 h-2 rounded-full bg-tealBrand transition-all duration-300 cursor-pointer";
+            }
+            if (dot1) {
+                dot1.className = "w-2 h-2 rounded-full bg-slate-300 transition-all duration-300 cursor-pointer";
+            }
+            if (label) {
+                label.innerText = "Slide 1 dari 2 \u2022 Ringkasan Finansial";
+            }
+        } else {
+            // Aktifkan tab Kitchen
+            if (tabFinancial) {
+                tabFinancial.className = "px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer flex items-center space-x-2 text-slate-500 hover:text-slate-800";
+            }
+            if (tabKitchen) {
+                tabKitchen.className = "px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer flex items-center space-x-2 bg-white text-slate-900 shadow-xs";
+            }
+            if (dot0) {
+                dot0.className = "w-2 h-2 rounded-full bg-slate-300 transition-all duration-300 cursor-pointer";
+            }
+            if (dot1) {
+                dot1.className = "w-6 h-2 rounded-full bg-tealBrand transition-all duration-300 cursor-pointer";
+            }
+            if (label) {
+                label.innerText = "Slide 2 dari 2 \u2022 Operasional Dapur";
+            }
+        }
+    }
+
+    function nextKpiCarousel() {
+        const nextSlide = (currentKpiSlide + 1) % totalKpiSlides;
+        switchKpiCarousel(nextSlide);
+    }
+
+    function prevKpiCarousel() {
+        const prevSlide = (currentKpiSlide - 1 + totalKpiSlides) % totalKpiSlides;
+        switchKpiCarousel(prevSlide);
+    }
+
     // Custom Dropdown Filter Cabang Popover
     function toggleDashboardBranchDropdown() {
         const menu = document.getElementById('dashboardBranchDropdownMenu');
