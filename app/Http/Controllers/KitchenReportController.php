@@ -28,20 +28,19 @@ class KitchenReportController extends Controller
         if ($user->isAdminCabang() || $user->isAdminDapur()) {
             $query->where('branch_id', $user->branch_id);
             $selectedBranchId = $user->branch_id;
-        } elseif ($user->isKepalaCabang()) {
-            if ($user->managedBranches()->count() > 0) {
-                $query->whereIn('branch_id', $user->managedBranches()->pluck('branches.id'));
-            } elseif ($user->branch_id) {
-                $query->where('branch_id', $user->branch_id);
-            }
+        } elseif ($user->isKepalaCabang() || $user->isViewer()) {
+            $accessibleBranchIds = $user->getAccessibleBranchIds();
             $selectedBranchId = $request->get('branch_id');
+            if (!empty($selectedBranchId) && in_array($selectedBranchId, $accessibleBranchIds)) {
+                $query->where('branch_id', $selectedBranchId);
+            } else {
+                $query->whereIn('branch_id', $accessibleBranchIds);
+            }
         } else {
             $selectedBranchId = $request->get('branch_id');
-        }
-
-        // Filter Cabang (Super Admin / Kepala Cabang)
-        if (!empty($selectedBranchId)) {
-            $query->where('branch_id', $selectedBranchId);
+            if (!empty($selectedBranchId)) {
+                $query->where('branch_id', $selectedBranchId);
+            }
         }
 
         // Search Keyword (PIC / Nama Cabang / Catatan)
@@ -83,8 +82,8 @@ class KitchenReportController extends Controller
         // Data Cabang untuk Dropdown Filter
         if ($user->isSuperAdmin()) {
             $branches = Branch::where('status', 'active')->orderBy('name')->get();
-        } elseif ($user->isKepalaCabang() && $user->managedBranches()->count() > 0) {
-            $branches = $user->managedBranches()->where('status', 'active')->orderBy('name')->get();
+        } elseif ($user->isKepalaCabang() || $user->isViewer()) {
+            $branches = $user->getAccessibleBranches();
         } elseif ($user->branch_id) {
             $branches = Branch::where('id', $user->branch_id)->get();
         } else {

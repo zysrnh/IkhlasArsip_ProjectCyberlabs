@@ -105,7 +105,7 @@ class User extends Authenticatable
             return Branch::where('status', 'active')->pluck('id')->toArray();
         }
 
-        if ($this->isKepalaCabang()) {
+        if ($this->isKepalaCabang() || $this->isViewer()) {
             $managedIds = $this->managedBranches()->pluck('branches.id')->toArray();
             if (!empty($managedIds)) {
                 return $managedIds;
@@ -125,7 +125,7 @@ class User extends Authenticatable
             return Branch::where('status', 'active')->orderBy('name')->get();
         }
 
-        if ($this->isKepalaCabang()) {
+        if ($this->isKepalaCabang() || $this->isViewer()) {
             $managed = $this->managedBranches()->where('status', 'active')->orderBy('name')->get();
             if ($managed->isNotEmpty()) {
                 return $managed;

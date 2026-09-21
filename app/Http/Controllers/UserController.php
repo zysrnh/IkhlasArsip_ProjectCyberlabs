@@ -94,11 +94,11 @@ class UserController extends Controller
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ];
 
-        // Khusus Kepala Cabang: wajib memilih minimal 1 cabang (multi-select)
-        if ($request->role === User::ROLE_KEPALA_CABANG) {
+        // Khusus Kepala Cabang & Viewer: wajib memilih minimal 1 cabang (multi-select)
+        if (in_array($request->role, [User::ROLE_KEPALA_CABANG, User::ROLE_VIEWER])) {
             $rules['branch_ids'] = ['required', 'array', 'min:1'];
             $rules['branch_ids.*'] = ['exists:branches,id'];
-        } elseif (in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR, User::ROLE_VIEWER])) {
+        } elseif (in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR])) {
             $rules['branch_id'] = ['required', 'exists:branches,id'];
         } else {
             $rules['branch_id'] = ['nullable'];
@@ -114,8 +114,8 @@ class UserController extends Controller
             'role.in' => 'Role yang dipilih tidak diizinkan untuk akun Anda.',
             'branch_id.required' => 'Cabang wajib dipilih.',
             'branch_id.exists' => 'Cabang yang dipilih tidak valid.',
-            'branch_ids.required' => 'Pilih minimal satu cabang untuk Kepala Cabang.',
-            'branch_ids.min' => 'Pilih minimal satu cabang untuk Kepala Cabang.',
+            'branch_ids.required' => 'Pilih minimal satu cabang untuk pengguna ini.',
+            'branch_ids.min' => 'Pilih minimal satu cabang untuk pengguna ini.',
             'status.required' => 'Status wajib dipilih.',
         ]);
 
@@ -125,22 +125,28 @@ class UserController extends Controller
         // Jika Kepala Cabang membuat user admin cabang / viewer, pastikan cabangnya adalah wilayah yang dia pegang
         if ($currentUser->isKepalaCabang()) {
             $allowedBranchIds = $currentUser->getAccessibleBranchIds();
-            if (!in_array($validated['branch_id'], $allowedBranchIds)) {
-                return back()->withErrors(['branch_id' => 'Anda hanya dapat menempatkan user pada wilayah cabang Anda.']);
+            $targetBranchIds = in_array($validated['role'], [User::ROLE_KEPALA_CABANG, User::ROLE_VIEWER]) 
+                ? ($request->branch_ids ?? []) 
+                : [$validated['branch_id'] ?? null];
+            
+            foreach ($targetBranchIds as $tId) {
+                if (!in_array($tId, $allowedBranchIds)) {
+                    return back()->withErrors(['branch_ids' => 'Anda hanya dapat menempatkan user pada wilayah cabang Anda.']);
+                }
             }
         }
 
         // Tentukan penempatan branch_id
-        if ($validated['role'] === User::ROLE_KEPALA_CABANG) {
+        if (in_array($validated['role'], [User::ROLE_KEPALA_CABANG, User::ROLE_VIEWER])) {
             $validated['branch_id'] = $request->branch_ids[0] ?? null;
-        } elseif (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR, User::ROLE_VIEWER])) {
+        } elseif (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR])) {
             $validated['branch_id'] = null;
         }
 
         $newUser = User::create($validated);
 
-        // Simpan multi-cabang jika kepala cabang
-        if ($newUser->isKepalaCabang() && !empty($request->branch_ids)) {
+        // Simpan multi-cabang jika kepala cabang / viewer
+        if (in_array($newUser->role, [User::ROLE_KEPALA_CABANG, User::ROLE_VIEWER]) && !empty($request->branch_ids)) {
             $newUser->managedBranches()->sync($request->branch_ids);
         }
 
@@ -171,7 +177,8 @@ class UserController extends Controller
             }
 
             $accessibleBranchIds = $currentUser->getAccessibleBranchIds();
-            if (!in_array($user->branch_id, $accessibleBranchIds) && $user->id !== $currentUser->id) {
+            $targetUserBranchIds = $user->getAccessibleBranchIds();
+            if (empty(array_intersect($targetUserBranchIds, $accessibleBranchIds)) && $user->id !== $currentUser->id) {
                 abort(403, 'Anda hanya dapat mengelola pengguna di cabang wilayah Anda sendiri.');
             }
         }
@@ -188,11 +195,11 @@ class UserController extends Controller
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ];
 
-        // Khusus Kepala Cabang: wajib memilih minimal 1 cabang (multi-select)
-        if ($request->role === User::ROLE_KEPALA_CABANG) {
+        // Khusus Kepala Cabang & Viewer: wajib memilih minimal 1 cabang (multi-select)
+        if (in_array($request->role, [User::ROLE_KEPALA_CABANG, User::ROLE_VIEWER])) {
             $rules['branch_ids'] = ['required', 'array', 'min:1'];
             $rules['branch_ids.*'] = ['exists:branches,id'];
-        } elseif (in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR, User::ROLE_VIEWER])) {
+        } elseif (in_array($request->role, [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR])) {
             $rules['branch_id'] = ['required', 'exists:branches,id'];
         } else {
             $rules['branch_id'] = ['nullable'];
@@ -207,8 +214,8 @@ class UserController extends Controller
             'role.in' => 'Role yang dipilih tidak diizinkan untuk akun Anda.',
             'branch_id.required' => 'Cabang wajib dipilih.',
             'branch_id.exists' => 'Cabang yang dipilih tidak valid.',
-            'branch_ids.required' => 'Pilih minimal satu cabang untuk Kepala Cabang.',
-            'branch_ids.min' => 'Pilih minimal satu cabang untuk Kepala Cabang.',
+            'branch_ids.required' => 'Pilih minimal satu cabang untuk pengguna ini.',
+            'branch_ids.min' => 'Pilih minimal satu cabang untuk pengguna ini.',
             'status.required' => 'Status wajib dipilih.',
         ]);
 
@@ -224,16 +231,16 @@ class UserController extends Controller
         }
 
         // Tentukan penempatan branch_id
-        if ($validated['role'] === User::ROLE_KEPALA_CABANG) {
+        if (in_array($validated['role'], [User::ROLE_KEPALA_CABANG, User::ROLE_VIEWER])) {
             $validated['branch_id'] = $request->branch_ids[0] ?? null;
-        } elseif (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR, User::ROLE_VIEWER])) {
+        } elseif (!in_array($validated['role'], [User::ROLE_ADMIN_CABANG, User::ROLE_ADMIN_DAPUR])) {
             $validated['branch_id'] = null;
         }
 
         $user->update($validated);
 
-        // Sinkronisasi Multi-Cabang untuk Kepala Cabang
-        if ($user->isKepalaCabang()) {
+        // Sinkronisasi Multi-Cabang untuk Kepala Cabang & Viewer
+        if (in_array($user->role, [User::ROLE_KEPALA_CABANG, User::ROLE_VIEWER])) {
             $user->managedBranches()->sync($request->branch_ids ?? []);
         } else {
             $user->managedBranches()->detach();

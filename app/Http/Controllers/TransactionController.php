@@ -24,8 +24,8 @@ class TransactionController extends Controller
     {
         $user = auth()->user();
         $selectedBranchId = $request->get('branch_id');
-        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
-            if ($user->isKepalaCabang()) {
+        if (!$user->canAccessAllBranches()) {
+            if ($user->isKepalaCabang() || $user->isViewer()) {
                 $accessibleIds = $user->getAccessibleBranchIds();
                 if ($selectedBranchId && !in_array($selectedBranchId, $accessibleIds)) {
                     $selectedBranchId = null;
@@ -226,9 +226,9 @@ class TransactionController extends Controller
         $branchLabel = 'Semua Cabang';
         if ($request->filled('branch_id')) {
             $branchLabel = Branch::find($request->branch_id)?->name ?? 'Cabang ' . $request->branch_id;
-        } elseif ($user->isKepalaCabang()) {
+        } elseif ($user->isKepalaCabang() || $user->isViewer()) {
             $branchLabel = 'Wilayah Cabang ' . $user->name;
-        } elseif (!$user->canAccessAllBranches() && !$user->isViewer()) {
+        } elseif (!$user->canAccessAllBranches()) {
             $branchLabel = $user->branch->name ?? 'Cabang Anda';
         }
 
@@ -247,8 +247,8 @@ class TransactionController extends Controller
         $query = DailyKitchenReport::with(['branch', 'user']);
 
         // 1. Otorisasi Cabang
-        if (!$user->canAccessAllBranches() && !$user->isViewer()) {
-            if ($user->isKepalaCabang()) {
+        if (!$user->canAccessAllBranches()) {
+            if ($user->isKepalaCabang() || $user->isViewer()) {
                 $accessibleBranchIds = $user->getAccessibleBranchIds();
                 if ($request->filled('branch_id') && in_array($request->branch_id, $accessibleBranchIds)) {
                     $query->where('branch_id', $request->branch_id);

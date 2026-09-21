@@ -383,7 +383,7 @@
                         </div>
                         <div>
                             <span class="text-[10px] text-slate-400 uppercase font-bold block">Cabang:</span>
-                            @if($user->role === 'kepala_cabang')
+                            @if(in_array($user->role, ['kepala_cabang', 'viewer']))
                                 @if($user->managedBranches->count() > 1)
                                     <div class="mt-0.5 space-y-0.5">
                                         <span class="inline-block px-1.5 py-0.2 rounded text-[9px] font-bold bg-teal-50 text-teal-700 border border-teal-200/80">
@@ -508,7 +508,7 @@
                                 @endif
                             </td>
                             <td class="py-3 px-3.5">
-                                @if($user->role === 'kepala_cabang')
+                                @if(in_array($user->role, ['kepala_cabang', 'viewer']))
                                     @if($user->managedBranches->count() > 1)
                                         <div class="flex items-center gap-1.5 flex-wrap max-w-sm">
                                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-teal-50 text-teal-700 border border-teal-200/80 shrink-0">
@@ -1343,10 +1343,10 @@
         const singleContainer = document.getElementById(type + 'SingleBranchContainer');
         const multiContainer = document.getElementById(type + 'MultiBranchContainer');
 
-        if (role === 'kepala_cabang') {
+        if (role === 'kepala_cabang' || role === 'viewer') {
             if (singleContainer) singleContainer.classList.add('hidden');
             if (multiContainer) multiContainer.classList.remove('hidden');
-        } else if (role === 'admin_cabang' || role === 'admin_dapur' || role === 'viewer') {
+        } else if (role === 'admin_cabang' || role === 'admin_dapur') {
             if (singleContainer) {
                 singleContainer.classList.remove('hidden');
                 singleContainer.style.opacity = '1';

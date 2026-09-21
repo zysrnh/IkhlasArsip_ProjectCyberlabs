@@ -22,7 +22,7 @@ class DashboardController extends Controller
         $query = DailyKitchenReport::with(['branch', 'user']);
 
         // 1. Scoping Akses Cabang
-        if ($user->isKepalaCabang()) {
+        if ($user->isKepalaCabang() || $user->isViewer()) {
             $accessibleBranchIds = $user->getAccessibleBranchIds();
             $selectedBranchId = $request->get('branch_id');
             if (!empty($selectedBranchId) && in_array($selectedBranchId, $accessibleBranchIds)) {
@@ -31,7 +31,7 @@ class DashboardController extends Controller
                 $query->whereIn('branch_id', $accessibleBranchIds);
             }
         } elseif (!$user->canAccessAllBranches()) {
-            // Admin Cabang, Admin Dapur, dan Viewer terkunci ke cabangnya sendiri
+            // Admin Cabang dan Admin Dapur terkunci ke cabangnya sendiri
             $query->where('branch_id', $user->branch_id);
             $selectedBranchId = $user->branch_id;
         } else {
@@ -75,7 +75,7 @@ class DashboardController extends Controller
         $monthlyCostQuery = BranchMonthlyCost::query();
         if (!empty($selectedBranchId)) {
             $monthlyCostQuery->where('branch_id', $selectedBranchId);
-        } elseif ($user->isKepalaCabang()) {
+        } elseif ($user->isKepalaCabang() || $user->isViewer()) {
             $monthlyCostQuery->whereIn('branch_id', $user->getAccessibleBranchIds());
         } elseif (!$user->canAccessAllBranches()) {
             $monthlyCostQuery->where('branch_id', $user->branch_id);
@@ -113,7 +113,7 @@ class DashboardController extends Controller
         $activeBranchesCount = Branch::where('status', 'active')->count();
 
         // 6. Daftar Cabang yang Berhak Diakses
-        if ($user->isKepalaCabang()) {
+        if ($user->isKepalaCabang() || $user->isViewer()) {
             $allBranches = $user->getAccessibleBranches()->load(['dailyKitchenReports']);
         } elseif (!$user->canAccessAllBranches()) {
             $allBranches = Branch::where('id', $user->branch_id)->where('status', 'active')->with(['dailyKitchenReports'])->get();
