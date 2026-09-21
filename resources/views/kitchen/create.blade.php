@@ -34,69 +34,92 @@
 
         <!-- Top Header Card: Cabang & Tanggal & Fitur Backday -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-                <!-- Pilihan Cabang (Col 4) -->
-                <div class="lg:col-span-4 relative" id="createBranchDropdownWrapper">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cabang Outlet</label>
-                    @if(auth()->user()->isSuperAdmin() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
-                        <input type="hidden" name="branch_id" id="createBranchInput" value="{{ $activeBranch->id }}">
-                        <button 
-                            type="button" 
-                            onclick="toggleKitchenDropdown('createBranchDropdownMenu')" 
-                            class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-bold hover:border-tealBrand focus:outline-none transition-colors cursor-pointer"
-                        >
-                            <div class="flex items-center space-x-2 truncate">
-                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 items-stretch">
+                
+                <!-- 1. Pilihan Cabang (Col 4) -->
+                <div class="lg:col-span-4 relative flex flex-col justify-between" id="createBranchDropdownWrapper">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <span id="createSelectedBranchLabel" class="truncate font-bold text-slate-900">{{ $activeBranch->name }}</span>
+                                <span>Cabang Outlet</span>
+                            </label>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                                Dapur Cabang
+                            </span>
+                        </div>
+
+                        @if(auth()->user()->isSuperAdmin() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
+                            <input type="hidden" name="branch_id" id="createBranchInput" value="{{ $activeBranch->id }}">
+                            <button 
+                                type="button" 
+                                onclick="toggleKitchenDropdown('createBranchDropdownMenu')" 
+                                class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold hover:border-tealBrand focus:outline-none transition-colors cursor-pointer shadow-2xs"
+                            >
+                                <div class="flex items-center space-x-2 truncate">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <span id="createSelectedBranchLabel" class="truncate font-bold text-slate-900">{{ $activeBranch->name }}</span>
+                                </div>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <div id="createBranchDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-56 overflow-y-auto">
+                                @foreach($branches as $b)
+                                    <button 
+                                        type="button" 
+                                        onclick="selectCreateBranch('{{ $b->id }}', '{{ $b->name }}')" 
+                                        class="w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 flex items-center justify-between {{ $activeBranch->id == $b->id ? 'font-bold text-tealBrand bg-teal-50/50' : 'text-slate-700' }}"
+                                    >
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-2 h-2 rounded-full {{ $activeBranch->id == $b->id ? 'bg-tealBrand' : 'bg-slate-300' }}"></span>
+                                            <span>{{ $b->name }}</span>
+                                        </div>
+                                        @if($activeBranch->id == $b->id)
+                                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                        @endif
+                                    </button>
+                                @endforeach
                             </div>
-                            <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-
-                        <div id="createBranchDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-56 overflow-y-auto">
-                            @foreach($branches as $b)
-                                <button 
-                                    type="button" 
-                                    onclick="selectCreateBranch('{{ $b->id }}', '{{ $b->name }}')" 
-                                    class="w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 flex items-center justify-between {{ $activeBranch->id == $b->id ? 'font-bold text-tealBrand bg-teal-50/50' : 'text-slate-700' }}"
-                                >
-                                    <span>{{ $b->name }}</span>
-                                    @if($activeBranch->id == $b->id)
-                                        <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                    @endif
-                                </button>
-                            @endforeach
-                        </div>
-                    @else
-                        <input type="hidden" name="branch_id" id="createBranchInput" value="{{ $activeBranch->id }}">
-                        <div class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <span>{{ $activeBranch->name }}</span>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Pilihan Tanggal & Quick Backday Pills (Col 5) -->
-                <div class="lg:col-span-5">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Tanggal Laporan Dapur</label>
-                        @if($isBackday)
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
-                                Mode Susulan (H-{{ $daysDiff }})
-                            </span>
                         @else
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                Hari Ini
-                            </span>
+                            <input type="hidden" name="branch_id" id="createBranchInput" value="{{ $activeBranch->id }}">
+                            <div class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                <span>{{ $activeBranch->name }}</span>
+                            </div>
                         @endif
                     </div>
+                    <div class="mt-2 text-[11px] text-slate-400 font-medium">
+                        Menu & harga masakan disesuaikan dengan cabang ini
+                    </div>
+                </div>
 
-                    <div class="space-y-2">
+                <!-- 2. Pilihan Tanggal & Quick Backday (Col 5) -->
+                <div class="lg:col-span-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>Tanggal Laporan Dapur</span>
+                            </label>
+                            @if($isBackday)
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span>Mode Susulan (H-{{ $daysDiff }})</span>
+                                </span>
+                            @else
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span>Hari Ini</span>
+                                </span>
+                            @endif
+                        </div>
+
                         <!-- Date Input -->
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
@@ -109,54 +132,67 @@
                                 name="report_date" 
                                 id="reportDateInput" 
                                 value="{{ $dateString }}" 
-                                class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-bold focus:outline-none focus:border-tealBrand cursor-pointer shadow-2xs"
+                                class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand cursor-pointer shadow-2xs transition"
                             >
                         </div>
+                    </div>
 
-                        <!-- Quick Backday Buttons -->
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Pilih Cepat:</span>
-                            <button 
-                                type="button" 
-                                onclick="setQuickDate('{{ $todayString }}')" 
-                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $todayString ? 'bg-tealBrand text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
-                            >
-                                Hari Ini
-                            </button>
-                            <button 
-                                type="button" 
-                                onclick="setQuickDate('{{ $yesterdayString }}')" 
-                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $yesterdayString ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
-                            >
-                                Kemarin (H-1)
-                            </button>
-                            <button 
-                                type="button" 
-                                onclick="setQuickDate('{{ $twoDaysAgoString }}')" 
-                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $twoDaysAgoString ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
-                            >
-                                2 Hari Lalu (H-2)
-                            </button>
-                        </div>
+                    <!-- Quick Backday Buttons -->
+                    <div class="flex items-center gap-1.5 flex-wrap mt-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Pilih Cepat:</span>
+                        <button 
+                            type="button" 
+                            onclick="setQuickDate('{{ $todayString }}')" 
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $todayString ? 'bg-tealBrand text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                        >
+                            Hari Ini
+                        </button>
+                        <button 
+                            type="button" 
+                            onclick="setQuickDate('{{ $yesterdayString }}')" 
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $yesterdayString ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                        >
+                            Kemarin (H-1)
+                        </button>
+                        <button 
+                            type="button" 
+                            onclick="setQuickDate('{{ $twoDaysAgoString }}')" 
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $twoDaysAgoString ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                        >
+                            2 Hari Lalu (H-2)
+                        </button>
                     </div>
                 </div>
 
-                <!-- Sisa Kemarin Status Info (Col 3) -->
-                <div class="lg:col-span-3 bg-blue-50/75 border border-blue-100 rounded-xl p-3 text-xs text-blue-900">
-                    <div class="font-bold flex items-center gap-1.5 text-blue-800 mb-0.5">
-                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Sisa Kemarin Terkoneksi
+                <!-- 3. Status Sisa Kemarin Info (Col 3) -->
+                <div class="lg:col-span-3 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex flex-col justify-between">
+                    <div>
+                        <div class="font-bold flex items-center justify-between text-slate-800 mb-1">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 {{ $previousReport ? 'text-tealBrand' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Sisa Kemarin</span>
+                            </span>
+                            @if($previousReport)
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800">Tersambung</span>
+                            @else
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-200 text-slate-600">Awal (0)</span>
+                            @endif
+                        </div>
+                        <p class="text-slate-500 text-[11px] leading-relaxed">
+                            @if($previousReport)
+                                Ditarik otomatis dari laporan <strong>{{ $previousReport->report_date->translatedFormat('d M Y') }}</strong>.
+                            @else
+                                Tidak ada laporan valid sebelum tanggal ini, sisa diset <strong>0</strong>.
+                            @endif
+                        </p>
                     </div>
-                    <p class="text-blue-700 text-[11px] leading-relaxed">
-                        @if($previousReport)
-                            Ditarik dari tanggal <strong>{{ $previousReport->report_date->translatedFormat('d M Y') }}</strong> (sayur/mie = 0).
-                        @else
-                            Awal periode: sisa kemarin bernilai <strong>0</strong>.
-                        @endif
-                    </p>
+                    <div class="mt-2 pt-1.5 border-t border-slate-200/70 text-[10px] text-slate-400">
+                        Sayur & mie otomatis 0 (cepat basi).
+                    </div>
                 </div>
+
             </div>
         </div>
 
