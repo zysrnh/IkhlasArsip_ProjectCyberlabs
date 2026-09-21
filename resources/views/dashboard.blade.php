@@ -638,25 +638,70 @@
 
         <!-- Komposisi Pembayaran Kasir (Donut Chart 4 Cols) -->
         <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
-            <div class="pb-3 border-b border-slate-100">
-                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Metode Pembayaran Kasir</h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">Persentase omzet per kanal penerimaan kasir</p>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Metode Pembayaran Kasir</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5" id="paymentDonutSubtitle">Persentase omzet per kanal penerimaan kasir</p>
+                </div>
+                @if($hasCompareBranches && count($comparisonData) > 0)
+                    <div class="flex items-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-[10px] font-bold overflow-x-auto max-w-full">
+                        <button 
+                            type="button" 
+                            id="donutTab_all" 
+                            onclick="switchPaymentDonut('all')" 
+                            class="donut-branch-tab px-2 py-1 rounded-md transition cursor-pointer bg-white text-slate-900 shadow-2xs shrink-0"
+                        >
+                            Semua
+                        </button>
+                        @foreach($comparisonData as $cd)
+                            <button 
+                                type="button" 
+                                id="donutTab_{{ $cd['id'] }}" 
+                                onclick="switchPaymentDonut('{{ $cd['id'] }}')" 
+                                class="donut-branch-tab px-2 py-1 rounded-md transition cursor-pointer text-slate-500 hover:text-slate-800 shrink-0"
+                            >
+                                {{ Str::limit($cd['name'], 10) }}
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <div class="relative h-48 w-full my-auto flex items-center justify-center pt-2">
                 <canvas id="paymentDonutChart"></canvas>
             </div>
 
+            @php
+                $totalAllPay = $totalCash + $totalQris + $totalOnline;
+                $pctCash = $totalAllPay > 0 ? round(($totalCash / $totalAllPay) * 100, 1) : 0;
+                $pctQris = $totalAllPay > 0 ? round(($totalQris / $totalAllPay) * 100, 1) : 0;
+                $pctOnline = $totalAllPay > 0 ? round(($totalOnline / $totalAllPay) * 100, 1) : 0;
+            @endphp
             <div class="space-y-2 pt-3 border-t border-slate-100 text-xs">
-                @foreach($paymentSummaries as $typeName => $tData)
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ $tData['color'] }};"></span>
-                            <span class="text-slate-600 font-medium text-[11px]">{{ $typeName }}</span>
-                        </div>
-                        <span class="font-bold text-slate-800 text-[11px]">Rp {{ number_format($tData['amount'], 0, ',', '.') }}</span>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#0A97B0]"></span>
+                        <span class="text-slate-600 font-medium text-[11px]">Penjualan Tunai</span>
+                        <span id="donutPct_cash" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-50 text-tealBrand">({{ $pctCash }}%)</span>
                     </div>
-                @endforeach
+                    <span id="donutVal_cash" class="font-bold text-slate-800 text-[11px]">Rp {{ number_format($totalCash, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+                        <span class="text-slate-600 font-medium text-[11px]">QRIS / Transfer</span>
+                        <span id="donutPct_qris" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700">({{ $pctQris }}%)</span>
+                    </div>
+                    <span id="donutVal_qris" class="font-bold text-slate-800 text-[11px]">Rp {{ number_format($totalQris, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
+                        <span class="text-slate-600 font-medium text-[11px]">Online Food</span>
+                        <span id="donutPct_online" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">({{ $pctOnline }}%)</span>
+                    </div>
+                    <span id="donutVal_online" class="font-bold text-slate-800 text-[11px]">Rp {{ number_format($totalOnline, 0, ',', '.') }}</span>
+                </div>
             </div>
         </div>
 
@@ -1075,7 +1120,7 @@
             const donutLabels = @json($paymentChartLabels);
             const donutData = @json($paymentChartData);
 
-            new Chart(donutCtx, {
+            paymentDonutChartInstance = new Chart(donutCtx, {
                 type: 'doughnut',
                 data: {
                     labels: donutLabels,
@@ -1398,6 +1443,81 @@
         } else if (tabType === 'payment') {
             if (paymentContainer) paymentContainer.classList.remove('hidden');
             if (tabPayment) tabPayment.className = activeClass;
+        }
+    }
+
+    // Global chart instances
+    let paymentDonutChartInstance = null;
+
+    // Data Map Pembayaran Cabang untuk Donut Switcher
+    const branchPaymentMap = {
+        'all': {
+            name: 'Semua Cabang',
+            cash: @json((float) $totalCash),
+            qris: @json((float) $totalQris),
+            online: @json((float) $totalOnline),
+            total: @json((float) ($totalCash + $totalQris + $totalOnline))
+        },
+        @if($hasCompareBranches)
+            @foreach($comparisonData as $cd)
+            '{{ $cd['id'] }}': {
+                name: @json($cd['name']),
+                cash: @json((float) ($cd['cash'] ?? 0)),
+                qris: @json((float) ($cd['qris'] ?? 0)),
+                online: @json((float) ($cd['online'] ?? 0)),
+                total: @json((float) (($cd['cash'] ?? 0) + ($cd['qris'] ?? 0) + ($cd['online'] ?? 0)))
+            },
+            @endforeach
+        @endif
+    };
+
+    function switchPaymentDonut(branchKey) {
+        const item = branchPaymentMap[branchKey];
+        if (!item) return;
+
+        // Styling Tab
+        document.querySelectorAll('.donut-branch-tab').forEach(tab => {
+            tab.className = "donut-branch-tab px-2 py-1 rounded-md transition cursor-pointer text-slate-500 hover:text-slate-800 shrink-0";
+        });
+        const activeTab = document.getElementById('donutTab_' + branchKey);
+        if (activeTab) {
+            activeTab.className = "donut-branch-tab px-2 py-1 rounded-md transition cursor-pointer bg-white text-slate-900 shadow-2xs shrink-0";
+        }
+
+        // Subtitle
+        const subtitle = document.getElementById('paymentDonutSubtitle');
+        if (subtitle) {
+            subtitle.innerText = branchKey === 'all' 
+                ? 'Persentase omzet per kanal penerimaan kasir' 
+                : 'Proporsi penerimaan: ' + item.name;
+        }
+
+        // Hitung persentase
+        const total = item.total || 0;
+        const pctCash = total > 0 ? ((item.cash / total) * 100).toFixed(1) : 0;
+        const pctQris = total > 0 ? ((item.qris / total) * 100).toFixed(1) : 0;
+        const pctOnline = total > 0 ? ((item.online / total) * 100).toFixed(1) : 0;
+
+        const valCash = document.getElementById('donutVal_cash');
+        const valQris = document.getElementById('donutVal_qris');
+        const valOnline = document.getElementById('donutVal_online');
+
+        const labelCash = document.getElementById('donutPct_cash');
+        const labelQris = document.getElementById('donutPct_qris');
+        const labelOnline = document.getElementById('donutPct_online');
+
+        if (valCash) valCash.innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(item.cash);
+        if (valQris) valQris.innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(item.qris);
+        if (valOnline) valOnline.innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(item.online);
+
+        if (labelCash) labelCash.innerText = '(' + pctCash + '%)';
+        if (labelQris) labelQris.innerText = '(' + pctQris + '%)';
+        if (labelOnline) labelOnline.innerText = '(' + pctOnline + '%)';
+
+        // Update Chart
+        if (paymentDonutChartInstance) {
+            paymentDonutChartInstance.data.datasets[0].data = [item.cash, item.qris, item.online];
+            paymentDonutChartInstance.update();
         }
     }
 </script>
