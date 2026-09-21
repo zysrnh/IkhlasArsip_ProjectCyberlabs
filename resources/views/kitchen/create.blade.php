@@ -32,11 +32,11 @@
     <form action="{{ route('kitchen-reports.store') }}" method="POST" id="kitchenReportForm" class="space-y-6">
         @csrf
 
-        <!-- Top Header Card: Cabang & Tanggal -->
+        <!-- Top Header Card: Cabang & Tanggal & Fitur Backday -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
-                <!-- Pilihan Cabang -->
-                <div class="relative" id="createBranchDropdownWrapper">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                <!-- Pilihan Cabang (Col 4) -->
+                <div class="lg:col-span-4 relative" id="createBranchDropdownWrapper">
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cabang Outlet</label>
                     @if(auth()->user()->isSuperAdmin() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
                         <input type="hidden" name="branch_id" id="createBranchInput" value="{{ $activeBranch->id }}">
@@ -81,27 +81,68 @@
                     @endif
                 </div>
 
-                <!-- Pilihan Tanggal (Flatpickr Custom) -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Laporan</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                <!-- Pilihan Tanggal & Quick Backday Pills (Col 5) -->
+                <div class="lg:col-span-5">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Tanggal Laporan Dapur</label>
+                        @if($isBackday)
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
+                                Mode Susulan (H-{{ $daysDiff }})
+                            </span>
+                        @else
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                Hari Ini
+                            </span>
+                        @endif
+                    </div>
+
+                    <div class="space-y-2">
+                        <!-- Date Input -->
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <input 
+                                type="text" 
+                                name="report_date" 
+                                id="reportDateInput" 
+                                value="{{ $dateString }}" 
+                                class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-bold focus:outline-none focus:border-tealBrand cursor-pointer shadow-2xs"
+                            >
                         </div>
-                        <input 
-                            type="text" 
-                            name="report_date" 
-                            id="reportDateInput" 
-                            value="{{ $dateString }}" 
-                            class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 font-bold focus:outline-none focus:border-tealBrand cursor-pointer"
-                        >
+
+                        <!-- Quick Backday Buttons -->
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Pilih Cepat:</span>
+                            <button 
+                                type="button" 
+                                onclick="setQuickDate('{{ $todayString }}')" 
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $todayString ? 'bg-tealBrand text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                            >
+                                Hari Ini
+                            </button>
+                            <button 
+                                type="button" 
+                                onclick="setQuickDate('{{ $yesterdayString }}')" 
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $yesterdayString ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                            >
+                                Kemarin (H-1)
+                            </button>
+                            <button 
+                                type="button" 
+                                onclick="setQuickDate('{{ $twoDaysAgoString }}')" 
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $twoDaysAgoString ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                            >
+                                2 Hari Lalu (H-2)
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Sisa Kemarin Status Info -->
-                <div class="bg-blue-50/75 border border-blue-100 rounded-xl p-3 text-xs text-blue-900">
+                <!-- Sisa Kemarin Status Info (Col 3) -->
+                <div class="lg:col-span-3 bg-blue-50/75 border border-blue-100 rounded-xl p-3 text-xs text-blue-900">
                     <div class="font-bold flex items-center gap-1.5 text-blue-800 mb-0.5">
                         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -189,7 +230,7 @@
                     </button>
                 </div>
 
-                <!-- Category Filter Pills -->
+                <!-- Category Filter Pills & Unlock Sisa Kemarin Button -->
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <button 
                         type="button" 
@@ -213,7 +254,7 @@
                         id="catBtnPerishable"
                         class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer"
                     >
-                        Sayur (Cepat Basi)
+                        Sayur (Basi)
                     </button>
                     <button 
                         type="button" 
@@ -222,6 +263,20 @@
                         class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 transition cursor-pointer"
                     >
                         Hanya yang Diisi
+                    </button>
+
+                    <!-- Tombol Unlock Sisa Kemarin Manual (Khusus Backday / Koreksi Stok) -->
+                    <button 
+                        type="button" 
+                        onclick="toggleUnlockYesterday()" 
+                        id="btnUnlockYesterday"
+                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition cursor-pointer flex items-center space-x-1"
+                        title="Buka kunci untuk mengisi sisa stok kemarin secara manual (berguna saat input susulan / backday)"
+                    >
+                        <svg class="w-3.5 h-3.5 text-slate-500" id="iconLockYesterday" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span id="textLockYesterday">Buka Kunci Sisa Kemarin</span>
                     </button>
                 </div>
             </div>
@@ -992,6 +1047,47 @@
         document.getElementById('createSelectedBranchLabel').innerText = name;
         document.getElementById('createBranchDropdownMenu').classList.add('hidden');
         changeBranchOrDate();
+    }
+
+    function setQuickDate(dateStr) {
+        changeBranchOrDate(dateStr);
+    }
+
+    let isYesterdayUnlocked = false;
+    function toggleUnlockYesterday() {
+        isYesterdayUnlocked = !isYesterdayUnlocked;
+        const btn = document.getElementById('btnUnlockYesterday');
+        const textLabel = document.getElementById('textLockYesterday');
+        const rows = document.querySelectorAll('.item-row');
+
+        rows.forEach(row => {
+            const isPerishable = row.dataset.perishable === '1';
+            const input = row.querySelector('.yesterday-rem-input');
+            const index = row.dataset.index;
+
+            if (input && !isPerishable) {
+                if (isYesterdayUnlocked) {
+                    input.removeAttribute('readonly');
+                    input.classList.remove('cursor-not-allowed', 'bg-slate-100', 'border-slate-200', 'text-slate-700');
+                    input.classList.add('bg-white', 'border-teal-400', 'focus:border-teal-600', 'text-slate-900', 'font-black');
+                    input.setAttribute('oninput', `calculateRow(${index})`);
+                } else {
+                    input.setAttribute('readonly', true);
+                    input.classList.remove('bg-white', 'border-teal-400', 'focus:border-teal-600', 'text-slate-900', 'font-black');
+                    input.classList.add('cursor-not-allowed', 'bg-slate-100', 'border-slate-200', 'text-slate-700');
+                }
+            }
+        });
+
+        if (btn && textLabel) {
+            if (isYesterdayUnlocked) {
+                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-tealBrand text-white border border-teal-700 transition cursor-pointer flex items-center space-x-1 shadow-xs";
+                textLabel.innerText = "Kunci Sisa Kemarin";
+            } else {
+                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition cursor-pointer flex items-center space-x-1";
+                textLabel.innerText = "Buka Kunci Sisa Kemarin";
+            }
+        }
     }
 
     function changeBranchOrDate(selectedDate) {

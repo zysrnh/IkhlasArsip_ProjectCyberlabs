@@ -226,7 +226,25 @@ class KitchenReportController extends Controller
 
         $activeBranch = Branch::find($branchId);
 
-        return view('kitchen.create', compact('branches', 'activeBranch', 'dateString', 'preparedItems', 'previousReport'));
+        $today = Carbon::today();
+        $isBackday = $targetDate->lt($today);
+        $daysDiff = (int) $targetDate->diffInDays($today);
+        $yesterdayString = $today->copy()->subDay()->format('Y-m-d');
+        $twoDaysAgoString = $today->copy()->subDays(2)->format('Y-m-d');
+        $todayString = $today->format('Y-m-d');
+
+        return view('kitchen.create', compact(
+            'branches',
+            'activeBranch',
+            'dateString',
+            'preparedItems',
+            'previousReport',
+            'isBackday',
+            'daysDiff',
+            'yesterdayString',
+            'twoDaysAgoString',
+            'todayString'
+        ));
     }
 
     /**
