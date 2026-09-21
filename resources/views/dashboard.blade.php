@@ -389,59 +389,94 @@
     @if(auth()->user()->canAccessAllBranches() || (auth()->user()->isKepalaCabang() && count($allBranches) > 1))
         <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs">
             
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-4 mb-5 border-b border-slate-100 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 mb-5 border-b border-slate-100 gap-4">
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                         <span>Perbandingan Kinerja Antar Cabang</span>
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-50 text-tealBrand border border-teal-200 uppercase tracking-wider">Komparasi Multi-Cabang</span>
                     </h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Pilih maksimal 3 cabang untuk membandingkan Omzet, Biaya, Margin, dan Efisiensi Kasir secara berdampingan.</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Bandingkan performa Omzet, Biaya Operasional, Gross Margin, dan Selisih Kasir antar cabang secara berdampingan.</p>
                 </div>
 
-                <!-- Form Pemilihan Cabang (Pill Checkboxes) -->
-                <form id="branchComparisonForm" method="GET" action="{{ route('dashboard') }}" class="flex flex-wrap items-center gap-2">
-                    <input type="hidden" name="date_from" value="{{ $dateFrom }}">
-                    <input type="hidden" name="date_to" value="{{ $dateTo }}">
-                    @if($selectedBranchId)
-                        <input type="hidden" name="branch_id" value="{{ $selectedBranchId }}">
-                    @endif
-
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        @foreach($allBranches as $b)
-                            @php
-                                $isChecked = in_array($b->id, $compareBranchIds);
-                            @endphp
-                            <label class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold cursor-pointer transition select-none {{ $isChecked ? 'bg-teal-50 border-tealBrand text-teal-900 shadow-xs' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50' }}">
-                                <input 
-                                    type="checkbox" 
-                                    name="compare_branch_ids[]" 
-                                    value="{{ $b->id }}"
-                                    class="compare-branch-checkbox rounded text-tealBrand focus:ring-0 focus:ring-offset-0 cursor-pointer"
-                                    {{ $isChecked ? 'checked' : '' }}
-                                    onchange="handleCompareBranchChange(this)"
-                                >
-                                <span>{{ $b->name }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-
+                <!-- Tombol Popover Pemilihan Cabang -->
+                <div class="relative self-start sm:self-auto" id="compareBranchPopoverContainer">
                     <button 
-                        type="submit" 
-                        class="bg-[#0B192C] hover:bg-[#142B4D] text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-xs cursor-pointer"
+                        type="button" 
+                        id="compareBranchBtn"
+                        onclick="toggleCompareBranchPopover()"
+                        class="flex items-center space-x-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-tealBrand rounded-2xl py-2 px-3.5 text-xs font-bold text-slate-700 shadow-xs transition cursor-pointer"
                     >
-                        Bandingkan
+                        <svg class="w-4 h-4 text-tealBrand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span>Pilih Cabang ({{ count($comparisonData) }} Terpilih)</span>
+                        <svg id="compareBranchChevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
-                </form>
+
+                    <!-- Popover Dropdown Panel -->
+                    <div 
+                        id="compareBranchPopover" 
+                        class="hidden absolute right-0 top-full mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 z-50 animate-fadeIn"
+                    >
+                        <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-slate-100">
+                            <div class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider">
+                                Pilih Cabang (Maks. 3)
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-bold" id="compareCountLabel">{{ count($comparisonData) }}/3 Dipilih</span>
+                        </div>
+
+                        <form id="branchComparisonForm" method="GET" action="{{ route('dashboard') }}" class="space-y-3">
+                            <input type="hidden" name="date_from" value="{{ $dateFrom }}">
+                            <input type="hidden" name="date_to" value="{{ $dateTo }}">
+                            @if($selectedBranchId)
+                                <input type="hidden" name="branch_id" value="{{ $selectedBranchId }}">
+                            @endif
+
+                            <div class="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                                @foreach($allBranches as $b)
+                                    @php
+                                        $isChecked = in_array($b->id, $compareBranchIds);
+                                    @endphp
+                                    <label class="flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition select-none">
+                                        <div class="flex items-center space-x-2.5">
+                                            <input 
+                                                type="checkbox" 
+                                                name="compare_branch_ids[]" 
+                                                value="{{ $b->id }}"
+                                                class="compare-branch-checkbox rounded text-tealBrand focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                                                {{ $isChecked ? 'checked' : '' }}
+                                                onchange="handleCompareBranchChange(this)"
+                                            >
+                                            <span class="text-xs font-bold text-slate-800">{{ $b->name }}</span>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <button 
+                                type="submit" 
+                                class="w-full bg-[#0B192C] hover:bg-[#142B4D] text-white font-bold text-xs py-2.5 rounded-xl transition shadow-xs cursor-pointer text-center"
+                            >
+                                Terapkan Komparasi
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
             <!-- Comparison Cards Grid (Side-by-Side 1-3 Kolom) -->
             @if(count($comparisonData) > 0)
                 <div class="grid grid-cols-1 md:grid-cols-{{ count($comparisonData) }} gap-4 sm:gap-5 mb-6">
                     @foreach($comparisonData as $cd)
-                        <div class="bg-slate-50/70 rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4">
+                        <div class="bg-slate-50/70 rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 transition-colors">
                             <!-- Header Cabang -->
                             <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
-                                <div class="font-black text-sm text-slate-900">{{ $cd['name'] }}</div>
+                                <div class="font-black text-sm text-slate-900 flex items-center space-x-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-tealBrand"></span>
+                                    <span>{{ $cd['name'] }}</span>
+                                </div>
                                 <span class="text-[10px] font-extrabold bg-white border border-slate-200 px-2.5 py-0.5 rounded-lg text-slate-600 shadow-2xs">
                                     {{ $cd['total_reports'] }} Laporan
                                 </span>
@@ -496,7 +531,7 @@
                 </div>
 
                 <!-- Comparison Bar Chart Container -->
-                <div class="relative h-64 sm:h-72 w-full pt-2">
+                <div class="relative h-72 sm:h-80 w-full pt-4 pb-2">
                     <canvas id="branchComparisonBarChart"></canvas>
                 </div>
             @else
@@ -839,23 +874,48 @@
         document.getElementById('dashboardFilterForm').submit();
     }
 
-    // Close Dropdown on Outside Click
+    // Toggle Popover Pemilihan Cabang Komparasi
+    function toggleCompareBranchPopover() {
+        const popover = document.getElementById('compareBranchPopover');
+        const chevron = document.getElementById('compareBranchChevron');
+        if (popover) {
+            popover.classList.toggle('hidden');
+            if (chevron) chevron.classList.toggle('rotate-180');
+        }
+    }
+
+    // Close Dropdowns on Outside Click
     document.addEventListener('click', function(e) {
-        const container = document.getElementById('dashboardBranchDropdownContainer');
-        const menu = document.getElementById('dashboardBranchDropdownMenu');
-        const chevron = document.getElementById('dashboardBranchChevron');
-        if (container && !container.contains(e.target)) {
-            if (menu) menu.classList.add('hidden');
-            if (chevron) chevron.classList.remove('rotate-180');
+        // 1. Dashboard Branch Filter Dropdown
+        const branchContainer = document.getElementById('dashboardBranchDropdownContainer');
+        const branchMenu = document.getElementById('dashboardBranchDropdownMenu');
+        const branchChevron = document.getElementById('dashboardBranchChevron');
+        if (branchContainer && !branchContainer.contains(e.target)) {
+            if (branchMenu) branchMenu.classList.add('hidden');
+            if (branchChevron) branchChevron.classList.remove('rotate-180');
+        }
+
+        // 2. Compare Branch Popover
+        const compareContainer = document.getElementById('compareBranchPopoverContainer');
+        const comparePopover = document.getElementById('compareBranchPopover');
+        const compareChevron = document.getElementById('compareBranchChevron');
+        if (compareContainer && !compareContainer.contains(e.target)) {
+            if (comparePopover) comparePopover.classList.add('hidden');
+            if (compareChevron) compareChevron.classList.remove('rotate-180');
         }
     });
 
-    // Batasi pilihan checkbox komparasi maksimal 3 cabang
+    // Batasi pilihan checkbox komparasi maksimal 3 cabang dan update label
     function handleCompareBranchChange(checkbox) {
         const checkboxes = document.querySelectorAll('.compare-branch-checkbox:checked');
         if (checkboxes.length > 3) {
             checkbox.checked = false;
             alert('Maksimal hanya dapat memilih 3 cabang untuk dikomparasikan.');
+            return;
+        }
+        const countLabel = document.getElementById('compareCountLabel');
+        if (countLabel) {
+            countLabel.innerText = checkboxes.length + '/3 Dipilih';
         }
     }
 
