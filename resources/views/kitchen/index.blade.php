@@ -50,6 +50,16 @@
                 </a>
                 <a 
                     href="{{ route('kitchen-reports.create') }}" 
+                    class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-2xs inline-flex items-center space-x-1.5 transition cursor-pointer"
+                    title="Import Laporan via Excel Spreadsheet"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <span>Import Excel</span>
+                </a>
+                <a 
+                    href="{{ route('kitchen-reports.create') }}" 
                     class="px-4 py-2.5 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs inline-flex items-center justify-center space-x-2 transition-all duration-150 cursor-pointer"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -8,11 +8,19 @@ use App\Models\DailyKitchenReportItem;
 use App\Models\Menu;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class KitchenReportController extends Controller
 {
@@ -719,5 +727,228 @@ class KitchenReportController extends Controller
 
         $fileName = 'Rekap_Laporan_Dapur_' . str_replace(' ', '_', $branchLabel) . '_' . date('Ymd_His') . '.pdf';
         return $pdf->download($fileName);
+    }
+
+    /**
+     * Download Template Format Excel untuk Input Laporan Dapur Harian
+     */
+    public function downloadTemplate(Request $request): StreamedResponse
+    {
+        $user = auth()->user();
+        $branchId = $request->get('branch_id');
+        if (!$branchId || $user->isAdminCabang() || $user->isAdminDapur()) {
+            $branchId = $user->branch_id ?? Branch::where('status', 'active')->first()?->id;
+        }
+
+        $branch = Branch::find($branchId);
+        $branchName = $branch ? $branch->name : 'Semua Cabang';
+
+        $menus = Menu::where('is_active', true)
+            ->orderBy('order_number', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('INPUT_DAPUR');
+
+        // Title Block
+        $sheet->setCellValue('A1', 'TEMPLATE INPUT MASAKAN DAPUR & KASIR HARIAN');
+        $sheet->setCellValue('A2', 'IKHLAS SOLUSI - SISTEM MANAJEMEN DAPUR');
+        $sheet->mergeCells('A1:H1');
+        $sheet->mergeCells('A2:H2');
+
+        $sheet->getStyle('A1:A2')->getFont()->setBold(true);
+        $sheet->getStyle('A1')->getFont()->setSize(13)->getColor()->setRGB('0B192C');
+        $sheet->getStyle('A2')->getFont()->setSize(9.5)->getColor()->setRGB('64748B');
+
+        // Meta Info
+        $sheet->setCellValue('A4', 'Cabang: ' . $branchName);
+        $sheet->setCellValue('A5', 'Petunjuk: Isi kolom Sisa Kemarin, Masak Hari Ini, dan Terjual pada tabel di bawah.');
+        $sheet->getStyle('A4')->getFont()->setBold(true)->setSize(10);
+        $sheet->getStyle('A5')->getFont()->setSize(9)->setItalic(true)->getColor()->setRGB('64748B');
+
+        // Summary Kasir Box Header (Samping kanan: J4:K10)
+        $sheet->setCellValue('J4', 'REKAPAN KASIR & BELANJA');
+        $sheet->mergeCells('J4:K4');
+        $sheet->getStyle('J4:K4')->getFont()->setBold(true)->setSize(10)->getColor()->setRGB('FFFFFF');
+        $sheet->getStyle('J4:K4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0A97B0');
+        $sheet->getStyle('J4:K4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $kasirLabels = [
+            5 => ['Tunai (Cash)', '0'],
+            6 => ['QRIS / Transfer', '0'],
+            7 => ['Online Food (Grab/Gojek)', '0'],
+            8 => ['Belanja Bahan Baku', '0'],
+            9 => ['Belanja Non Bahan Baku', '0'],
+            10 => ['Belanja Pribadi', '0'],
+        ];
+
+        foreach ($kasirLabels as $rIdx => $kData) {
+            $sheet->setCellValue('J' . $rIdx, $kData[0]);
+            $sheet->setCellValue('K' . $rIdx, $kData[1]);
+            $sheet->getStyle('J' . $rIdx)->getFont()->setSize(9)->setBold(true)->getColor()->setRGB('334155');
+            $sheet->getStyle('K' . $rIdx)->getFont()->setSize(9)->getColor()->setRGB('0F172A');
+            $sheet->getStyle('K' . $rIdx)->getNumberFormat()->setFormatCode('#,##0');
+        }
+        $sheet->getStyle('J4:K10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+
+        // Table Header
+        $headers = [
+            'A7' => 'No',
+            'B7' => 'ID Menu',
+            'C7' => 'Nama Masakan',
+            'D7' => 'Kategori / Sifat',
+            'E7' => 'Harga Satuan (Rp)',
+            'F7' => 'Sisa Kemarin (Porsi)',
+            'G7' => 'Masak Hari Ini (Porsi)',
+            'H7' => 'Terjual (Porsi)',
+        ];
+
+        foreach ($headers as $cell => $text) {
+            $sheet->setCellValue($cell, $text);
+        }
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 9.5],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '0B192C']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]
+        ];
+        $sheet->getStyle('A7:H7')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(7)->setRowHeight(26);
+
+        $row = 8;
+        foreach ($menus as $idx => $menu) {
+            $price = $menu->getPriceForBranch($branchId);
+            $sheet->setCellValue('A' . $row, $idx + 1);
+            $sheet->setCellValue('B' . $row, $menu->id);
+            $sheet->setCellValue('C' . $row, $menu->name);
+            $sheet->setCellValue('D' . $row, $menu->is_perishable ? 'Sayur (Cepat Basi)' : 'Lauk Biasa');
+            $sheet->setCellValue('E' . $row, $price);
+            $sheet->setCellValue('F' . $row, 0);
+            $sheet->setCellValue('G' . $row, 0);
+            $sheet->setCellValue('H' . $row, 0);
+
+            $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('D' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle('F' . $row . ':H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle('F' . $row . ':H' . $row)->getNumberFormat()->setFormatCode('#,##0');
+
+            // Highlight editable columns (F, G, H)
+            $sheet->getStyle('F' . $row . ':H' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
+
+            $row++;
+        }
+
+        $lastRow = $row - 1;
+        $sheet->getStyle("A8:H{$lastRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E2E8F0');
+
+        // Auto-fit columns
+        foreach (range('A', 'H') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        $sheet->getColumnDimension('J')->setWidth(26);
+        $sheet->getColumnDimension('K')->setWidth(18);
+
+        $fileName = 'Template_Input_Dapur_' . str_replace(' ', '_', $branchName) . '.xlsx';
+
+        return new StreamedResponse(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    /**
+     * Parse File Excel yang Diupload untuk Mengisi Form Input Laporan Dapur secara Real-Time
+     */
+    public function parseExcel(Request $request): JsonResponse
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls|max:5120',
+        ], [
+            'excel_file.required' => 'File Excel wajib dipilih.',
+            'excel_file.mimes' => 'Format file harus berupa Excel (.xlsx atau .xls).',
+            'excel_file.max' => 'Ukuran file Excel maksimal 5MB.',
+        ]);
+
+        try {
+            $file = $request->file('excel_file');
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $highestRow = $sheet->getHighestRow();
+
+            $parsedItems = [];
+            $allMenus = Menu::all()->keyBy('id');
+            $menuNameMap = [];
+            foreach ($allMenus as $m) {
+                $menuNameMap[strtolower(trim($m->name))] = $m->id;
+            }
+
+            // Baca Data Tabel Menu (Mulai Baris 8)
+            for ($r = 8; $r <= $highestRow; $r++) {
+                $menuId = $sheet->getCell('B' . $r)->getValue();
+                $menuName = trim((string) $sheet->getCell('C' . $r)->getValue());
+                
+                if (empty($menuId) && empty($menuName)) {
+                    continue;
+                }
+
+                // Cocokkan menu ID atau Name
+                $matchedMenuId = null;
+                if (!empty($menuId) && isset($allMenus[$menuId])) {
+                    $matchedMenuId = (int) $menuId;
+                } elseif (!empty($menuName) && isset($menuNameMap[strtolower($menuName)])) {
+                    $matchedMenuId = (int) $menuNameMap[strtolower($menuName)];
+                }
+
+                if ($matchedMenuId) {
+                    $yesterdayRem = (int) ($sheet->getCell('F' . $r)->getCalculatedValue() ?? 0);
+                    $cookedToday = (int) ($sheet->getCell('G' . $r)->getCalculatedValue() ?? 0);
+                    $sold = (int) ($sheet->getCell('H' . $r)->getCalculatedValue() ?? 0);
+
+                    $parsedItems[$matchedMenuId] = [
+                        'menu_id' => $matchedMenuId,
+                        'yesterday_remaining' => max(0, $yesterdayRem),
+                        'cooked_today' => max(0, $cookedToday),
+                        'sold' => max(0, $sold),
+                    ];
+                }
+            }
+
+            // Baca Kasir & Belanja (J5:K10 jika ada)
+            $cashIncome = (float) ($sheet->getCell('K5')->getCalculatedValue() ?? 0);
+            $qrisIncome = (float) ($sheet->getCell('K6')->getCalculatedValue() ?? 0);
+            $onlineIncome = (float) ($sheet->getCell('K7')->getCalculatedValue() ?? 0);
+
+            $expenseRaw = (float) ($sheet->getCell('K8')->getCalculatedValue() ?? 0);
+            $expenseNonRaw = (float) ($sheet->getCell('K9')->getCalculatedValue() ?? 0);
+            $expensePersonal = (float) ($sheet->getCell('K10')->getCalculatedValue() ?? 0);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'File Excel berhasil dibaca. ' . count($parsedItems) . ' menu masakan siap diterapkan ke form.',
+                'data' => [
+                    'items' => $parsedItems,
+                    'cash_income' => $cashIncome,
+                    'qris_income' => $qrisIncome,
+                    'online_food_income' => $onlineIncome,
+                    'expense_raw_material' => $expenseRaw,
+                    'expense_non_raw_material' => $expenseNonRaw,
+                    'expense_personal' => $expensePersonal,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membaca file Excel: ' . $e->getMessage()
+            ], 422);
+        }
     }
 }

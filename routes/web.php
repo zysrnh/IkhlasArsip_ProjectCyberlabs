@@ -41,6 +41,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
     // Modul Input Masakan Dapur Harian
+    Route::get('/kitchen-reports/download-template', [KitchenReportController::class, 'downloadTemplate'])->name('kitchen-reports.download-template');
+    Route::post('/kitchen-reports/parse-excel', [KitchenReportController::class, 'parseExcel'])->name('kitchen-reports.parse-excel');
     Route::get('/kitchen-reports/export-summary-pdf', [KitchenReportController::class, 'exportSummaryPdf'])->name('kitchen-reports.export-summary-pdf');
     Route::get('/kitchen-reports/{kitchenReport}/export-pdf', [KitchenReportController::class, 'exportPdf'])->name('kitchen-reports.export-pdf');
     Route::resource('kitchen-reports', KitchenReportController::class);

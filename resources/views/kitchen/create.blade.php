@@ -15,14 +15,31 @@
             <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Input Masakan Dapur Harian</h1>
             <p class="text-sm text-gray-500 mt-1">Input porsi masak, porsi terjual, rekapan uang kasir cabang, dan belanja harian.</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center flex-wrap gap-2.5">
+            <button 
+                type="button" 
+                onclick="openImportExcelModal()" 
+                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                title="Upload file Excel laporan harian untuk otomatis mengisi form"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <span>Import Excel</span>
+            </button>
+            <a href="{{ route('kitchen-reports.download-template', ['branch_id' => $activeBranch->id]) }}" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5" title="Unduh template Excel format standar">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Download Template</span>
+            </a>
             <a href="{{ route('daily-expenses.index') }}" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <span>Halaman Belanja Terpisah</span>
+                <span>Belanja Terpisah</span>
             </a>
-            <a href="{{ route('kitchen-reports.index') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition">
+            <a href="{{ route('kitchen-reports.index') }}" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition">
                 Kembali ke Riwayat
             </a>
         </div>
@@ -1132,5 +1149,417 @@
 
         window.location.href = `{{ route('kitchen-reports.create') }}?branch_id=${branchId}&report_date=${reportDate}`;
     }
+
+    // Modal Import Excel Functions
+    let parsedExcelData = null;
+
+    function openImportExcelModal() {
+        const modal = document.getElementById('importExcelModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            resetExcelImportForm();
+        }
+    }
+
+    function closeImportExcelModal() {
+        const modal = document.getElementById('importExcelModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    function resetExcelImportForm() {
+        parsedExcelData = null;
+        const fileInput = document.getElementById('excelFileInput');
+        if (fileInput) fileInput.value = '';
+        
+        document.getElementById('dropZonePrompt').classList.remove('hidden');
+        document.getElementById('fileSelectedBox').classList.add('hidden');
+        document.getElementById('excelPreviewSection').classList.add('hidden');
+        document.getElementById('btnApplyExcel').disabled = true;
+        document.getElementById('btnApplyExcel').classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    function handleFileDrop(e) {
+        e.preventDefault();
+        document.getElementById('excelDropZone').classList.remove('border-emerald-500', 'bg-emerald-50/50');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            processSelectedExcelFile(e.dataTransfer.files[0]);
+        }
+    }
+
+    function handleFileDragOver(e) {
+        e.preventDefault();
+        document.getElementById('excelDropZone').classList.add('border-emerald-500', 'bg-emerald-50/50');
+    }
+
+    function handleFileDragLeave(e) {
+        e.preventDefault();
+        document.getElementById('excelDropZone').classList.remove('border-emerald-500', 'bg-emerald-50/50');
+    }
+
+    function handleFileSelect(e) {
+        if (e.target.files && e.target.files.length > 0) {
+            processSelectedExcelFile(e.target.files[0]);
+        }
+    }
+
+    function processSelectedExcelFile(file) {
+        const validExtensions = ['.xlsx', '.xls'];
+        const fileName = file.name.toLowerCase();
+        const isValid = validExtensions.some(ext => fileName.endsWith(ext));
+
+        if (!isValid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Format File Tidak Sesuai',
+                text: 'Harap upload file format Excel (.xlsx atau .xls).',
+                confirmButtonColor: '#059669'
+            });
+            return;
+        }
+
+        // Show file info
+        document.getElementById('selectedFileName').innerText = file.name;
+        document.getElementById('selectedFileSize').innerText = (file.size / 1024).toFixed(1) + ' KB';
+        document.getElementById('dropZonePrompt').classList.add('hidden');
+        document.getElementById('fileSelectedBox').classList.remove('hidden');
+
+        // Send AJAX to parse
+        const formData = new FormData();
+        formData.append('excel_file', file);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        const parsingSpinner = document.getElementById('parsingStatusText');
+        parsingSpinner.innerText = 'Membaca dan memproses file Excel...';
+
+        fetch('{{ route("kitchen-reports.parse-excel") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                parsedExcelData = data.data;
+                renderExcelPreview(data.data);
+                document.getElementById('btnApplyExcel').disabled = false;
+                document.getElementById('btnApplyExcel').classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Membaca Excel',
+                    text: data.message || 'Terjadi kesalahan format data Excel.',
+                    confirmButtonColor: '#059669'
+                });
+                resetExcelImportForm();
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Upload',
+                text: 'Terjadi kesalahan saat mengunggah file. Pastikan format spreadsheet valid.',
+                confirmButtonColor: '#059669'
+            });
+            resetExcelImportForm();
+        });
+    }
+
+    function renderExcelPreview(data) {
+        const previewSection = document.getElementById('excelPreviewSection');
+        const previewTbody = document.getElementById('excelPreviewTbody');
+        const previewCash = document.getElementById('prevCashOmset');
+        const previewQris = document.getElementById('prevQrisOmset');
+        const previewOnline = document.getElementById('prevOnlineOmset');
+        const previewTotalMenu = document.getElementById('prevTotalMenuCount');
+
+        previewTbody.innerHTML = '';
+        const items = data.items || [];
+        previewTotalMenu.innerText = items.length + ' Menu';
+
+        items.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
+            tr.innerHTML = `
+                <td class="px-3 py-2 text-xs font-semibold text-slate-800">${item.menu_name || ('Menu #' + item.menu_id)}</td>
+                <td class="px-3 py-2 text-xs text-center font-bold text-slate-600">${item.yesterday_remaining ?? '-'}</td>
+                <td class="px-3 py-2 text-xs text-center font-bold text-teal-700">${item.cooked_qty ?? 0}</td>
+                <td class="px-3 py-2 text-xs text-center font-bold text-emerald-700">${item.sold_qty ?? 0}</td>
+            `;
+            previewTbody.appendChild(tr);
+        });
+
+        if (previewCash) previewCash.innerText = 'Rp ' + formatNumber(data.cash_income || 0);
+        if (previewQris) previewQris.innerText = 'Rp ' + formatNumber(data.qris_income || 0);
+        if (previewOnline) previewOnline.innerText = 'Rp ' + formatNumber(data.online_food_income || 0);
+
+        previewSection.classList.remove('hidden');
+    }
+
+    function applyParsedExcelToForm() {
+        if (!parsedExcelData) {
+            Swal.fire('Peringatan', 'Tidak ada data Excel yang siap diterapkan.', 'warning');
+            return;
+        }
+
+        const items = parsedExcelData.items || [];
+        let matchedCount = 0;
+
+        // Iterate over form rows
+        const formRows = document.querySelectorAll('.item-row');
+        formRows.forEach(row => {
+            const menuId = parseInt(row.dataset.menuId);
+            const index = row.dataset.index;
+            const isPerishable = row.dataset.perishable === '1';
+
+            // Find match in parsed data by menu_id or menu_name
+            const matchedItem = items.find(it => {
+                if (it.menu_id && parseInt(it.menu_id) === menuId) return true;
+                if (it.menu_name) {
+                    const rowName = row.querySelector('.menu-name-label')?.innerText?.trim().toLowerCase();
+                    return rowName && rowName === it.menu_name.toLowerCase();
+                }
+                return false;
+            });
+
+            if (matchedItem) {
+                matchedCount++;
+
+                // Sisa kemarin (jika dibuka/non-perishable)
+                if (!isPerishable && matchedItem.yesterday_remaining !== undefined && matchedItem.yesterday_remaining !== null) {
+                    const yesterdayInput = row.querySelector('.yesterday-rem-input');
+                    if (yesterdayInput) {
+                        yesterdayInput.value = matchedItem.yesterday_remaining;
+                    }
+                }
+
+                // Masak hari ini
+                if (matchedItem.cooked_qty !== undefined && matchedItem.cooked_qty !== null) {
+                    const cookedInput = row.querySelector('.cooked-input');
+                    if (cookedInput) {
+                        cookedInput.value = matchedItem.cooked_qty;
+                    }
+                }
+
+                // Terjual
+                if (matchedItem.sold_qty !== undefined && matchedItem.sold_qty !== null) {
+                    const soldInput = row.querySelector('.sold-input');
+                    if (soldInput) {
+                        soldInput.value = matchedItem.sold_qty;
+                    }
+                }
+
+                calculateRow(index);
+            }
+        });
+
+        // Set Kasir Rekapan
+        if (parsedExcelData.cash_income !== undefined && parsedExcelData.cash_income !== null) {
+            const cashInput = document.getElementById('cashIncomeInput');
+            if (cashInput) cashInput.value = parsedExcelData.cash_income;
+        }
+        if (parsedExcelData.qris_income !== undefined && parsedExcelData.qris_income !== null) {
+            const qrisInput = document.getElementById('qrisIncomeInput');
+            if (qrisInput) qrisInput.value = parsedExcelData.qris_income;
+        }
+        if (parsedExcelData.online_food_income !== undefined && parsedExcelData.online_food_income !== null) {
+            const onlineInput = document.getElementById('onlineFoodIncomeInput');
+            if (onlineInput) onlineInput.value = parsedExcelData.online_food_income;
+        }
+
+        // Set Belanja jika ada
+        if (parsedExcelData.expenses && Array.isArray(parsedExcelData.expenses) && parsedExcelData.expenses.length > 0) {
+            // Bisa dimasukkan ke expense row pertama atau ditambahkan
+            const firstExpenseName = document.querySelector('input[name="expenses[0][name]"]');
+            const firstExpenseAmount = document.querySelector('input[name="expenses[0][amount]"]');
+            if (firstExpenseName && firstExpenseAmount) {
+                firstExpenseName.value = parsedExcelData.expenses[0].name || 'Belanja Pasar Harian';
+                firstExpenseAmount.value = parsedExcelData.expenses[0].amount || 0;
+            }
+        }
+
+        calculateAllTotals();
+        closeImportExcelModal();
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Data Berhasil Diterapkan!',
+            text: `${matchedCount} menu berhasil diisi otomatis dari Excel. Silakan periksa kembali sebelum menyimpan.`,
+            confirmButtonColor: '#059669'
+        });
+    }
 </script>
+
+<!-- Modal Import Excel -->
+<div id="importExcelModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden transition-all transform scale-100">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold tracking-tight text-white">Import Data Masakan dari Excel</h3>
+                    <p class="text-xs text-slate-400 font-medium">Cabang: <span class="text-emerald-400 font-bold">{{ $activeBranch->name }}</span> | Tanggal: <span class="text-slate-200 font-bold">{{ \Carbon\Carbon::parse($reportDate)->translatedFormat('d F Y') }}</span></p>
+                </div>
+            </div>
+            <button type="button" onclick="closeImportExcelModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+            
+            <!-- Petunjuk & Download Template Box -->
+            <div class="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl flex items-center justify-between gap-4">
+                <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <div class="text-xs font-bold text-emerald-950">Gunakan Format Template Excel Standar</div>
+                        <div class="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
+                            Unduh format Excel khusus cabang <strong>{{ $activeBranch->name }}</strong> yang sudah berisi daftar menu masakan aktif dan harga terbarunya.
+                        </div>
+                    </div>
+                </div>
+                <a 
+                    href="{{ route('kitchen-reports.download-template', ['branch_id' => $activeBranch->id]) }}" 
+                    class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shrink-0 transition flex items-center space-x-1.5 shadow-2xs"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Unduh Template</span>
+                </a>
+            </div>
+
+            <!-- Drag & Drop Upload Zone -->
+            <div 
+                id="excelDropZone"
+                ondragover="handleFileDragOver(event)"
+                ondragleave="handleFileDragLeave(event)"
+                ondrop="handleFileDrop(event)"
+                class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-6 text-center transition-all bg-slate-50/50 hover:bg-emerald-50/20 cursor-pointer"
+                onclick="document.getElementById('excelFileInput').click()"
+            >
+                <input 
+                    type="file" 
+                    id="excelFileInput" 
+                    accept=".xlsx, .xls" 
+                    class="hidden" 
+                    onchange="handleFileSelect(event)"
+                >
+
+                <div id="dropZonePrompt" class="space-y-2">
+                    <div class="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center mx-auto text-emerald-600 shadow-2xs">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                    </div>
+                    <div class="text-xs font-bold text-slate-800">
+                        Klik untuk memilih file atau seret file Excel ke sini
+                    </div>
+                    <p class="text-[11px] text-slate-500">Mendukung format spreadsheet .xlsx dan .xls</p>
+                </div>
+
+                <div id="fileSelectedBox" class="hidden space-y-3">
+                    <div class="inline-flex items-center space-x-3 bg-white border border-emerald-300 px-4 py-2.5 rounded-xl shadow-xs">
+                        <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <div class="text-left">
+                            <div id="selectedFileName" class="text-xs font-bold text-slate-900 truncate max-w-xs">file_excel.xlsx</div>
+                            <div id="selectedFileSize" class="text-[10px] text-slate-500 font-medium">0 KB</div>
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); resetExcelImportForm();" class="text-rose-500 hover:text-rose-700 p-1 font-bold text-xs" title="Ganti File">
+                            ✕
+                        </button>
+                    </div>
+                    <div id="parsingStatusText" class="text-xs font-semibold text-emerald-700 animate-pulse"></div>
+                </div>
+            </div>
+
+            <!-- Preview Data Section -->
+            <div id="excelPreviewSection" class="hidden space-y-3 pt-2">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                        <span>Preview Data Terdeteksi</span>
+                    </h4>
+                    <span id="prevTotalMenuCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                        0 Menu
+                    </span>
+                </div>
+
+                <!-- Rekapan Kasir Quick Stats -->
+                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
+                    <div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase">Uang Tunai (Cash)</div>
+                        <div id="prevCashOmset" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase">QRIS / Transfer</div>
+                        <div id="prevQrisOmset" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase">Online Food</div>
+                        <div id="prevOnlineOmset" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
+                    </div>
+                </div>
+
+                <!-- Preview Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] font-extrabold sticky top-0">
+                            <tr>
+                                <th class="px-3 py-2">Nama Masakan</th>
+                                <th class="px-3 py-2 text-center">Sisa Kemarin</th>
+                                <th class="px-3 py-2 text-center">Masak Hari Ini</th>
+                                <th class="px-3 py-2 text-center">Terjual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="excelPreviewTbody" class="divide-y divide-slate-200">
+                            <!-- Rows inserted dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end space-x-2.5">
+            <button 
+                type="button" 
+                onclick="closeImportExcelModal()" 
+                class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition cursor-pointer"
+            >
+                Batal
+            </button>
+            <button 
+                type="button" 
+                id="btnApplyExcel" 
+                onclick="applyParsedExcelToForm()" 
+                disabled 
+                class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-xs opacity-50 cursor-not-allowed"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Terapkan ke Form Input</span>
+            </button>
+        </div>
+
+    </div>
+</div>
 @endsection
