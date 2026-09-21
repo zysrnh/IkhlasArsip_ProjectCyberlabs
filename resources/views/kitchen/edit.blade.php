@@ -5,20 +5,54 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header & Breadcrumb -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
             <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
                 <a href="{{ route('kitchen-reports.index') }}" class="hover:text-[#0A97B0]">Input Dapur Harian</a>
                 <span>/</span>
                 <span class="text-gray-900 font-medium">Edit Laporan</span>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
-                Edit Laporan Dapur {{ $kitchenReport->branch->name ?? 'Cabang' }}
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2 flex-wrap">
+                <span>Edit Laporan Dapur {{ $kitchenReport->branch->name ?? 'Cabang' }}</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                    Mode Edit
+                </span>
             </h1>
-            <p class="text-sm text-gray-500 mt-1">Tanggal: <strong class="text-gray-800">{{ $kitchenReport->report_date->translatedFormat('l, d F Y') }}</strong></p>
+            <p class="text-xs text-gray-500 mt-1">Tanggal Laporan Ini: <strong class="text-gray-800">{{ $kitchenReport->report_date->translatedFormat('l, d F Y') }}</strong></p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('kitchen-reports.show', $kitchenReport->id) }}" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition">
+
+        <!-- Quick Backday / New Report Navigation -->
+        @php
+            $yesterday = \Carbon\Carbon::yesterday()->format('Y-m-d');
+            $twoDaysAgo = \Carbon\Carbon::today()->subDays(2)->format('Y-m-d');
+            $currentBranchId = $kitchenReport->branch_id;
+        @endphp
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2.5">
+            <div class="flex items-center gap-1.5 flex-wrap bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                <span class="text-[10px] font-bold text-slate-500 uppercase px-1">Input Susulan:</span>
+                <a 
+                    href="{{ route('kitchen-reports.create', ['branch_id' => $currentBranchId, 'report_date' => $yesterday]) }}" 
+                    class="px-2.5 py-1.5 bg-white hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg border border-slate-200 shadow-2xs transition inline-flex items-center gap-1"
+                >
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>Kemarin (H-1)</span>
+                </a>
+                <a 
+                    href="{{ route('kitchen-reports.create', ['branch_id' => $currentBranchId, 'report_date' => $twoDaysAgo]) }}" 
+                    class="px-2.5 py-1.5 bg-white hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg border border-slate-200 shadow-2xs transition inline-flex items-center gap-1"
+                >
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>2 Hari Lalu (H-2)</span>
+                </a>
+                <a 
+                    href="{{ route('kitchen-reports.create', ['branch_id' => $currentBranchId]) }}" 
+                    class="px-2.5 py-1.5 bg-tealBrand hover:bg-teal-700 text-white text-[11px] font-bold rounded-lg shadow-2xs transition"
+                >
+                    + Form Baru
+                </a>
+            </div>
+
+            <a href="{{ route('kitchen-reports.show', $kitchenReport->id) }}" class="px-3.5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition">
                 Batal & Kembali
             </a>
         </div>

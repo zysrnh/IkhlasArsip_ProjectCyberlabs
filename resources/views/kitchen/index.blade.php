@@ -35,9 +35,22 @@
             </a>
 
             @if(!auth()->user()->isViewer())
+                @php
+                    $yesterday = \Carbon\Carbon::yesterday()->format('Y-m-d');
+                @endphp
+                <a 
+                    href="{{ route('kitchen-reports.create', ['report_date' => $yesterday]) }}" 
+                    class="px-3.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold rounded-xl shadow-2xs inline-flex items-center space-x-1.5 transition cursor-pointer"
+                    title="Input Laporan Susulan Kemarin (H-1)"
+                >
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Input Susulan (H-1)</span>
+                </a>
                 <a 
                     href="{{ route('kitchen-reports.create') }}" 
-                    class="px-4 py-2.5 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-sm inline-flex items-center justify-center space-x-2 transition-all duration-150 cursor-pointer"
+                    class="px-4 py-2.5 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs inline-flex items-center justify-center space-x-2 transition-all duration-150 cursor-pointer"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
