@@ -1276,19 +1276,25 @@
         const previewQris = document.getElementById('prevQrisOmset');
         const previewOnline = document.getElementById('prevOnlineOmset');
         const previewTotalMenu = document.getElementById('prevTotalMenuCount');
+        const previewExpenseBox = document.getElementById('prevExpenseBox');
+        const prevRawExpense = document.getElementById('prevRawExpense');
+        const prevNonRawExpense = document.getElementById('prevNonRawExpense');
+        const prevPersonalExpense = document.getElementById('prevPersonalExpense');
+        const prevTotalExpense = document.getElementById('prevTotalExpense');
 
         previewTbody.innerHTML = '';
         const items = data.items || [];
-        previewTotalMenu.innerText = items.length + ' Menu';
+        const menuCount = Object.keys(items).length;
+        previewTotalMenu.innerText = menuCount + ' Menu';
 
-        items.forEach((item, idx) => {
+        Object.values(items).forEach((item, idx) => {
             const tr = document.createElement('tr');
             tr.className = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
             tr.innerHTML = `
                 <td class="px-3 py-2 text-xs font-semibold text-slate-800">${item.menu_name || ('Menu #' + item.menu_id)}</td>
                 <td class="px-3 py-2 text-xs text-center font-bold text-slate-600">${item.yesterday_remaining ?? '-'}</td>
-                <td class="px-3 py-2 text-xs text-center font-bold text-teal-700">${item.cooked_qty ?? 0}</td>
-                <td class="px-3 py-2 text-xs text-center font-bold text-emerald-700">${item.sold_qty ?? 0}</td>
+                <td class="px-3 py-2 text-xs text-center font-bold text-teal-700">${item.cooked_today ?? 0}</td>
+                <td class="px-3 py-2 text-xs text-center font-bold text-emerald-700">${item.sold ?? 0}</td>
             `;
             previewTbody.appendChild(tr);
         });
@@ -1296,6 +1302,26 @@
         if (previewCash) previewCash.innerText = 'Rp ' + formatNumber(data.cash_income || 0);
         if (previewQris) previewQris.innerText = 'Rp ' + formatNumber(data.qris_income || 0);
         if (previewOnline) previewOnline.innerText = 'Rp ' + formatNumber(data.online_food_income || 0);
+
+        // Preview Sheet 2 Belanja Harian
+        const rawExp = data.expense_raw_material || 0;
+        const nonRawExp = data.expense_non_raw_material || 0;
+        const personalExp = data.expense_personal || 0;
+        const totalExp = rawExp + nonRawExp + personalExp;
+
+        if (prevRawExpense) prevRawExpense.innerText = 'Rp ' + formatNumber(rawExp);
+        if (prevNonRawExpense) prevNonRawExpense.innerText = 'Rp ' + formatNumber(nonRawExp);
+        if (prevPersonalExpense) prevPersonalExpense.innerText = 'Rp ' + formatNumber(personalExp);
+        if (prevTotalExpense) prevTotalExpense.innerText = 'Rp ' + formatNumber(totalExp);
+
+        if (previewExpenseBox) {
+            if (totalExp > 0 || (data.expense_items && data.expense_items.length > 0)) {
+                previewExpenseBox.classList.remove('hidden');
+                document.getElementById('prevExpenseBadge').innerText = (data.expense_items ? data.expense_items.length : 0) + ' Item Belanja (Sheet 2)';
+            } else {
+                previewExpenseBox.classList.add('hidden');
+            }
+        }
 
         previewSection.classList.remove('hidden');
     }
@@ -1306,7 +1332,7 @@
             return;
         }
 
-        const items = parsedExcelData.items || [];
+        const items = parsedExcelData.items || {};
         let matchedCount = 0;
 
         // Iterate over form rows
@@ -1316,15 +1342,8 @@
             const index = row.dataset.index;
             const isPerishable = row.dataset.perishable === '1';
 
-            // Find match in parsed data by menu_id or menu_name
-            const matchedItem = items.find(it => {
-                if (it.menu_id && parseInt(it.menu_id) === menuId) return true;
-                if (it.menu_name) {
-                    const rowName = row.querySelector('.menu-name-label')?.innerText?.trim().toLowerCase();
-                    return rowName && rowName === it.menu_name.toLowerCase();
-                }
-                return false;
-            });
+            // Find match in parsed data by menu_id
+            const matchedItem = items[menuId] || Object.values(items).find(it => parseInt(it.menu_id) === menuId);
 
             if (matchedItem) {
                 matchedCount++;
@@ -1338,18 +1357,18 @@
                 }
 
                 // Masak hari ini
-                if (matchedItem.cooked_qty !== undefined && matchedItem.cooked_qty !== null) {
-                    const cookedInput = row.querySelector('.cooked-input');
+                if (matchedItem.cooked_today !== undefined && matchedItem.cooked_today !== null) {
+                    const cookedInput = row.querySelector('.cooked-today-input');
                     if (cookedInput) {
-                        cookedInput.value = matchedItem.cooked_qty;
+                        cookedInput.value = matchedItem.cooked_today;
                     }
                 }
 
                 // Terjual
-                if (matchedItem.sold_qty !== undefined && matchedItem.sold_qty !== null) {
+                if (matchedItem.sold !== undefined && matchedItem.sold !== null) {
                     const soldInput = row.querySelector('.sold-input');
                     if (soldInput) {
-                        soldInput.value = matchedItem.sold_qty;
+                        soldInput.value = matchedItem.sold;
                     }
                 }
 
@@ -1360,35 +1379,40 @@
         // Set Kasir Rekapan
         if (parsedExcelData.cash_income !== undefined && parsedExcelData.cash_income !== null) {
             const cashInput = document.getElementById('cashIncomeInput');
-            if (cashInput) cashInput.value = parsedExcelData.cash_income;
+            if (cashInput) cashInput.value = formatNumber(parsedExcelData.cash_income);
         }
         if (parsedExcelData.qris_income !== undefined && parsedExcelData.qris_income !== null) {
             const qrisInput = document.getElementById('qrisIncomeInput');
-            if (qrisInput) qrisInput.value = parsedExcelData.qris_income;
+            if (qrisInput) qrisInput.value = formatNumber(parsedExcelData.qris_income);
         }
         if (parsedExcelData.online_food_income !== undefined && parsedExcelData.online_food_income !== null) {
             const onlineInput = document.getElementById('onlineFoodIncomeInput');
-            if (onlineInput) onlineInput.value = parsedExcelData.online_food_income;
+            if (onlineInput) onlineInput.value = formatNumber(parsedExcelData.online_food_income);
         }
 
-        // Set Belanja jika ada
-        if (parsedExcelData.expenses && Array.isArray(parsedExcelData.expenses) && parsedExcelData.expenses.length > 0) {
-            // Bisa dimasukkan ke expense row pertama atau ditambahkan
-            const firstExpenseName = document.querySelector('input[name="expenses[0][name]"]');
-            const firstExpenseAmount = document.querySelector('input[name="expenses[0][amount]"]');
-            if (firstExpenseName && firstExpenseAmount) {
-                firstExpenseName.value = parsedExcelData.expenses[0].name || 'Belanja Pasar Harian';
-                firstExpenseAmount.value = parsedExcelData.expenses[0].amount || 0;
-            }
+        // Set Belanja Harian Cabang dari Sheet 2
+        if (parsedExcelData.expense_raw_material !== undefined) {
+            const expRaw = document.getElementById('expenseRawMaterialInput');
+            if (expRaw) expRaw.value = formatNumber(parsedExcelData.expense_raw_material);
+        }
+        if (parsedExcelData.expense_non_raw_material !== undefined) {
+            const expNonRaw = document.getElementById('expenseNonRawMaterialInput');
+            if (expNonRaw) expNonRaw.value = formatNumber(parsedExcelData.expense_non_raw_material);
+        }
+        if (parsedExcelData.expense_personal !== undefined) {
+            const expPersonal = document.getElementById('expensePersonalInput');
+            if (expPersonal) expPersonal.value = formatNumber(parsedExcelData.expense_personal);
         }
 
         calculateAllTotals();
+        calculateExpenses();
+        calculateSettlement();
         closeImportExcelModal();
 
         Swal.fire({
             icon: 'success',
             title: 'Data Berhasil Diterapkan!',
-            text: `${matchedCount} menu berhasil diisi otomatis dari Excel. Silakan periksa kembali sebelum menyimpan.`,
+            text: `${matchedCount} porsi masakan & seluruh rekapan belanja Sheet 2 berhasil diisi otomatis. Silakan periksa kembali sebelum menyimpan.`,
             confirmButtonColor: '#059669'
         });
     }
@@ -1407,7 +1431,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-base font-extrabold tracking-tight text-white">Import Data Masakan dari Excel</h3>
+                    <h3 class="text-base font-extrabold tracking-tight text-white">Import Data Masakan & Belanja Excel</h3>
                     <p class="text-xs text-slate-400 font-medium">Cabang: <span class="text-emerald-400 font-bold">{{ $activeBranch->name }}</span> | Tanggal: <span class="text-slate-200 font-bold">{{ \Carbon\Carbon::parse($dateString)->translatedFormat('d F Y') }}</span></p>
                 </div>
             </div>
@@ -1426,20 +1450,20 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                        <div class="text-xs font-bold text-emerald-950">Gunakan Format Template Excel Standar</div>
+                        <div class="text-xs font-bold text-emerald-950">Template Lengkap 2 Sheet dengan Contoh Nyata</div>
                         <div class="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
-                            Unduh format Excel khusus cabang <strong>{{ $activeBranch->name }}</strong> yang sudah berisi daftar menu masakan aktif dan harga terbarunya.
+                            <strong>Sheet 1:</strong> Input Masakan Dapur & Kasir | <strong>Sheet 2:</strong> Rekapan Belanja Harian Cabang Pasar & Operasional.
                         </div>
                     </div>
                 </div>
                 <a 
                     href="{{ route('kitchen-reports.download-template', ['branch_id' => $activeBranch->id]) }}" 
-                    class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shrink-0 transition flex items-center space-x-1.5 shadow-2xs"
+                    class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shrink-0 transition flex items-center space-x-1.5 shadow-2xs"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    <span>Unduh Template</span>
+                    <span>Unduh Template (2 Sheet)</span>
                 </a>
             </div>
 
@@ -1469,7 +1493,7 @@
                     <div class="text-xs font-bold text-slate-800">
                         Klik untuk memilih file atau seret file Excel ke sini
                     </div>
-                    <p class="text-[11px] text-slate-500">Mendukung format spreadsheet .xlsx dan .xls</p>
+                    <p class="text-[11px] text-slate-500">Mendukung format spreadsheet .xlsx dan .xls (Sheet 1 Masakan & Sheet 2 Belanja)</p>
                 </div>
 
                 <div id="fileSelectedBox" class="hidden space-y-3">
@@ -1490,11 +1514,13 @@
             </div>
 
             <!-- Preview Data Section -->
-            <div id="excelPreviewSection" class="hidden space-y-3 pt-2">
+            <div id="excelPreviewSection" class="hidden space-y-4 pt-2">
+                
+                <!-- Sheet 1 Menu Preview Header -->
                 <div class="flex items-center justify-between">
                     <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                        <span>Preview Data Terdeteksi</span>
+                        <span>1. Preview Porsi Masakan (Sheet 1)</span>
                     </h4>
                     <span id="prevTotalMenuCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                         0 Menu
@@ -1517,8 +1543,8 @@
                     </div>
                 </div>
 
-                <!-- Preview Table -->
-                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                <!-- Preview Table Dishes -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-40 overflow-y-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] font-extrabold sticky top-0">
                             <tr>
@@ -1533,6 +1559,39 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Sheet 2 Belanja Harian Preview Box -->
+                <div id="prevExpenseBox" class="space-y-2 pt-2 border-t border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            <span>2. Preview Belanja Harian Cabang (Sheet 2)</span>
+                        </h4>
+                        <span id="prevExpenseBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                            Belanja Sheet 2
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-amber-50/50 p-3 rounded-xl border border-amber-200 text-center">
+                        <div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase">Bahan Baku</div>
+                            <div id="prevRawExpense" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase">Non Bahan Baku</div>
+                            <div id="prevNonRawExpense" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase">Pribadi</div>
+                            <div id="prevPersonalExpense" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
+                        </div>
+                        <div class="bg-amber-100/70 rounded-lg p-1">
+                            <div class="text-[10px] text-amber-900 font-bold uppercase">Total Belanja</div>
+                            <div id="prevTotalExpense" class="text-xs font-black text-rose-700 mt-0.5">Rp 0</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
