@@ -466,10 +466,15 @@
                 </div>
             </div>
 
-            <!-- Comparison Cards Grid (Side-by-Side 1-3 Kolom) -->
+            <!-- Comparison Cards Grid & Graphs Container -->
             @if(count($comparisonData) > 0)
+                
+                <!-- Side-by-Side Branch Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-{{ count($comparisonData) }} gap-4 sm:gap-5 mb-6">
                     @foreach($comparisonData as $cd)
+                        @php
+                            $soldRatio = $cd['portions_cooked'] > 0 ? round(($cd['portions_sold'] / $cd['portions_cooked']) * 100, 1) : 0;
+                        @endphp
                         <div class="bg-slate-50/70 rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 transition-colors">
                             <!-- Header Cabang -->
                             <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
@@ -523,6 +528,7 @@
                                     <span class="text-slate-500 font-medium">Porsi Terjual / Masak</span>
                                     <span class="font-bold text-slate-800">
                                         {{ number_format($cd['portions_sold'], 0, ',', '.') }} / {{ number_format($cd['portions_cooked'], 0, ',', '.') }} Porsi
+                                        <span class="text-[10px] text-slate-400 font-semibold">({{ $soldRatio }}%)</span>
                                     </span>
                                 </div>
                             </div>
@@ -530,13 +536,65 @@
                     @endforeach
                 </div>
 
-                <!-- Comparison Bar Chart Container -->
-                <div class="relative h-72 sm:h-80 w-full pt-4 pb-2">
-                    <canvas id="branchComparisonBarChart"></canvas>
+                <!-- Multi-Chart Tabs Toolbar -->
+                <div class="pt-4 border-t border-slate-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 gap-3">
+                        <div class="text-xs font-black text-slate-800 uppercase tracking-wider">
+                            Visualisasi Komparasi Antar Cabang
+                        </div>
+
+                        <!-- Chart Tab Switcher -->
+                        <div class="inline-flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 self-start sm:self-auto text-xs">
+                            <button 
+                                type="button" 
+                                id="compareChartTabFin" 
+                                onclick="switchCompareChartTab('fin')"
+                                class="px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer bg-white text-slate-900 shadow-2xs"
+                            >
+                                Finansial (Omzet & Biaya)
+                            </button>
+                            <button 
+                                type="button" 
+                                id="compareChartTabPortion" 
+                                onclick="switchCompareChartTab('portion')"
+                                class="px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800"
+                            >
+                                Porsi Dapur (Masak vs Jual)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. Finansial Grouped Bar Chart -->
+                    <div id="compareFinChartContainer" class="relative h-72 sm:h-80 w-full pt-2">
+                        <canvas id="branchComparisonBarChart"></canvas>
+                    </div>
+
+                    <!-- 2. Porsi Dapur Grouped Bar Chart -->
+                    <div id="comparePortionChartContainer" class="hidden relative h-72 sm:h-80 w-full pt-2">
+                        <canvas id="branchComparisonPortionChart"></canvas>
+                    </div>
                 </div>
+
             @else
-                <div class="text-center py-8 text-xs text-slate-400">
-                    Silakan pilih setidaknya 1 cabang di atas untuk melihat perbandingan.
+                <!-- Empty State: Belum Ada Cabang yang Dipilih -->
+                <div class="py-12 px-4 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 flex flex-col items-center justify-center space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-50 text-tealBrand flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-slate-900">Belum Ada Cabang yang Dipilih</h4>
+                        <p class="text-xs text-slate-400 mt-0.5 max-w-sm">Pilih 1 sampai 3 cabang melalui tombol di atas untuk melihat perbandingan performa finansial, porsi masakan, dan grafik komparasi berdampingan.</p>
+                    </div>
+                    <button 
+                        type="button" 
+                        onclick="toggleCompareBranchPopover()" 
+                        class="mt-1 px-4 py-2 bg-tealBrand hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer inline-flex items-center space-x-1.5"
+                    >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        <span>Pilih Cabang Komparasi</span>
+                    </button>
                 </div>
             @endif
         </div>
@@ -1030,7 +1088,7 @@
             });
         }
 
-        // 3. Multi-Branch Comparison Bar Chart
+        // 3. Multi-Branch Comparison Bar Chart (Finansial & Porsi)
         const compareBarCtx = document.getElementById('branchComparisonBarChart');
         if (compareBarCtx) {
             const compData = @json($comparisonData);
@@ -1119,6 +1177,112 @@
                 }
             });
         }
+
+        // 4. Multi-Branch Portion Comparison Bar Chart
+        const comparePortionCtx = document.getElementById('branchComparisonPortionChart');
+        if (comparePortionCtx) {
+            const compData = @json($comparisonData);
+            const branchNames = compData.map(d => d.name);
+            const cookedSeries = compData.map(d => d.portions_cooked);
+            const soldSeries = compData.map(d => d.portions_sold);
+
+            new Chart(comparePortionCtx, {
+                type: 'bar',
+                data: {
+                    labels: branchNames,
+                    datasets: [
+                        {
+                            label: 'Total Dimasak (Porsi)',
+                            data: cookedSeries,
+                            backgroundColor: '#0284c7',
+                            borderRadius: 6,
+                            barPercentage: 0.5,
+                            categoryPercentage: 0.7
+                        },
+                        {
+                            label: 'Total Terjual (Porsi)',
+                            data: soldSeries,
+                            backgroundColor: '#10b981',
+                            borderRadius: 6,
+                            barPercentage: 0.5,
+                            categoryPercentage: 0.7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, weight: 'bold' },
+                                color: '#334155'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0B192C',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            cornerRadius: 10,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.dataset.label + ': ' + new Intl.NumberFormat('id-ID').format(context.parsed.y) + ' Porsi';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11, weight: 'bold' }, color: '#334155' }
+                        },
+                        y: {
+                            border: { dash: [4, 4] },
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                font: { size: 10 },
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return value + ' Porsi';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
     });
+
+    // Tab Switcher Grafik Komparasi
+    function switchCompareChartTab(tabType) {
+        const finContainer = document.getElementById('compareFinChartContainer');
+        const portionContainer = document.getElementById('comparePortionChartContainer');
+        const tabFin = document.getElementById('compareChartTabFin');
+        const tabPortion = document.getElementById('compareChartTabPortion');
+
+        if (tabType === 'fin') {
+            if (finContainer) finContainer.classList.remove('hidden');
+            if (portionContainer) portionContainer.classList.add('hidden');
+            if (tabFin) {
+                tabFin.className = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer bg-white text-slate-900 shadow-2xs";
+            }
+            if (tabPortion) {
+                tabPortion.className = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800";
+            }
+        } else {
+            if (finContainer) finContainer.classList.add('hidden');
+            if (portionContainer) portionContainer.classList.remove('hidden');
+            if (tabFin) {
+                tabFin.className = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800";
+            }
+            if (tabPortion) {
+                tabPortion.className = "px-3 py-1.5 rounded-lg font-extrabold transition-all cursor-pointer bg-white text-slate-900 shadow-2xs";
+            }
+        }
+    }
 </script>
 @endsection

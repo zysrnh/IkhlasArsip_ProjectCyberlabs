@@ -168,13 +168,11 @@ class DashboardController extends Controller
             $compareBranchIds = [];
         }
 
-        if (empty($compareBranchIds) && $allBranches->count() > 1) {
-            $compareBranchIds = $allBranches->take(3)->pluck('id')->toArray();
-        } elseif (empty($compareBranchIds) && $allBranches->count() === 1) {
-            $compareBranchIds = $allBranches->pluck('id')->toArray();
+        if (!empty($compareBranchIds)) {
+            $compareBranchIds = array_slice($compareBranchIds, 0, 3);
+        } else {
+            $compareBranchIds = [];
         }
-
-        $compareBranchIds = array_slice($compareBranchIds, 0, 3);
 
         $comparisonData = [];
         foreach ($allBranches->whereIn('id', $compareBranchIds) as $cBranch) {
