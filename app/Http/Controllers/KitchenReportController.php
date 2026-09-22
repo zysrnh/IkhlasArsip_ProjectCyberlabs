@@ -759,55 +759,120 @@ class KitchenReportController extends Controller
         // Header Title Sheet 1
         $sheet1->setCellValue('A1', 'TEMPLATE INPUT MASAKAN DAPUR & KASIR HARIAN');
         $sheet1->setCellValue('A2', 'IKHLAS SOLUSI - SISTEM MANAJEMEN DAPUR & OUTLET');
-        $sheet1->mergeCells('A1:K1');
-        $sheet1->mergeCells('A2:K2');
 
         $sheet1->getStyle('A1:A2')->getFont()->setBold(true);
-        $sheet1->getStyle('A1')->getFont()->setSize(14)->getColor()->setRGB('0B192C');
-        $sheet1->getStyle('A2')->getFont()->setSize(10)->getColor()->setRGB('64748B');
+        $sheet1->getStyle('A1')->getFont()->setSize(13)->getColor()->setRGB('0B192C');
+        $sheet1->getStyle('A2')->getFont()->setSize(9.5)->getColor()->setRGB('64748B');
 
-        // Meta Info Sheet 1
-        $sheet1->setCellValue('A4', 'Cabang: ' . $branchName);
-        $sheet1->setCellValue('A5', 'Petunjuk: Kolom Hijau Muda & Kuning (F, G, H) diisi manual. Kolom Total & Penjualan (I, J, K) terhitung otomatis.');
-        $sheet1->getStyle('A4')->getFont()->setBold(true)->setSize(10.5);
-        $sheet1->getStyle('A5')->getFont()->setSize(9)->setItalic(true)->getColor()->setRGB('059669');
+        // Meta Info Baris 3
+        $sheet1->setCellValue('A3', 'Cabang: ' . $branchName . ' | Tanggal: ' . now()->translatedFormat('d F Y'));
+        $sheet1->getStyle('A3')->getFont()->setBold(true)->setSize(9.5)->getColor()->setRGB('059669');
 
-        // Box Rekapan Kasir & Validasi (Samping kanan: M4:N12)
-        $sheet1->setCellValue('M4', 'REKAPAN KASIR & VALIDASI OMSET');
-        $sheet1->mergeCells('M4:N4');
-        $sheet1->getStyle('M4:N4')->getFont()->setBold(true)->setSize(9.5)->getColor()->setRGB('FFFFFF');
-        $sheet1->getStyle('M4:N4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0B192C');
-        $sheet1->getStyle('M4:N4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        $sheet1->setCellValue('M5', '1. Tunai (Cash Kasir)');
-        $sheet1->setCellValue('N5', 1250000);
-        $sheet1->setCellValue('M6', '2. QRIS / Transfer');
-        $sheet1->setCellValue('N6', 450000);
-        $sheet1->setCellValue('M7', '3. Online Food (Gojek/Grab)');
-        $sheet1->setCellValue('N7', 300000);
-        $sheet1->setCellValue('M8', 'TOTAL OMSET KASIR');
-        $sheet1->setCellValue('N8', '=SUM(N5:N7)');
-        $sheet1->setCellValue('M9', 'TOTAL PENJUALAN MASAKAN');
+        // ==========================================
+        // DASHBOARD CARD SUMMARY KASIR & BELANJA (Baris 5 - 8)
+        // ==========================================
         
-        $sheet1->getStyle('M5:M9')->getFont()->setSize(9)->setBold(true)->getColor()->setRGB('334155');
-        $sheet1->getStyle('N5:N9')->getNumberFormat()->setFormatCode('#,##0');
-        $sheet1->getStyle('N5:N7')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FEFCE8'); // Highlight editable
-        $sheet1->getStyle('M8:N8')->getFont()->setBold(true)->getColor()->setRGB('059669');
-        $sheet1->getStyle('M8:N8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('ECFDF5');
+        // CARD 1: REKAPAN UANG KASIR (A5:D8)
+        $sheet1->setCellValue('A5', '1. REKAPAN PENDAPATAN UANG KASIR (HARI INI)');
+        $sheet1->mergeCells('A5:D5');
+        $sheet1->getStyle('A5:D5')->getFont()->setBold(true)->setSize(9)->getColor()->setRGB('FFFFFF');
+        $sheet1->getStyle('A5:D5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0B192C');
+        $sheet1->getStyle('A5:D5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setIndent(1);
 
-        // Table Header Sheet 1
+        $sheet1->setCellValue('A6', '1. Pendapatan Cash (Laci):');
+        $sheet1->setCellValue('B6', 1250000);
+        $sheet1->setCellValue('A7', '2. Pendapatan QRIS / Transfer:');
+        $sheet1->setCellValue('B7', 450000);
+        $sheet1->setCellValue('A8', '3. Pendapatan Online Food:');
+        $sheet1->setCellValue('B8', 300000);
+
+        $sheet1->setCellValue('C6', 'TOTAL OMSET KASIR:');
+        $sheet1->mergeCells('C6:D6');
+        $sheet1->setCellValue('C7', '=SUM(B6:B8)');
+        $sheet1->mergeCells('C7:D8');
+
+        $sheet1->getStyle('A6:A8')->getFont()->setSize(8.5)->setBold(true)->getColor()->setRGB('334155');
+        $sheet1->getStyle('B6:B8')->getFont()->setSize(9)->setBold(true)->getColor()->setRGB('0F172A');
+        $sheet1->getStyle('B6:B8')->getNumberFormat()->setFormatCode('#,##0');
+        $sheet1->getStyle('B6:B8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FEFCE8'); // Highlight editable
+        $sheet1->getStyle('B6:B8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        $sheet1->getStyle('C6:D6')->getFont()->setSize(8)->setBold(true)->getColor()->setRGB('065F46');
+        $sheet1->getStyle('C6:D6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet1->getStyle('C7:D8')->getFont()->setSize(12)->setBold(true)->getColor()->setRGB('047857');
+        $sheet1->getStyle('C7:D8')->getNumberFormat()->setFormatCode('"Rp " #,##0');
+        $sheet1->getStyle('C7:D8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet1->getStyle('C6:D8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D1FAE5');
+        $sheet1->getStyle('A5:D8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+
+        // CARD 2: REKAPAN BELANJA HARIAN (E5:G8)
+        $sheet1->setCellValue('E5', '2. REKAPAN BELANJA CABANG (SHEET 2)');
+        $sheet1->mergeCells('E5:G5');
+        $sheet1->getStyle('E5:G5')->getFont()->setBold(true)->setSize(9)->getColor()->setRGB('FFFFFF');
+        $sheet1->getStyle('E5:G5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D97706');
+        $sheet1->getStyle('E5:G5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setIndent(1);
+
+        $sheet1->setCellValue('E6', 'Belanja Bahan Baku:');
+        $sheet1->setCellValue('F6', 712000);
+        $sheet1->setCellValue('E7', 'Belanja Non Bahan Baku:');
+        $sheet1->setCellValue('F7', 89000);
+        $sheet1->setCellValue('E8', 'Belanja Pribadi / Kasbon:');
+        $sheet1->setCellValue('F8', 50000);
+
+        $sheet1->setCellValue('G6', 'TOTAL BELANJA');
+        $sheet1->setCellValue('G7', '=SUM(F6:F8)');
+
+        $sheet1->getStyle('E6:E8')->getFont()->setSize(8.5)->setBold(true)->getColor()->setRGB('334155');
+        $sheet1->getStyle('F6:F8')->getFont()->setSize(9)->setBold(true)->getColor()->setRGB('0F172A');
+        $sheet1->getStyle('F6:F8')->getNumberFormat()->setFormatCode('#,##0');
+        $sheet1->getStyle('F6:F8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFFBEB');
+        $sheet1->getStyle('F6:F8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        $sheet1->getStyle('G6')->getFont()->setSize(8)->setBold(true)->getColor()->setRGB('991B1B');
+        $sheet1->getStyle('G6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet1->getStyle('G7')->getFont()->setSize(10)->setBold(true)->getColor()->setRGB('B91C1C');
+        $sheet1->getStyle('G7')->getNumberFormat()->setFormatCode('"Rp " #,##0');
+        $sheet1->getStyle('G7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet1->getStyle('G6:G8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FEE2E2');
+        $sheet1->getStyle('E5:G8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+
+        // CARD 3: KONTROL PENJUALAN & SELISIH (H5:K8)
+        $sheet1->setCellValue('H5', '3. KONTROL PENJUALAN & SISA SETORAN');
+        $sheet1->mergeCells('H5:K5');
+        $sheet1->getStyle('H5:K5')->getFont()->setBold(true)->setSize(9)->getColor()->setRGB('FFFFFF');
+        $sheet1->getStyle('H5:K5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('2563EB');
+        $sheet1->getStyle('H5:K5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setIndent(1);
+
+        $sheet1->setCellValue('H6', 'Grand Total Penjualan:');
+        $sheet1->setCellValue('I6', 0); // Di-link ke grand total tabel bawah
+        $sheet1->setCellValue('H7', 'Selisih Kasir vs Masakan:');
+        $sheet1->setCellValue('I7', '=C7-I6');
+        $sheet1->setCellValue('H8', 'Sisa Kas Setoran Bersih:');
+        $sheet1->setCellValue('I8', '=B6-G7');
+
+        $sheet1->getStyle('H6:H8')->getFont()->setSize(8.5)->setBold(true)->getColor()->setRGB('334155');
+        $sheet1->getStyle('I6:I8')->getFont()->setSize(9)->setBold(true)->getColor()->setRGB('0F172A');
+        $sheet1->getStyle('I6:I8')->getNumberFormat()->setFormatCode('+#,##0;-#,##0;0');
+        $sheet1->getStyle('I6:I8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet1->getStyle('I7')->getFont()->getColor()->setRGB('B91C1C');
+        $sheet1->getStyle('I8')->getFont()->getColor()->setRGB('047857');
+        $sheet1->getStyle('H5:K8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+
+        // ==========================================
+        // TABEL PORSI MASAKAN (Mulai Baris 10)
+        // ==========================================
         $headers1 = [
-            'A7' => 'No',
-            'B7' => 'ID Menu',
-            'C7' => 'Nama Masakan',
-            'D7' => 'Kategori / Sifat',
-            'E7' => 'Harga Satuan (Rp)',
-            'F7' => 'Sisa Kemarin [Input]',
-            'G7' => 'Masak Hari Ini [Input]',
-            'H7' => 'Terjual [Input]',
-            'I7' => 'Total Masak [Auto]',
-            'J7' => 'Sisa Hari Ini [Auto]',
-            'K7' => 'Subtotal Penjualan (Rp) [Auto]',
+            'A10' => 'No',
+            'B10' => 'ID Menu',
+            'C10' => 'Nama Masakan',
+            'D10' => 'Kategori / Sifat',
+            'E10' => 'Harga Satuan (Rp)',
+            'F10' => 'Sisa Kemarin [Input]',
+            'G10' => 'Masak Hari Ini [Input]',
+            'H10' => 'Terjual [Input]',
+            'I10' => 'Total Masak [Auto]',
+            'J10' => 'Sisa Hari Ini [Auto]',
+            'K10' => 'Subtotal Penjualan (Rp) [Auto]',
         ];
 
         foreach ($headers1 as $cell => $text) {
@@ -820,18 +885,18 @@ class KitchenReportController extends Controller
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]
         ];
-        $sheet1->getStyle('A7:K7')->applyFromArray($headerStyle1);
-        $sheet1->getRowDimension(7)->setRowHeight(28);
+        $sheet1->getStyle('A10:K10')->applyFromArray($headerStyle1);
+        $sheet1->getRowDimension(10)->setRowHeight(28);
 
-        // Highlight header input columns with distinctive header color
-        $sheet1->getStyle('F7')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D97706'); // Amber
-        $sheet1->getStyle('G7')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('059669'); // Emerald
-        $sheet1->getStyle('H7')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('2563EB'); // Blue
+        // Highlight header input columns
+        $sheet1->getStyle('F10')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D97706'); // Amber
+        $sheet1->getStyle('G10')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('059669'); // Emerald
+        $sheet1->getStyle('H10')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('2563EB'); // Blue
 
         $sampleCooked = [30, 25, 20, 15, 40, 25, 35, 20, 15, 10];
         $sampleSold   = [28, 22, 18, 15, 38, 20, 32, 18, 14, 10];
 
-        $row1 = 8;
+        $row1 = 11;
         foreach ($menus as $idx => $menu) {
             $price = $menu->getPriceForBranch($branchId);
             $sheet1->setCellValue('A' . $row1, $idx + 1);
@@ -840,7 +905,6 @@ class KitchenReportController extends Controller
             $sheet1->setCellValue('D' . $row1, $menu->is_perishable ? 'Sayur (Cepat Basi)' : 'Lauk Biasa');
             $sheet1->setCellValue('E' . $row1, $price);
             
-            // Contoh data pada beberapa menu awal
             $sisaKemarinVal = ($idx < 3 && !$menu->is_perishable) ? 5 : 0;
             $masakVal = isset($sampleCooked[$idx]) ? $sampleCooked[$idx] : 0;
             $terjualVal = isset($sampleSold[$idx]) ? $sampleSold[$idx] : 0;
@@ -861,15 +925,15 @@ class KitchenReportController extends Controller
             $sheet1->getStyle('K' . $row1)->getNumberFormat()->setFormatCode('#,##0');
 
             // Highlight editable user input columns (F, G, H)
-            $sheet1->getStyle('F' . $row1)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFFBEB'); // Soft Amber
-            $sheet1->getStyle('G' . $row1)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F0FDF4'); // Soft Mint
-            $sheet1->getStyle('H' . $row1)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('EFF6FF'); // Soft Blue
+            $sheet1->getStyle('F' . $row1)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFFBEB');
+            $sheet1->getStyle('G' . $row1)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F0FDF4');
+            $sheet1->getStyle('H' . $row1)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('EFF6FF');
             $sheet1->getStyle('I' . $row1 . ':K' . $row1)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
 
             $row1++;
         }
 
-        // Tambah 5 baris custom menu kosong yang bisa ditambah sendiri oleh user
+        // Tambah 5 baris custom menu kosong
         for ($c = 0; $c < 5; $c++) {
             $sheet1->setCellValue('A' . $row1, count($menus) + $c + 1);
             $sheet1->setCellValue('B' . $row1, '');
@@ -899,17 +963,17 @@ class KitchenReportController extends Controller
         }
 
         $lastRow1 = $row1 - 1;
-        $sheet1->getStyle("A8:K{$lastRow1}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E2E8F0');
+        $sheet1->getStyle("A11:K{$lastRow1}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E2E8F0');
 
         // Sticky Grand Total Baris Bawah Sheet 1
         $sheet1->setCellValue('A' . $row1, 'GRAND TOTAL:');
         $sheet1->mergeCells("A{$row1}:E{$row1}");
-        $sheet1->setCellValue('F' . $row1, "=SUM(F8:F{$lastRow1})");
-        $sheet1->setCellValue('G' . $row1, "=SUM(G8:G{$lastRow1})");
-        $sheet1->setCellValue('H' . $row1, "=SUM(H8:H{$lastRow1})");
-        $sheet1->setCellValue('I' . $row1, "=SUM(I8:I{$lastRow1})");
-        $sheet1->setCellValue('J' . $row1, "=SUM(J8:J{$lastRow1})");
-        $sheet1->setCellValue('K' . $row1, "=SUM(K8:K{$lastRow1})");
+        $sheet1->setCellValue('F' . $row1, "=SUM(F11:F{$lastRow1})");
+        $sheet1->setCellValue('G' . $row1, "=SUM(G11:G{$lastRow1})");
+        $sheet1->setCellValue('H' . $row1, "=SUM(H11:H{$lastRow1})");
+        $sheet1->setCellValue('I' . $row1, "=SUM(I11:I{$lastRow1})");
+        $sheet1->setCellValue('J' . $row1, "=SUM(J11:J{$lastRow1})");
+        $sheet1->setCellValue('K' . $row1, "=SUM(K11:K{$lastRow1})");
 
         $sheet1->getStyle("A{$row1}:K{$row1}")->getFont()->setBold(true)->setSize(9.5)->getColor()->setRGB('FFFFFF');
         $sheet1->getStyle("A{$row1}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
@@ -917,20 +981,21 @@ class KitchenReportController extends Controller
         $sheet1->getStyle("A{$row1}:K{$row1}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0B192C');
         $sheet1->getStyle("A{$row1}:K{$row1}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('000000');
 
-        // Hubungkan Rumus Rekapan Kasir M9 ke Grand Total Penjualan
-        $sheet1->setCellValue('N9', "=K{$row1}");
-        $sheet1->setCellValue('M10', 'SELISIH (UANG KASIR - PENJUALAN)');
-        $sheet1->setCellValue('N10', '=N8-N9');
-        $sheet1->getStyle('M10')->getFont()->setSize(9)->setBold(true)->getColor()->setRGB('B91C1C');
-        $sheet1->getStyle('N10')->getFont()->setSize(9.5)->setBold(true)->getColor()->setRGB('B91C1C');
-        $sheet1->getStyle('N10')->getNumberFormat()->setFormatCode('+#,##0;-#,##0;0');
-        $sheet1->getStyle('M4:N10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+        // Link Grand Total ke Box Kontrol I6
+        $sheet1->setCellValue('I6', "=K{$row1}");
 
-        foreach (range('A', 'K') as $col) {
-            $sheet1->getColumnDimension($col)->setAutoSize(true);
-        }
-        $sheet1->getColumnDimension('M')->setWidth(30);
-        $sheet1->getColumnDimension('N')->setWidth(18);
+        // SET LEBAR KOLOM PROPORSIONAL EKSPLISIT (NO DISTORTION)
+        $sheet1->getColumnDimension('A')->setWidth(6);
+        $sheet1->getColumnDimension('B')->setWidth(10);
+        $sheet1->getColumnDimension('C')->setWidth(30);
+        $sheet1->getColumnDimension('D')->setWidth(18);
+        $sheet1->getColumnDimension('E')->setWidth(14);
+        $sheet1->getColumnDimension('F')->setWidth(15);
+        $sheet1->getColumnDimension('G')->setWidth(16);
+        $sheet1->getColumnDimension('H')->setWidth(14);
+        $sheet1->getColumnDimension('I')->setWidth(14);
+        $sheet1->getColumnDimension('J')->setWidth(14);
+        $sheet1->getColumnDimension('K')->setWidth(20);
 
         // ==========================================
         // SHEET 2: REKAPAN BELANJA HARIAN CABANG
@@ -941,29 +1006,57 @@ class KitchenReportController extends Controller
         // Header Title Sheet 2
         $sheet2->setCellValue('A1', 'REKAPAN BELANJA & PENGELUARAN HARIAN CABANG');
         $sheet2->setCellValue('A2', 'Rincian Belanja Bahan Baku Pasar, Operasional Dapur, dan Belanja Pribadi');
-        $sheet2->mergeCells('A1:H1');
-        $sheet2->mergeCells('A2:H2');
 
         $sheet2->getStyle('A1:A2')->getFont()->setBold(true);
-        $sheet2->getStyle('A1')->getFont()->setSize(14)->getColor()->setRGB('059669');
-        $sheet2->getStyle('A2')->getFont()->setSize(10)->getColor()->setRGB('64748B');
+        $sheet2->getStyle('A1')->getFont()->setSize(13)->getColor()->setRGB('059669');
+        $sheet2->getStyle('A2')->getFont()->setSize(9.5)->getColor()->setRGB('64748B');
 
         // Meta Info Sheet 2
-        $sheet2->setCellValue('A4', 'Cabang: ' . $branchName);
-        $sheet2->setCellValue('A5', 'Petunjuk: Isi setiap item belanja di tabel bawah. Kolom Total (G) otomatis dihitung dari Qty * Harga Satuan.');
-        $sheet2->getStyle('A4')->getFont()->setBold(true)->setSize(10.5);
-        $sheet2->getStyle('A5')->getFont()->setSize(9)->setItalic(true)->getColor()->setRGB('059669');
+        $sheet2->setCellValue('A3', 'Cabang: ' . $branchName . ' | Tanggal: ' . now()->translatedFormat('d F Y'));
+        $sheet2->getStyle('A3')->getFont()->setBold(true)->setSize(9.5)->getColor()->setRGB('0B192C');
 
-        // Table Header Sheet 2
+        // Summary Card Belanja di Sheet 2 (Baris 5 - 6)
+        $sheet2->setCellValue('A5', 'TOTAL BAHAN BAKU');
+        $sheet2->setCellValue('C5', 'TOTAL NON BAHAN BAKU');
+        $sheet2->setCellValue('E5', 'TOTAL PRIBADI / KASBON');
+        $sheet2->setCellValue('G5', 'GRAND TOTAL BELANJA');
+        $sheet2->mergeCells('A5:B5');
+        $sheet2->mergeCells('C5:D5');
+        $sheet2->mergeCells('E5:F5');
+        $sheet2->mergeCells('G5:H5');
+
+        $sheet2->setCellValue('A6', '=SUMIF(B9:B35, "*Bahan Baku*", G9:G35)');
+        $sheet2->setCellValue('C6', '=SUMIF(B9:B35, "*Non*", G9:G35)');
+        $sheet2->setCellValue('E6', '=SUMIF(B9:B35, "*Pribadi*", G9:G35)');
+        $sheet2->setCellValue('G6', '=SUM(G9:G35)');
+        $sheet2->mergeCells('A6:B6');
+        $sheet2->mergeCells('C6:D6');
+        $sheet2->mergeCells('E6:F6');
+        $sheet2->mergeCells('G6:H6');
+
+        $sheet2->getStyle('A5:H5')->getFont()->setBold(true)->setSize(8.5)->getColor()->setRGB('FFFFFF');
+        $sheet2->getStyle('A5:H5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet2->getStyle('A5:B5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('047857');
+        $sheet2->getStyle('C5:D5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D97706');
+        $sheet2->getStyle('E5:F5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('4B5563');
+        $sheet2->getStyle('G5:H5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('B91C1C');
+
+        $sheet2->getStyle('A6:H6')->getFont()->setBold(true)->setSize(11);
+        $sheet2->getStyle('A6:H6')->getNumberFormat()->setFormatCode('"Rp " #,##0');
+        $sheet2->getStyle('A6:H6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet2->getStyle('A6:H6')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
+        $sheet2->getStyle('A5:H6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+
+        // Table Header Sheet 2 (Baris 8)
         $headers2 = [
-            'A7' => 'No',
-            'B7' => 'Kategori Belanja',
-            'C7' => 'Nama Barang / Kebutuhan Belanja',
-            'D7' => 'Qty [Input]',
-            'E7' => 'Satuan',
-            'F7' => 'Harga Satuan (Rp) [Input]',
-            'G7' => 'Total Nominal (Rp) [Auto]',
-            'H7' => 'Keterangan / Sumber Nota',
+            'A8' => 'No',
+            'B8' => 'Kategori Belanja',
+            'C8' => 'Nama Barang / Kebutuhan Belanja',
+            'D8' => 'Qty [Input]',
+            'E8' => 'Satuan',
+            'F8' => 'Harga Satuan (Rp) [Input]',
+            'G8' => 'Total Nominal (Rp) [Auto]',
+            'H8' => 'Keterangan / Sumber Nota',
         ];
 
         foreach ($headers2 as $cell => $text) {
@@ -976,8 +1069,8 @@ class KitchenReportController extends Controller
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]
         ];
-        $sheet2->getStyle('A7:H7')->applyFromArray($headerStyle2);
-        $sheet2->getRowDimension(7)->setRowHeight(28);
+        $sheet2->getStyle('A8:H8')->applyFromArray($headerStyle2);
+        $sheet2->getRowDimension(8)->setRowHeight(28);
 
         // Contoh Realistis Pengeluaran Belanja Harian Cabang
         $sampleExpenses = [
@@ -992,7 +1085,7 @@ class KitchenReportController extends Controller
             ['Pribadi', 'Uang Makan / Kasbon Karyawan', 1, 'kali', 50000, 'Kasir Cabang'],
         ];
 
-        $row2 = 8;
+        $row2 = 9;
         foreach ($sampleExpenses as $idx => $exp) {
             $sheet2->setCellValue('A' . $row2, $idx + 1);
             $sheet2->setCellValue('B' . $row2, $exp[0]);
@@ -1017,7 +1110,7 @@ class KitchenReportController extends Controller
             $row2++;
         }
 
-        // Tambah 15 baris belanja kosong ber-rumus yang siap diisi
+        // Tambah 15 baris belanja kosong ber-rumus
         for ($k = 0; $k < 15; $k++) {
             $sheet2->setCellValue('A' . $row2, count($sampleExpenses) + $k + 1);
             $sheet2->setCellValue('B' . $row2, 'Bahan Baku');
@@ -1043,21 +1136,27 @@ class KitchenReportController extends Controller
         }
 
         $lastRow2 = $row2 - 1;
-        $sheet2->getStyle("A8:H{$lastRow2}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E2E8F0');
+        $sheet2->getStyle("A9:H{$lastRow2}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E2E8F0');
 
         // Ringkasan Total Belanja di Bawah Sheet 2
         $sheet2->setCellValue('A' . $row2, 'TOTAL BELANJA HARIAN:');
         $sheet2->mergeCells("A{$row2}:F{$row2}");
-        $sheet2->setCellValue('G' . $row2, "=SUM(G8:G{$lastRow2})");
+        $sheet2->setCellValue('G' . $row2, "=SUM(G9:G{$lastRow2})");
         $sheet2->getStyle("A{$row2}:H{$row2}")->getFont()->setBold(true)->setSize(10)->getColor()->setRGB('FFFFFF');
         $sheet2->getStyle("A{$row2}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $sheet2->getStyle("G{$row2}")->getNumberFormat()->setFormatCode('#,##0');
         $sheet2->getStyle("A{$row2}:H{$row2}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('059669');
         $sheet2->getStyle("A{$row2}:H{$row2}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('047857');
 
-        foreach (range('A', 'H') as $col) {
-            $sheet2->getColumnDimension($col)->setAutoSize(true);
-        }
+        // SET LEBAR KOLOM PROPORSIONAL EKSPLISIT SHEET 2
+        $sheet2->getColumnDimension('A')->setWidth(6);
+        $sheet2->getColumnDimension('B')->setWidth(18);
+        $sheet2->getColumnDimension('C')->setWidth(32);
+        $sheet2->getColumnDimension('D')->setWidth(12);
+        $sheet2->getColumnDimension('E')->setWidth(10);
+        $sheet2->getColumnDimension('F')->setWidth(16);
+        $sheet2->getColumnDimension('G')->setWidth(18);
+        $sheet2->getColumnDimension('H')->setWidth(25);
 
         // Set active sheet ke Sheet 1
         $spreadsheet->setActiveSheetIndex(0);
@@ -1102,8 +1201,19 @@ class KitchenReportController extends Controller
                 $menuNameMap[strtolower(trim($m->name))] = $m->id;
             }
 
-            // Baca Data Tabel Menu (Mulai Baris 8)
-            for ($r = 8; $r <= $highestRow1; $r++) {
+            // Cari baris awal data tabel masakan (deteksi baris header)
+            $startRow1 = 11;
+            for ($testRow = 6; $testRow <= 15; $testRow++) {
+                $cellA = strtoupper(trim((string)$sheet1->getCell('A' . $testRow)->getValue()));
+                $cellC = strtoupper(trim((string)$sheet1->getCell('C' . $testRow)->getValue()));
+                if (str_contains($cellA, 'NO') || str_contains($cellC, 'NAMA MASAKAN')) {
+                    $startRow1 = $testRow + 1;
+                    break;
+                }
+            }
+
+            // Baca Data Tabel Menu
+            for ($r = $startRow1; $r <= $highestRow1; $r++) {
                 $menuId = $sheet1->getCell('B' . $r)->getValue();
                 $menuName = trim((string) $sheet1->getCell('C' . $r)->getValue());
                 
@@ -1139,14 +1249,14 @@ class KitchenReportController extends Controller
                 }
             }
 
-            // Baca Kasir dari Sheet 1 (Mendukung N5:N7 atau K5:K7)
-            $cashIncome = (float) ($sheet1->getCell('N5')->getCalculatedValue() ?? $sheet1->getCell('K5')->getCalculatedValue() ?? 0);
-            $qrisIncome = (float) ($sheet1->getCell('N6')->getCalculatedValue() ?? $sheet1->getCell('K6')->getCalculatedValue() ?? 0);
-            $onlineIncome = (float) ($sheet1->getCell('N7')->getCalculatedValue() ?? $sheet1->getCell('K7')->getCalculatedValue() ?? 0);
+            // Baca Kasir dari Sheet 1 (Mendukung B6:B8 baru, atau N5:N7, atau K5:K7)
+            $cashIncome = (float) ($sheet1->getCell('B6')->getCalculatedValue() ?? $sheet1->getCell('N5')->getCalculatedValue() ?? $sheet1->getCell('K5')->getCalculatedValue() ?? 0);
+            $qrisIncome = (float) ($sheet1->getCell('B7')->getCalculatedValue() ?? $sheet1->getCell('N6')->getCalculatedValue() ?? $sheet1->getCell('K6')->getCalculatedValue() ?? 0);
+            $onlineIncome = (float) ($sheet1->getCell('B8')->getCalculatedValue() ?? $sheet1->getCell('N7')->getCalculatedValue() ?? $sheet1->getCell('K7')->getCalculatedValue() ?? 0);
 
-            $expenseRaw = (float) ($sheet1->getCell('K8')->getCalculatedValue() ?? 0);
-            $expenseNonRaw = (float) ($sheet1->getCell('K9')->getCalculatedValue() ?? 0);
-            $expensePersonal = (float) ($sheet1->getCell('K10')->getCalculatedValue() ?? 0);
+            $expenseRaw = (float) ($sheet1->getCell('F6')->getCalculatedValue() ?? $sheet1->getCell('K8')->getCalculatedValue() ?? 0);
+            $expenseNonRaw = (float) ($sheet1->getCell('F7')->getCalculatedValue() ?? $sheet1->getCell('K9')->getCalculatedValue() ?? 0);
+            $expensePersonal = (float) ($sheet1->getCell('F8')->getCalculatedValue() ?? $sheet1->getCell('K10')->getCalculatedValue() ?? 0);
 
             // ==========================================
             // SHEET 2: BACA RINCIAN BELANJA HARIAN
@@ -1161,7 +1271,18 @@ class KitchenReportController extends Controller
                 $sheet2Personal = 0;
                 $hasValidSheet2Data = false;
 
-                for ($r2 = 8; $r2 <= $highestRow2; $r2++) {
+                // Cari baris awal data belanja (deteksi header)
+                $startRow2 = 9;
+                for ($testRow2 = 6; $testRow2 <= 12; $testRow2++) {
+                    $cellA2 = strtoupper(trim((string)$sheet2->getCell('A' . $testRow2)->getValue()));
+                    $cellC2 = strtoupper(trim((string)$sheet2->getCell('C' . $testRow2)->getValue()));
+                    if (str_contains($cellA2, 'NO') || str_contains($cellC2, 'NAMA BARANG')) {
+                        $startRow2 = $testRow2 + 1;
+                        break;
+                    }
+                }
+
+                for ($r2 = $startRow2; $r2 <= $highestRow2; $r2++) {
                     $category = trim((string) $sheet2->getCell('B' . $r2)->getValue());
                     $itemName = trim((string) $sheet2->getCell('C' . $r2)->getValue());
                     $amount = (float) ($sheet2->getCell('G' . $r2)->getCalculatedValue() ?? 0);
