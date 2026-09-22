@@ -1261,7 +1261,7 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data.status === 'success') {
+            if (data.success || data.status === 'success') {
                 parsedExcelData = data.data;
                 renderExcelPreview(data.data);
                 document.getElementById('btnApplyExcel').disabled = false;

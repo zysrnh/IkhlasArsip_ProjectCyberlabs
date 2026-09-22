@@ -1329,6 +1329,7 @@ class KitchenReportController extends Controller
 
             return response()->json([
                 'success' => true,
+                'status' => 'success',
                 'message' => 'File Excel berhasil dibaca. ' . count($parsedItems) . ' menu masakan dan ' . count($expenseItemsList) . ' item belanja siap diterapkan ke form.',
                 'data' => [
                     'items' => $parsedItems,
