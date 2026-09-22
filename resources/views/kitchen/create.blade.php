@@ -465,9 +465,36 @@
         <!-- TAB 2: REKAPAN UANG KASIR & SETTLEMENT -->
         <div id="tabContentSettlement" class="hidden space-y-5">
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
-                <div>
-                    <h3 class="text-base font-bold text-slate-900">Rekapan Pembayaran Uang Kasir Hari Ini</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Input jumlah uang fisik & digital yang diterima kasir. Sistem akan mencocokkannya dengan grand total masakan yang laku.</p>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Rekapan Pembayaran Uang Kasir Hari Ini</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Input jumlah uang fisik & digital yang diterima kasir. Bisa diisi manual atau otomatis terisi via Import Excel.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            type="button" 
+                            onclick="openImportExcelModal()" 
+                            class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <span>Import via Excel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Info Box Excel Mapping -->
+                <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 text-xs text-emerald-950">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Data <strong>Cash, QRIS, dan Online Food</strong> di bawah ini otomatis terisi ketika kamu mengunggah file Excel (Sheet 1 Card 1).</span>
+                    </div>
+                    <button type="button" onclick="openImportExcelModal()" class="text-[11px] font-bold text-emerald-700 underline hover:text-emerald-900 shrink-0 cursor-pointer">
+                        Upload Excel Sekarang
+                    </button>
                 </div>
 
                 <!-- 4 Box Layout Grid -->
@@ -486,7 +513,7 @@
                                 class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">Uang tunai fisik di kasir</p>
+                        <p class="text-[10px] text-slate-400 mt-1.5">Uang tunai fisik di kasir (Excel Cell B6)</p>
                     </div>
 
                     <!-- 2. PENDAPATAN QRIS -->
@@ -503,7 +530,7 @@
                                 class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">Settlement EDC / QRIS</p>
+                        <p class="text-[10px] text-slate-400 mt-1.5">Settlement EDC / QRIS (Excel Cell B7)</p>
                     </div>
 
                     <!-- 3. PENDAPATAN ONLINE FOOD -->
@@ -520,7 +547,7 @@
                                 class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">GrabFood / GoFood / Shopee</p>
+                        <p class="text-[10px] text-slate-400 mt-1.5">GrabFood / GoFood / Shopee (Excel Cell B8)</p>
                     </div>
 
                     <!-- 4. TOTAL OMSET HARI INI -->
@@ -641,10 +668,30 @@
                         <p class="text-xs text-slate-500 mt-0.5">Input pengeluaran belanja bahan baku, non bahan baku, dan pengeluaran pribadi cabang hari ini.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                            Opsional (Bisa diisi nanti atau di halaman terpisah)
-                        </span>
+                        <button 
+                            type="button" 
+                            onclick="openImportExcelModal()" 
+                            class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <span>Import Belanja Excel</span>
+                        </button>
                     </div>
+                </div>
+
+                <!-- Info Box Belanja Excel Mapping -->
+                <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-950">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        <span>Belanja di bawah ini otomatis terisi dan terkalkulasi dari nota belanja di <strong>Sheet 2 (REKAPAN_BELANJA)</strong> saat import file.</span>
+                    </div>
+                    <button type="button" onclick="openImportExcelModal()" class="text-[11px] font-bold text-amber-700 underline hover:text-amber-900 shrink-0 cursor-pointer">
+                        Upload Excel Belanja
+                    </button>
                 </div>
 
                 <!-- 3 Box Input Pengeluaran Belanja -->
