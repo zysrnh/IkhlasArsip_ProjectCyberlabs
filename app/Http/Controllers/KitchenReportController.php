@@ -748,6 +748,55 @@ class KitchenReportController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
+        $masterTemplatePath = base_path('Template.xls');
+        if (!file_exists($masterTemplatePath)) {
+            $masterTemplatePath = storage_path('app/templates/template_dapur_master.xls');
+        }
+
+        if (file_exists($masterTemplatePath)) {
+            try {
+                $spreadsheet = IOFactory::load($masterTemplatePath);
+                
+                // Sheet 1: Update metadata & harga cabang aktif
+                $sheet1 = $spreadsheet->getSheet(0);
+                $sheet1->setCellValue('A3', 'Cabang: ' . $branchName . ' | Tanggal: ' . now()->translatedFormat('d F Y'));
+                
+                $row1 = 11;
+                foreach ($menus as $idx => $menu) {
+                    $price = $menu->getPriceForBranch($branchId);
+                    $sheet1->setCellValue('A' . $row1, $idx + 1);
+                    $sheet1->setCellValue('B' . $row1, $menu->id);
+                    $sheet1->setCellValue('C' . $row1, $menu->name);
+                    $sheet1->setCellValue('D' . $row1, $menu->is_perishable ? 'Sayur (Cepat Basi)' : 'Lauk Biasa');
+                    $sheet1->setCellValue('E' . $row1, $price);
+                    $sheet1->setCellValue('I' . $row1, "=F{$row1}+G{$row1}");
+                    $sheet1->setCellValue('J' . $row1, "=I{$row1}-H{$row1}");
+                    $sheet1->setCellValue('K' . $row1, "=H{$row1}*E{$row1}");
+                    $row1++;
+                }
+
+                // Sheet 2: Update metadata jika ada
+                if ($spreadsheet->getSheetCount() > 1) {
+                    $sheet2 = $spreadsheet->getSheet(1);
+                    $sheet2->setCellValue('A3', 'Cabang: ' . $branchName . ' | Tanggal: ' . now()->translatedFormat('d F Y'));
+                }
+
+                $spreadsheet->setActiveSheetIndex(0);
+                $fileName = 'Template_Input_Dapur_' . str_replace(' ', '_', $branchName) . '.xlsx';
+
+                return new StreamedResponse(function () use ($spreadsheet) {
+                    $writer = new Xlsx($spreadsheet);
+                    $writer->save('php://output');
+                }, 200, [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+                    'Cache-Control' => 'max-age=0',
+                ]);
+            } catch (\Exception $e) {
+                // Fallback ke programmatic builder
+            }
+        }
+
         $spreadsheet = new Spreadsheet();
         
         // ==========================================
