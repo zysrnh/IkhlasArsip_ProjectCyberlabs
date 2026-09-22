@@ -540,11 +540,11 @@
 </div>
 
 <!-- Modal Input Cepat Belanja Harian -->
-<div id="expenseInputModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-5 animate-fadeIn border border-slate-100">
+<div id="expenseInputModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col animate-fadeIn border border-slate-100 overflow-hidden">
         
         <!-- Modal Header -->
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0 bg-white">
             <div class="flex items-center space-x-3">
                 <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -561,167 +561,171 @@
             </button>
         </div>
 
-        <form action="{{ route('daily-expenses.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('daily-expenses.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
             @csrf
 
-            <!-- Cabang & Tanggal Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <!-- Pilihan Cabang (Custom Styled Dropdown) -->
-                <div class="relative" id="modalBranchDropdownWrapper">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cabang Outlet</label>
-                    @if(auth()->user()->isSuperAdmin() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
-                        <input type="hidden" name="branch_id" id="modalBranchInput" value="{{ $selectedBranchId ?: ($branches->first()?->id ?? '') }}">
-                        <button 
-                            type="button" 
-                            onclick="toggleExpenseDropdown('modalBranchDropdownMenu')" 
-                            class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition cursor-pointer"
-                        >
-                            <div class="flex items-center space-x-2 truncate">
-                                <span class="w-2 h-2 rounded-full bg-tealBrand shrink-0"></span>
-                                <span id="modalSelectedBranchLabel" class="truncate font-bold text-slate-900">
-                                    {{ $branches->firstWhere('id', $selectedBranchId)?->name ?? ($branches->first()?->name ?? 'Pilih Cabang') }}
-                                </span>
-                            </div>
-                            <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-
-                        <div id="modalBranchDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-56 overflow-y-auto animate-fadeIn">
-                            @foreach($branches as $b)
-                                <button 
-                                    type="button" 
-                                    onclick="selectModalBranch('{{ $b->id }}', '{{ $b->name }}')" 
-                                    class="w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 flex items-center justify-between {{ ($selectedBranchId == $b->id || (empty($selectedBranchId) && $loop->first)) ? 'font-bold text-tealBrand bg-teal-50/50' : 'text-slate-700' }}"
-                                >
-                                    <span>{{ $b->name }}</span>
-                                    <span class="modal-branch-check {{ ($selectedBranchId == $b->id || (empty($selectedBranchId) && $loop->first)) ? '' : 'hidden' }}" id="modalCheck-{{ $b->id }}">
-                                        <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 space-y-4 overflow-y-auto flex-1">
+                <!-- Cabang & Tanggal Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <!-- Pilihan Cabang (Custom Styled Dropdown) -->
+                    <div class="relative" id="modalBranchDropdownWrapper">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cabang Outlet</label>
+                        @if(auth()->user()->isSuperAdmin() || (auth()->user()->isKepalaCabang() && count($branches) > 1))
+                            <input type="hidden" name="branch_id" id="modalBranchInput" value="{{ $selectedBranchId ?: ($branches->first()?->id ?? '') }}">
+                            <button 
+                                type="button" 
+                                onclick="toggleExpenseDropdown('modalBranchDropdownMenu')" 
+                                class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand transition cursor-pointer"
+                            >
+                                <div class="flex items-center space-x-2 truncate">
+                                    <span class="w-2 h-2 rounded-full bg-tealBrand shrink-0"></span>
+                                    <span id="modalSelectedBranchLabel" class="truncate font-bold text-slate-900">
+                                        {{ $branches->firstWhere('id', $selectedBranchId)?->name ?? ($branches->first()?->name ?? 'Pilih Cabang') }}
                                     </span>
-                                </button>
-                            @endforeach
+                                </div>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <div id="modalBranchDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-56 overflow-y-auto animate-fadeIn">
+                                @foreach($branches as $b)
+                                    <button 
+                                        type="button" 
+                                        onclick="selectModalBranch('{{ $b->id }}', '{{ $b->name }}')" 
+                                        class="w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 flex items-center justify-between {{ ($selectedBranchId == $b->id || (empty($selectedBranchId) && $loop->first)) ? 'font-bold text-tealBrand bg-teal-50/50' : 'text-slate-700' }}"
+                                    >
+                                        <span>{{ $b->name }}</span>
+                                        <span class="modal-branch-check {{ ($selectedBranchId == $b->id || (empty($selectedBranchId) && $loop->first)) ? '' : 'hidden' }}" id="modalCheck-{{ $b->id }}">
+                                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                        </span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        @else
+                            <input type="hidden" name="branch_id" value="{{ auth()->user()->branch_id }}">
+                            <div class="px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-between">
+                                <span>{{ auth()->user()->branch->name ?? 'Cabang Anda' }}</span>
+                                <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider bg-slate-200/70 px-1.5 py-0.5 rounded">Terkunci</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Pilihan Tanggal (Flatpickr) -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Belanja</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <input 
+                                type="text" 
+                                name="report_date" 
+                                id="modalReportDateInput" 
+                                value="{{ date('Y-m-d') }}" 
+                                class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-tealBrand transition cursor-pointer"
+                                required
+                            >
                         </div>
-                    @else
-                        <input type="hidden" name="branch_id" value="{{ auth()->user()->branch_id }}">
-                        <div class="px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-between">
-                            <span>{{ auth()->user()->branch->name ?? 'Cabang Anda' }}</span>
-                            <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider bg-slate-200/70 px-1.5 py-0.5 rounded">Terkunci</span>
+                    </div>
+                </div>
+
+                <!-- 3 Input Pos Belanja -->
+                <div class="space-y-3 pt-1">
+                    <!-- 1. Belanja Bahan Baku -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-800">1. Belanja Bahan Baku</label>
+                            <span class="text-[10px] text-slate-400 font-medium">Daging, ayam, sayur, bumbu</span>
                         </div>
-                    @endif
-                </div>
-
-                <!-- Pilihan Tanggal (Flatpickr) -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Belanja</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
+                            <input 
+                                type="text" 
+                                name="expense_raw_material" 
+                                id="modalRawExpense" 
+                                value="0" 
+                                onfocus="if(this.value==='0') this.select();"
+                                oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
+                                class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
+                            >
                         </div>
-                        <input 
-                            type="text" 
-                            name="report_date" 
-                            id="modalReportDateInput" 
-                            value="{{ date('Y-m-d') }}" 
-                            class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-tealBrand transition cursor-pointer"
-                            required
-                        >
                     </div>
+
+                    <!-- 2. Belanja Non Bahan Baku -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-800">2. Belanja Non Bahan Baku</label>
+                            <span class="text-[10px] text-slate-400 font-medium">Gas LPG, plastik, sabun, listrik</span>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
+                            <input 
+                                type="text" 
+                                name="expense_non_raw_material" 
+                                id="modalNonRawExpense" 
+                                value="0" 
+                                onfocus="if(this.value==='0') this.select();"
+                                oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
+                                class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- 3. Belanja Pribadi -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-800">3. Belanja Pribadi / Kasbon</label>
+                            <span class="text-[10px] text-slate-400 font-medium">Kasbon, keperluan pribadi/staf</span>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
+                            <input 
+                                type="text" 
+                                name="expense_personal" 
+                                id="modalPersonalExpense" 
+                                value="0" 
+                                onfocus="if(this.value==='0') this.select();"
+                                oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
+                                class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Belanja Live Summary Card -->
+                <div class="p-4 bg-rose-50/80 border border-rose-200 rounded-xl flex items-center justify-between">
+                    <div>
+                        <span class="block text-[10px] font-black text-rose-900 uppercase tracking-wider">TOTAL PENGELUARAN BELANJA</span>
+                        <span class="text-[11px] text-rose-600 font-medium">Akumulasi Bahan Baku + Non Bahan Baku + Pribadi</span>
+                    </div>
+                    <div class="text-xl font-black text-rose-600 font-sans tracking-tight" id="modalTotalExpenseLabel">
+                        Rp 0
+                    </div>
+                </div>
+
+                <!-- Catatan Belanja -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Rincian / Catatan Belanja (Opsional)</label>
+                    <textarea 
+                        name="expense_notes" 
+                        id="modalExpenseNotes"
+                        rows="2" 
+                        placeholder="Contoh: Beli ayam 10kg Rp 350.000, Gas LPG 2 tabung Rp 44.000..." 
+                        class="w-full p-3 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-tealBrand transition"
+                    ></textarea>
                 </div>
             </div>
 
-            <!-- 3 Input Pos Belanja -->
-            <div class="space-y-3 pt-1">
-                <!-- 1. Belanja Bahan Baku -->
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="text-xs font-bold text-slate-800">1. Belanja Bahan Baku</label>
-                        <span class="text-[10px] text-slate-400 font-medium">Daging, ayam, sayur, bumbu</span>
-                    </div>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
-                        <input 
-                            type="text" 
-                            name="expense_raw_material" 
-                            id="modalRawExpense" 
-                            value="0" 
-                            onfocus="if(this.value==='0') this.select();"
-                            oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
-                            class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
-                        >
-                    </div>
-                </div>
-
-                <!-- 2. Belanja Non Bahan Baku -->
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="text-xs font-bold text-slate-800">2. Belanja Non Bahan Baku</label>
-                        <span class="text-[10px] text-slate-400 font-medium">Gas LPG, plastik, sabun, listrik</span>
-                    </div>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
-                        <input 
-                            type="text" 
-                            name="expense_non_raw_material" 
-                            id="modalNonRawExpense" 
-                            value="0" 
-                            onfocus="if(this.value==='0') this.select();"
-                            oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
-                            class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
-                        >
-                    </div>
-                </div>
-
-                <!-- 3. Belanja Pribadi -->
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="text-xs font-bold text-slate-800">3. Belanja Pribadi / Kasbon</label>
-                        <span class="text-[10px] text-slate-400 font-medium">Kasbon, keperluan pribadi/staf</span>
-                    </div>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs text-slate-400 font-black">Rp</span>
-                        <input 
-                            type="text" 
-                            name="expense_personal" 
-                            id="modalPersonalExpense" 
-                            value="0" 
-                            onfocus="if(this.value==='0') this.select();"
-                            oninput="formatRupiahInput(this); calculateModalTotalExpense();" 
-                            class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-tealBrand rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none transition"
-                        >
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Belanja Live Summary Card -->
-            <div class="p-4 bg-rose-50/80 border border-rose-200 rounded-xl flex items-center justify-between">
-                <div>
-                    <span class="block text-[10px] font-black text-rose-900 uppercase tracking-wider">TOTAL PENGELUARAN BELANJA</span>
-                    <span class="text-[11px] text-rose-600 font-medium">Akumulasi Bahan Baku + Non Bahan Baku + Pribadi</span>
-                </div>
-                <div class="text-xl font-black text-rose-600 font-sans tracking-tight" id="modalTotalExpenseLabel">
-                    Rp 0
-                </div>
-            </div>
-
-            <!-- Catatan Belanja -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Rincian / Catatan Belanja (Opsional)</label>
-                <textarea 
-                    name="expense_notes" 
-                    rows="2" 
-                    placeholder="Contoh: Beli ayam 10kg Rp 350.000, Gas LPG 2 tabung Rp 44.000..." 
-                    class="w-full p-3 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-tealBrand transition"
-                ></textarea>
-            </div>
-
-            <!-- Actions Footer -->
-            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <!-- Actions Footer (Sticky Bottom) -->
+            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50 border-t border-slate-100 shrink-0">
                 <button 
                     type="button" 
                     onclick="toggleExpenseInputModal()" 
-                    class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                    class="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition cursor-pointer"
                 >
                     Batal
                 </button>
