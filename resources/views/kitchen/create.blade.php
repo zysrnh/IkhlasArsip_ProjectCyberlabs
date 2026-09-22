@@ -3,23 +3,23 @@
 @section('title', 'Input Masakan Dapur Harian')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header & Breadcrumb -->
+<div class="space-y-5">
+    <!-- Header & Action Buttons -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                <a href="{{ route('kitchen-reports.index') }}" class="hover:text-[#0A97B0]">Input Dapur Harian</a>
+            <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
+                <a href="{{ route('kitchen-reports.index') }}" class="hover:text-teal-700 font-semibold">Input Dapur Harian</a>
                 <span>/</span>
-                <span class="text-gray-900 font-medium">Form Input Baru</span>
+                <span class="text-slate-900 font-bold">Form Input Baru</span>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Input Masakan Dapur Harian</h1>
-            <p class="text-sm text-gray-500 mt-1">Input porsi masak, porsi terjual, rekapan uang kasir cabang, dan belanja harian.</p>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Input Masakan Dapur Harian</h1>
+            <p class="text-xs text-slate-600 mt-1 font-medium">Input porsi masak, porsi terjual, rekapan uang kasir cabang, dan belanja harian.</p>
         </div>
-        <div class="flex items-center flex-wrap gap-2.5">
+        <div class="flex items-center flex-wrap gap-2">
             <button 
                 type="button" 
                 onclick="openImportExcelModal()" 
-                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                 title="Upload file Excel laporan harian untuk otomatis mengisi form"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,43 +27,43 @@
                 </svg>
                 <span>Import Excel</span>
             </button>
-            <a href="{{ route('kitchen-reports.download-template', ['branch_id' => $activeBranch->id]) }}" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5" title="Unduh template Excel format standar">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('kitchen-reports.download-template', ['branch_id' => $activeBranch->id]) }}" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition flex items-center gap-1.5 border border-slate-300" title="Unduh template Excel format standar">
+                <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 <span>Download Template</span>
             </a>
-            <a href="{{ route('daily-expenses.index') }}" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('daily-expenses.index') }}" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 <span>Belanja Terpisah</span>
             </a>
-            <a href="{{ route('kitchen-reports.index') }}" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition">
+            <a href="{{ route('kitchen-reports.index') }}" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition border border-slate-300">
                 Kembali ke Riwayat
             </a>
         </div>
     </div>
 
     <!-- Main Form -->
-    <form action="{{ route('kitchen-reports.store') }}" method="POST" id="kitchenReportForm" class="space-y-6">
+    <form action="{{ route('kitchen-reports.store') }}" method="POST" id="kitchenReportForm" class="space-y-5">
         @csrf
 
         <!-- Top Header Card: Cabang & Tanggal & Fitur Backday -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div class="bg-white p-5 rounded-lg border border-slate-300 shadow-none">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 items-stretch">
                 
                 <!-- 1. Pilihan Cabang (Col 4) -->
                 <div class="lg:col-span-4 relative flex flex-col justify-between" id="createBranchDropdownWrapper">
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <label class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                                 <span>Cabang Outlet</span>
                             </label>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 text-slate-800">
                                 Dapur Cabang
                             </span>
                         </div>
@@ -73,43 +73,43 @@
                             <button 
                                 type="button" 
                                 onclick="toggleKitchenDropdown('createBranchDropdownMenu')" 
-                                class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs bg-slate-50 hover:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold hover:border-tealBrand focus:outline-none transition-colors cursor-pointer shadow-2xs"
+                                class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs bg-white border-2 border-slate-300 rounded-lg text-slate-900 font-bold hover:border-teal-700 focus:outline-none transition-colors cursor-pointer"
                             >
                                 <div class="flex items-center space-x-2 truncate">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                                    <span id="createSelectedBranchLabel" class="truncate font-bold text-slate-900">{{ $activeBranch->name }}</span>
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-emerald-600 shrink-0"></span>
+                                    <span id="createSelectedBranchLabel" class="truncate font-extrabold text-slate-900">{{ $activeBranch->name }}</span>
                                 </div>
-                                <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-slate-600 shrink-0 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 
-                            <div id="createBranchDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-56 overflow-y-auto">
+                            <div id="createBranchDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white border-2 border-slate-300 rounded-lg shadow-lg z-50 py-1 max-h-56 overflow-y-auto">
                                 @foreach($branches as $b)
                                     <button 
                                         type="button" 
                                         onclick="selectCreateBranch('{{ $b->id }}', '{{ $b->name }}')" 
-                                        class="w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 flex items-center justify-between {{ $activeBranch->id == $b->id ? 'font-bold text-tealBrand bg-teal-50/50' : 'text-slate-700' }}"
+                                        class="w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-100 flex items-center justify-between {{ $activeBranch->id == $b->id ? 'font-bold text-teal-800 bg-teal-50' : 'text-slate-800' }}"
                                     >
                                         <div class="flex items-center space-x-2">
-                                            <span class="w-2 h-2 rounded-full {{ $activeBranch->id == $b->id ? 'bg-tealBrand' : 'bg-slate-300' }}"></span>
+                                            <span class="w-2.5 h-2.5 rounded-sm {{ $activeBranch->id == $b->id ? 'bg-teal-700' : 'bg-slate-400' }}"></span>
                                             <span>{{ $b->name }}</span>
                                         </div>
                                         @if($activeBranch->id == $b->id)
-                                            <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                            <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                                         @endif
                                     </button>
                                 @endforeach
                             </div>
                         @else
                             <input type="hidden" name="branch_id" id="createBranchInput" value="{{ $activeBranch->id }}">
-                            <div class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 flex items-center space-x-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                            <div class="px-3.5 py-2.5 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-sm bg-emerald-600 shrink-0"></span>
                                 <span>{{ $activeBranch->name }}</span>
                             </div>
                         @endif
                     </div>
-                    <div class="mt-2 text-[11px] text-slate-400 font-medium">
+                    <div class="mt-2 text-[11px] text-slate-500 font-semibold">
                         Menu & harga masakan disesuaikan dengan cabang ini
                     </div>
                 </div>
@@ -118,20 +118,20 @@
                 <div class="lg:col-span-5 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-tealBrand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <label class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                                 <span>Tanggal Laporan Dapur</span>
                             </label>
                             @if($isBackday)
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-amber-600"></span>
                                     <span>Mode Susulan (H-{{ $daysDiff }})</span>
                                 </span>
                             @else
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
                                     <span>Hari Ini</span>
                                 </span>
                             @endif
@@ -139,7 +139,7 @@
 
                         <!-- Date Input -->
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-600 z-10">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
@@ -149,32 +149,32 @@
                                 name="report_date" 
                                 id="reportDateInput" 
                                 value="{{ $dateString }}" 
-                                class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-tealBrand cursor-pointer shadow-2xs transition"
+                                class="w-full pl-10 pr-3.5 py-2.5 text-xs bg-white border-2 border-slate-300 rounded-lg text-slate-900 font-extrabold focus:outline-none focus:border-teal-700 cursor-pointer transition"
                             >
                         </div>
                     </div>
 
                     <!-- Quick Backday Buttons -->
                     <div class="flex items-center gap-1.5 flex-wrap mt-2">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Pilih Cepat:</span>
+                        <span class="text-[10px] font-bold text-slate-600 uppercase">Pilih Cepat:</span>
                         <button 
                             type="button" 
                             onclick="setQuickDate('{{ $todayString }}')" 
-                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $todayString ? 'bg-tealBrand text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                            class="px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer {{ $dateString === $todayString ? 'bg-teal-700 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800' }}"
                         >
                             Hari Ini
                         </button>
                         <button 
                             type="button" 
                             onclick="setQuickDate('{{ $yesterdayString }}')" 
-                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $yesterdayString ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                            class="px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer {{ $dateString === $yesterdayString ? 'bg-amber-700 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800' }}"
                         >
                             Kemarin (H-1)
                         </button>
                         <button 
                             type="button" 
                             onclick="setQuickDate('{{ $twoDaysAgoString }}')" 
-                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer {{ $dateString === $twoDaysAgoString ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}"
+                            class="px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer {{ $dateString === $twoDaysAgoString ? 'bg-amber-700 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800' }}"
                         >
                             2 Hari Lalu (H-2)
                         </button>
@@ -182,30 +182,30 @@
                 </div>
 
                 <!-- 3. Status Sisa Kemarin Info (Col 3) -->
-                <div class="lg:col-span-3 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex flex-col justify-between">
+                <div class="lg:col-span-3 bg-slate-100 border border-slate-300 rounded-lg p-3 text-xs flex flex-col justify-between">
                     <div>
-                        <div class="font-bold flex items-center justify-between text-slate-800 mb-1">
+                        <div class="font-bold flex items-center justify-between text-slate-900 mb-1">
                             <span class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 {{ $previousReport ? 'text-tealBrand' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3.5 h-3.5 {{ $previousReport ? 'text-teal-700' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <span>Sisa Kemarin</span>
                             </span>
                             @if($previousReport)
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800">Tersambung</span>
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-200 text-emerald-900 border border-emerald-300">Tersambung</span>
                             @else
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-200 text-slate-600">Awal (0)</span>
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-300 text-slate-800">Awal (0)</span>
                             @endif
                         </div>
-                        <p class="text-slate-500 text-[11px] leading-relaxed">
+                        <p class="text-slate-700 text-[11px] leading-relaxed">
                             @if($previousReport)
                                 Ditarik otomatis dari laporan <strong>{{ $previousReport->report_date->translatedFormat('d M Y') }}</strong>.
                             @else
-                                Tidak ada laporan valid sebelum tanggal ini, sisa diset <strong>0</strong>.
+                                Tidak ada laporan sebelum tanggal ini, sisa diset <strong>0</strong>.
                             @endif
                         </p>
                     </div>
-                    <div class="mt-2 pt-1.5 border-t border-slate-200/70 text-[10px] text-slate-400">
+                    <div class="mt-2 pt-1.5 border-t border-slate-300 text-[10px] text-slate-600 font-semibold">
                         Sayur & mie otomatis 0 (cepat basi).
                     </div>
                 </div>
@@ -214,54 +214,54 @@
         </div>
 
         <!-- Section Navigation Tabs -->
-        <div class="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+        <div class="flex items-center gap-2 border-b-2 border-slate-300 pb-2 overflow-x-auto">
             <button 
                 type="button" 
                 onclick="switchKitchenTab('tab-dishes')" 
                 id="tabBtnDishes"
-                class="px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer shrink-0"
+                class="px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-lg transition flex items-center gap-2 bg-slate-900 text-white cursor-pointer shrink-0"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 <span>1. Porsi Masakan Dapur</span>
-                <span id="filledDishesBadge" class="px-2 py-0.5 text-[10px] bg-tealBrand text-white rounded-full font-bold">0 Terisi</span>
+                <span id="filledDishesBadge" class="px-2 py-0.5 text-[10px] bg-teal-600 text-white rounded-md font-bold">0 Terisi</span>
             </button>
 
             <button 
                 type="button" 
                 onclick="switchKitchenTab('tab-settlement')" 
                 id="tabBtnSettlement"
-                class="px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0"
+                class="px-4 sm:px-5 py-2.5 text-xs font-bold rounded-lg transition flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 cursor-pointer shrink-0"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>2. Rekapan Uang Kasir & Settlement</span>
-                <span id="tabSettlementStatusBadge" class="px-2 py-0.5 text-[10px] bg-slate-300 text-slate-700 rounded-full font-bold">Pending</span>
+                <span id="tabSettlementStatusBadge" class="px-2 py-0.5 text-[10px] bg-slate-300 text-slate-800 rounded-md font-bold">Pending</span>
             </button>
 
             <button 
                 type="button" 
                 onclick="switchKitchenTab('tab-expense')" 
                 id="tabBtnExpense"
-                class="px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0"
+                class="px-4 sm:px-5 py-2.5 text-xs font-bold rounded-lg transition flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 cursor-pointer shrink-0"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 <span>3. Belanja Harian Cabang</span>
-                <span id="tabExpenseBadge" class="px-2 py-0.5 text-[10px] bg-slate-300 text-slate-700 rounded-full font-bold">Rp 0</span>
+                <span id="tabExpenseBadge" class="px-2 py-0.5 text-[10px] bg-slate-300 text-slate-800 rounded-md font-bold">Rp 0</span>
             </button>
         </div>
 
         <!-- TAB 1: DAFTAR PORSI MASAKAN DAPUR -->
         <div id="tabContentDishes" class="space-y-4">
             <!-- Search & Quick Filter Toolbar -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="bg-white p-4 rounded-lg border border-slate-300 shadow-none flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <!-- Search Input Live -->
                 <div class="relative flex-1 max-w-md">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -271,13 +271,13 @@
                         id="menuSearchInput" 
                         oninput="filterMenuTable()" 
                         placeholder="Cari nama masakan (contoh: ayam, sop, rendang)..." 
-                        class="w-full pl-10 pr-9 py-2.5 text-xs bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-tealBrand transition"
+                        class="w-full pl-10 pr-9 py-2.5 text-xs bg-white border-2 border-slate-300 rounded-lg text-slate-900 font-bold focus:outline-none focus:border-teal-700 transition"
                     >
                     <button 
                         type="button" 
                         onclick="clearSearchInput()" 
                         id="clearSearchBtn" 
-                        class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                        class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
@@ -289,7 +289,7 @@
                         type="button" 
                         onclick="setCategoryFilter('all')" 
                         id="catBtnAll"
-                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white transition cursor-pointer"
+                        class="px-3 py-1.5 text-xs font-bold rounded-md bg-slate-900 text-white transition cursor-pointer"
                     >
                         Semua ({{ count($preparedItems) }})
                     </button>
@@ -297,7 +297,7 @@
                         type="button" 
                         onclick="setCategoryFilter('non_perishable')" 
                         id="catBtnNonPerishable"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition cursor-pointer"
+                        class="px-3 py-1.5 text-xs font-bold rounded-md bg-teal-100 text-teal-900 hover:bg-teal-200 border border-teal-300 transition cursor-pointer"
                     >
                         Lauk Biasa
                     </button>
@@ -305,7 +305,7 @@
                         type="button" 
                         onclick="setCategoryFilter('perishable')" 
                         id="catBtnPerishable"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                        class="px-3 py-1.5 text-xs font-bold rounded-md bg-rose-100 text-rose-900 hover:bg-rose-200 border border-rose-300 transition cursor-pointer"
                     >
                         Sayur (Basi)
                     </button>
@@ -313,20 +313,20 @@
                         type="button" 
                         onclick="setCategoryFilter('filled_only')" 
                         id="catBtnFilled"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 transition cursor-pointer"
+                        class="px-3 py-1.5 text-xs font-bold rounded-md bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300 transition cursor-pointer"
                     >
                         Hanya yang Diisi
                     </button>
 
-                    <!-- Tombol Unlock Sisa Kemarin Manual (Khusus Backday / Koreksi Stok) -->
+                    <!-- Tombol Unlock Sisa Kemarin Manual -->
                     <button 
                         type="button" 
                         onclick="toggleUnlockYesterday()" 
                         id="btnUnlockYesterday"
-                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition cursor-pointer flex items-center space-x-1"
+                        class="px-3 py-1.5 text-xs font-bold rounded-md bg-slate-200 hover:bg-slate-300 text-slate-800 border border-slate-300 transition cursor-pointer flex items-center space-x-1"
                         title="Buka kunci untuk mengisi sisa stok kemarin secara manual (berguna saat input susulan / backday)"
                     >
-                        <svg class="w-3.5 h-3.5 text-slate-500" id="iconLockYesterday" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3.5 h-3.5 text-slate-700" id="iconLockYesterday" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                         <span id="textLockYesterday">Buka Kunci Sisa Kemarin</span>
@@ -335,31 +335,31 @@
             </div>
 
             <!-- Table Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="bg-white rounded-lg border border-slate-300 overflow-hidden shadow-none">
                 <div class="overflow-x-auto max-h-[600px]">
                     <table class="w-full text-left border-collapse text-xs">
-                        <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 z-10 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+                        <thead class="sticky top-0 bg-slate-200 border-b-2 border-slate-300 z-10 text-[11px] font-extrabold text-slate-800 uppercase tracking-wider">
                             <tr>
                                 <th class="py-3 px-3 text-center w-12 shrink-0">No</th>
                                 <th class="py-3 px-4 min-w-[200px]">Nama Masakan</th>
-                                <th class="py-3 px-3 text-center w-24 bg-slate-50 shrink-0">Sisa Kemarin</th>
-                                <th class="py-3 px-3 text-center w-28 bg-amber-50/60 text-amber-900 font-black shrink-0">Masak Hari Ini</th>
-                                <th class="py-3 px-3 text-center w-24 bg-slate-50 shrink-0">Total Masakan</th>
-                                <th class="py-3 px-3 text-center w-28 bg-blue-50/60 text-blue-900 font-black shrink-0">Terjual</th>
-                                <th class="py-3 px-3 text-center w-24 bg-slate-50 shrink-0">Sisa Hari Ini</th>
+                                <th class="py-3 px-3 text-center w-24 bg-slate-100 shrink-0">Sisa Kemarin</th>
+                                <th class="py-3 px-3 text-center w-28 bg-amber-200/80 text-amber-950 font-black shrink-0">Masak Hari Ini</th>
+                                <th class="py-3 px-3 text-center w-24 bg-slate-100 shrink-0">Total Masakan</th>
+                                <th class="py-3 px-3 text-center w-28 bg-blue-200/80 text-blue-950 font-black shrink-0">Terjual</th>
+                                <th class="py-3 px-3 text-center w-24 bg-slate-100 shrink-0">Sisa Hari Ini</th>
                                 <th class="py-3 px-3 text-right w-28 shrink-0">Harga (Rp)</th>
-                                <th class="py-3 px-4 text-right w-36 bg-emerald-50/40 text-emerald-900 shrink-0">Total Penjualan</th>
-                                <th class="py-3 px-3 text-right w-32 bg-cyan-50/40 text-cyan-900 shrink-0">Sisa Bisa Dijual</th>
-                                <th class="py-3 px-3 text-right w-32 bg-rose-50/40 text-rose-900 shrink-0">Lauk Terbuang</th>
+                                <th class="py-3 px-4 text-right w-36 bg-emerald-100 text-emerald-950 shrink-0">Total Penjualan</th>
+                                <th class="py-3 px-3 text-right w-32 bg-cyan-100 text-cyan-950 shrink-0">Sisa Bisa Dijual</th>
+                                <th class="py-3 px-3 text-right w-32 bg-rose-100 text-rose-950 shrink-0">Lauk Terbuang</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-slate-800 font-medium" id="dishesTableBody">
+                        <tbody class="divide-y divide-slate-200 text-slate-900 font-medium" id="dishesTableBody">
                             @foreach($preparedItems as $index => $item)
-                            <tr class="hover:bg-slate-50/60 transition item-row" data-index="{{ $index }}" data-name="{{ strtolower($item['menu_name']) }}" data-perishable="{{ $item['is_perishable'] ? '1' : '0' }}">
+                            <tr class="hover:bg-slate-50 transition item-row" data-index="{{ $index }}" data-menu-id="{{ $item['menu_id'] }}" data-name="{{ strtolower($item['menu_name']) }}" data-perishable="{{ $item['is_perishable'] ? '1' : '0' }}">
                                 <input type="hidden" name="items[{{ $index }}][menu_id]" value="{{ $item['menu_id'] }}">
 
                                 <!-- No -->
-                                <td class="py-2.5 px-3 text-center text-slate-400 font-semibold">
+                                <td class="py-2.5 px-3 text-center text-slate-500 font-bold">
                                     {{ $item['order_number'] ?? ($index + 1) }}
                                 </td>
 
@@ -368,73 +368,73 @@
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         <span class="menu-name-label leading-snug">{{ $item['menu_name'] }}</span>
                                         @if($item['is_perishable'])
-                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-200 shrink-0">Basi</span>
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-800 border border-rose-300 shrink-0">Basi</span>
                                         @endif
                                     </div>
                                 </td>
 
                                 <!-- Sisa Kemarin -->
-                                <td class="py-2.5 px-3 text-center bg-slate-50/50">
-                                    <input type="number" name="items[{{ $index }}][yesterday_remaining]" value="{{ $item['yesterday_remaining'] }}" class="w-16 text-center py-1.5 px-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-not-allowed yesterday-rem-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" readonly>
+                                <td class="py-2.5 px-3 text-center bg-slate-50">
+                                    <input type="number" name="items[{{ $index }}][yesterday_remaining]" value="{{ $item['yesterday_remaining'] }}" class="w-16 text-center py-1.5 px-1 bg-slate-100 border border-slate-300 rounded-md text-xs font-bold text-slate-800 cursor-not-allowed yesterday-rem-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" readonly>
                                 </td>
 
                                 <!-- Masak Hari Ini -->
-                                <td class="py-2.5 px-3 text-center bg-amber-50/20">
-                                    <input type="number" name="items[{{ $index }}][cooked_today]" value="{{ $item['cooked_today'] }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-xs font-black text-slate-900 cooked-today-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                <td class="py-2.5 px-3 text-center bg-amber-50">
+                                    <input type="number" name="items[{{ $index }}][cooked_today]" value="{{ $item['cooked_today'] }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border-2 border-amber-400 focus:border-amber-600 rounded-md text-xs font-black text-slate-900 cooked-today-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                 </td>
 
                                 <!-- Total Masakan -->
-                                <td class="py-2.5 px-3 text-center bg-slate-50/50">
+                                <td class="py-2.5 px-3 text-center bg-slate-50">
                                     <span class="font-black text-slate-900 total-cooked-label">0</span>
                                 </td>
 
                                 <!-- Terjual -->
-                                <td class="py-2.5 px-3 text-center bg-blue-50/20">
-                                    <input type="number" name="items[{{ $index }}][sold]" value="{{ $item['sold'] }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-xs font-black text-slate-900 sold-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                <td class="py-2.5 px-3 text-center bg-blue-50">
+                                    <input type="number" name="items[{{ $index }}][sold]" value="{{ $item['sold'] }}" min="0" oninput="calculateRow({{ $index }})" class="w-20 text-center py-1.5 px-2 bg-white border-2 border-blue-400 focus:border-blue-600 rounded-md text-xs font-black text-slate-900 sold-input [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                 </td>
 
                                 <!-- Sisa Hari Ini -->
-                                <td class="py-2.5 px-3 text-center bg-slate-50/50">
-                                    <span class="font-black text-slate-800 remaining-label">0</span>
+                                <td class="py-2.5 px-3 text-center bg-slate-50">
+                                    <span class="font-black text-slate-900 remaining-label">0</span>
                                 </td>
 
                                 <!-- Harga -->
-                                <td class="py-2.5 px-3 text-right text-slate-600 font-semibold">
+                                <td class="py-2.5 px-3 text-right text-slate-800 font-bold">
                                     <input type="hidden" name="items[{{ $index }}][unit_price]" value="{{ (float) $item['unit_price'] }}" class="unit-price-val">
                                     {{ number_format($item['unit_price'], 0, ',', '.') }}
                                 </td>
 
                                 <!-- Total Penjualan -->
-                                <td class="py-2.5 px-4 text-right font-bold text-emerald-700 bg-emerald-50/30 total-sales-cell whitespace-nowrap">
+                                <td class="py-2.5 px-4 text-right font-black text-emerald-800 bg-emerald-50 total-sales-cell whitespace-nowrap">
                                     Rp 0
                                 </td>
 
                                 <!-- Sisa Bisa Dijual -->
-                                <td class="py-2.5 px-3 text-right text-[#0A97B0] font-semibold bg-cyan-50/30 sellable-cell whitespace-nowrap">
+                                <td class="py-2.5 px-3 text-right text-cyan-800 font-bold bg-cyan-50 sellable-cell whitespace-nowrap">
                                     Rp 0
                                 </td>
 
                                 <!-- Lauk Terbuang -->
-                                <td class="py-2.5 px-3 text-right text-rose-600 font-semibold bg-rose-50/30 wasted-cell whitespace-nowrap">
+                                <td class="py-2.5 px-3 text-right text-rose-700 font-bold bg-rose-50 wasted-cell whitespace-nowrap">
                                     Rp 0
                                 </td>
                             </tr>
                             @endforeach
                             <!-- Empty Search Row -->
                             <tr id="emptySearchRow" class="hidden">
-                                <td colspan="11" class="py-8 text-center text-slate-400">
+                                <td colspan="11" class="py-8 text-center text-slate-500 font-semibold">
                                     Tidak ada menu masakan yang cocok dengan kata kunci pencarian.
                                 </td>
                             </tr>
                         </tbody>
 
                         <!-- Sticky Bottom Grand Total -->
-                        <tfoot class="sticky bottom-0 bg-[#0B192C] text-white font-bold text-xs border-t-2 border-slate-800 z-10 shadow-lg">
+                        <tfoot class="sticky bottom-0 bg-slate-900 text-white font-bold text-xs border-t-2 border-slate-900 z-10 shadow-md">
                             <tr>
-                                <td colspan="3" class="py-3 px-4 uppercase tracking-wider text-right text-slate-300 font-extrabold">
+                                <td colspan="3" class="py-3 px-4 uppercase tracking-wider text-right text-slate-200 font-extrabold">
                                     GRAND TOTAL:
                                 </td>
-                                <td class="py-3 px-2 text-center text-amber-300 font-black text-xs" id="grandTotalCookedToday">0</td>
+                                <td class="py-3 px-2 text-center text-amber-400 font-black text-xs" id="grandTotalCookedToday">0</td>
                                 <td class="py-3 px-2 text-center text-white font-black text-xs" id="grandTotalCooked">0</td>
                                 <td class="py-3 px-2 text-center text-cyan-300 font-black text-xs" id="grandTotalSold">0</td>
                                 <td class="py-3 px-2 text-center text-white font-black text-xs" id="grandTotalRemaining">0</td>
@@ -448,12 +448,12 @@
                 </div>
 
                 <!-- Next Button to Step 2 -->
-                <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                    <span class="text-xs text-slate-500">Selesai input porsi masakan? Lanjut ke input rekapan uang kasir & belanja.</span>
+                <div class="p-4 bg-slate-100 border-t border-slate-300 flex items-center justify-between">
+                    <span class="text-xs text-slate-700 font-medium">Selesai input porsi masakan? Lanjut ke input rekapan uang kasir & belanja.</span>
                     <button 
                         type="button" 
                         onclick="switchKitchenTab('tab-settlement')" 
-                        class="px-5 py-2.5 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
+                        class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition flex items-center gap-2 cursor-pointer shadow-sm"
                     >
                         <span>Lanjut ke Rekapan Uang Kasir</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -464,17 +464,17 @@
 
         <!-- TAB 2: REKAPAN UANG KASIR & SETTLEMENT -->
         <div id="tabContentSettlement" class="hidden space-y-5">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="bg-white p-6 rounded-lg border border-slate-300 shadow-none space-y-5">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h3 class="text-base font-bold text-slate-900">Rekapan Pembayaran Uang Kasir Hari Ini</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Input jumlah uang fisik & digital yang diterima kasir. Bisa diisi manual atau otomatis terisi via Import Excel.</p>
+                        <h3 class="text-base font-black text-slate-900">Rekapan Pembayaran Uang Kasir Hari Ini</h3>
+                        <p class="text-xs text-slate-600 mt-0.5 font-medium">Input jumlah uang fisik & digital yang diterima kasir. Bisa diisi manual atau otomatis terisi via Import Excel.</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button 
                             type="button" 
                             onclick="openImportExcelModal()" 
-                            class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                            class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -485,14 +485,14 @@
                 </div>
 
                 <!-- Info Box Excel Mapping -->
-                <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 text-xs text-emerald-950">
+                <div class="p-3.5 bg-emerald-100 border border-emerald-300 rounded-lg flex items-center justify-between gap-3 text-xs text-emerald-950 font-medium">
                     <div class="flex items-center space-x-2">
-                        <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-emerald-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span>Data <strong>Cash, QRIS, dan Online Food</strong> di bawah ini otomatis terisi ketika kamu mengunggah file Excel (Sheet 1 Card 1).</span>
                     </div>
-                    <button type="button" onclick="openImportExcelModal()" class="text-[11px] font-bold text-emerald-700 underline hover:text-emerald-900 shrink-0 cursor-pointer">
+                    <button type="button" onclick="openImportExcelModal()" class="text-xs font-bold text-emerald-900 underline hover:text-emerald-950 shrink-0 cursor-pointer">
                         Upload Excel Sekarang
                     </button>
                 </div>
@@ -500,115 +500,115 @@
                 <!-- 4 Box Layout Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- 1. PENDAPATAN CASH -->
-                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-[#0A97B0] focus-within:bg-white transition">
-                        <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">1. Pendapatan Cash (Laci)</label>
+                    <div class="bg-slate-50 p-4 rounded-lg border-2 border-slate-300 focus-within:border-teal-700 focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-2">1. Pendapatan Cash (Laci)</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-500 font-black">Rp</span>
                             <input 
                                 type="text" 
                                 name="cash_income" 
                                 id="cashIncomeInput" 
                                 value="0" 
                                 oninput="formatRupiahInput(this); calculateSettlement();" 
-                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                                class="w-full text-base font-black pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:border-teal-700"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">Uang tunai fisik di kasir (Excel Cell B6)</p>
+                        <p class="text-[10px] text-slate-600 font-semibold mt-1.5">Uang tunai fisik di kasir (Excel Cell B6)</p>
                     </div>
 
                     <!-- 2. PENDAPATAN QRIS -->
-                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-[#0A97B0] focus-within:bg-white transition">
-                        <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">2. Pendapatan QRIS / Transfer</label>
+                    <div class="bg-slate-50 p-4 rounded-lg border-2 border-slate-300 focus-within:border-teal-700 focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-2">2. Pendapatan QRIS / Transfer</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-500 font-black">Rp</span>
                             <input 
                                 type="text" 
                                 name="qris_income" 
                                 id="qrisIncomeInput" 
                                 value="0" 
                                 oninput="formatRupiahInput(this); calculateSettlement();" 
-                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                                class="w-full text-base font-black pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:border-teal-700"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">Settlement EDC / QRIS (Excel Cell B7)</p>
+                        <p class="text-[10px] text-slate-600 font-semibold mt-1.5">Settlement EDC / QRIS (Excel Cell B7)</p>
                     </div>
 
                     <!-- 3. PENDAPATAN ONLINE FOOD -->
-                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-[#0A97B0] focus-within:bg-white transition">
-                        <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">3. Pendapatan Online Food</label>
+                    <div class="bg-slate-50 p-4 rounded-lg border-2 border-slate-300 focus-within:border-teal-700 focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-2">3. Pendapatan Online Food</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-500 font-black">Rp</span>
                             <input 
                                 type="text" 
                                 name="online_food_income" 
                                 id="onlineFoodIncomeInput" 
                                 value="0" 
                                 oninput="formatRupiahInput(this); calculateSettlement();" 
-                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                                class="w-full text-base font-black pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:border-teal-700"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">GrabFood / GoFood / Shopee (Excel Cell B8)</p>
+                        <p class="text-[10px] text-slate-600 font-semibold mt-1.5">GrabFood / GoFood / Shopee (Excel Cell B8)</p>
                     </div>
 
                     <!-- 4. TOTAL OMSET HARI INI -->
-                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 flex flex-col justify-between">
+                    <div class="bg-emerald-800 text-white p-4 rounded-lg border border-emerald-900 flex flex-col justify-between shadow-sm">
                         <div>
-                            <span class="block text-[11px] font-black text-emerald-900 uppercase tracking-wider">4. TOTAL OMSET HARI INI</span>
-                            <div class="text-xl font-black text-emerald-700 mt-1" id="totalOmsetLabel">
+                            <span class="block text-[11px] font-black text-emerald-100 uppercase tracking-wider">4. TOTAL OMSET HARI INI</span>
+                            <div class="text-2xl font-black text-white mt-1" id="totalOmsetLabel">
                                 Rp 0
                             </div>
                         </div>
-                        <p class="text-[10px] text-emerald-600 mt-2">Akumulasi Cash + QRIS + Online</p>
+                        <p class="text-[10px] text-emerald-200 font-semibold mt-2">Akumulasi Cash + QRIS + Online</p>
                     </div>
                 </div>
 
                 <!-- Discrepancy & Validation Banner -->
-                <div id="discrepancyBox" class="p-5 rounded-2xl border transition duration-200 bg-amber-50 border-amber-200 text-amber-900">
+                <div id="discrepancyBox" class="p-5 rounded-lg border-2 transition duration-200 bg-amber-100 border-amber-300 text-amber-950">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div class="flex items-start gap-3">
-                            <div id="discrepancyIcon" class="mt-0.5 text-amber-600">
+                            <div id="discrepancyIcon" class="mt-0.5 text-amber-700">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                 </svg>
                             </div>
                             <div>
-                                <h4 class="font-bold text-sm" id="discrepancyTitle">Validasi Selisih Uang Kasir vs Penjualan Masakan</h4>
-                                <p class="text-xs mt-0.5 leading-relaxed" id="discrepancyMsg">
+                                <h4 class="font-extrabold text-sm" id="discrepancyTitle">Validasi Selisih Uang Kasir vs Penjualan Masakan</h4>
+                                <p class="text-xs mt-0.5 leading-relaxed font-medium" id="discrepancyMsg">
                                     Memeriksa kecocokan antara uang kasir dengan total porsi masakan terjual.
                                 </p>
                             </div>
                         </div>
 
                         <!-- Difference Tag -->
-                        <div class="bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-amber-200 text-right shrink-0">
-                            <div class="text-[10px] uppercase font-extrabold text-slate-500">Nilai Selisih</div>
-                            <div id="discrepancyDiffValue" class="text-base font-black text-amber-800">Rp 0</div>
+                        <div class="bg-white px-4 py-2.5 rounded-lg border border-slate-300 text-right shrink-0">
+                            <div class="text-[10px] uppercase font-extrabold text-slate-600">Nilai Selisih</div>
+                            <div id="discrepancyDiffValue" class="text-base font-black text-amber-900">Rp 0</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Ringkasan Belanja & Sisa Setoran Bersih di Tab 2 -->
-                <div class="p-5 bg-gradient-to-br from-slate-50 to-slate-100/70 rounded-2xl border border-slate-200">
+                <div class="p-4 bg-slate-100 rounded-lg border border-slate-300">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
                             <div class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                 </svg>
                                 <span>Potongan Belanja Harian Cabang</span>
                             </div>
-                            <p class="text-[11px] text-slate-500 mt-1">
+                            <p class="text-[11px] text-slate-600 font-medium mt-1">
                                 Belanja harian yang diisi pada Tab 3 akan memotong kas tunai untuk menghitung sisa setoran bersih.
                             </p>
                         </div>
                         <div class="flex items-center gap-4">
                             <div class="text-right">
-                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Total Belanja (Tab 3)</span>
-                                <span class="text-sm font-extrabold text-rose-600" id="tab2TotalExpenseLabel">Rp 0</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-600 block">Total Belanja (Tab 3)</span>
+                                <span class="text-sm font-black text-rose-700" id="tab2TotalExpenseLabel">Rp 0</span>
                             </div>
-                            <div class="text-right pl-4 border-l border-slate-300">
-                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Sisa Kas Setoran</span>
-                                <span class="text-base font-black text-tealBrand" id="tab2NetCashLabel">Rp 0</span>
+                            <div class="text-right pl-4 border-l-2 border-slate-300">
+                                <span class="text-[10px] uppercase font-bold text-slate-600 block">Sisa Kas Setoran</span>
+                                <span class="text-base font-black text-teal-800" id="tab2NetCashLabel">Rp 0</span>
                             </div>
                         </div>
                     </div>
@@ -616,22 +616,22 @@
 
                 <!-- Notes Input -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Catatan Dapur / Keterangan Tambahan (Opsional)</label>
+                    <label class="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-2">Catatan Dapur / Keterangan Tambahan (Opsional)</label>
                     <textarea 
                         name="notes" 
                         rows="2" 
                         placeholder="Contoh: Ada 2 porsi rendang retur komplain, sisa sayur dibuang pukul 21:00..." 
-                        class="w-full text-xs border border-slate-200 rounded-xl p-3 bg-slate-50 focus:bg-white focus:outline-none focus:border-tealBrand transition"
+                        class="w-full text-xs font-medium border-2 border-slate-300 rounded-lg p-3 bg-white focus:outline-none focus:border-teal-700 transition"
                     ></textarea>
                 </div>
             </div>
 
             <!-- Bottom Actions Bar -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="bg-white p-5 rounded-lg border border-slate-300 shadow-none flex flex-col sm:flex-row items-center justify-between gap-3">
                 <button 
                     type="button" 
                     onclick="switchKitchenTab('tab-dishes')" 
-                    class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    class="w-full sm:w-auto px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-300"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     <span>Kembali ke Porsi Masakan</span>
@@ -641,14 +641,14 @@
                     <button 
                         type="button" 
                         onclick="switchKitchenTab('tab-expense')" 
-                        class="w-full sm:w-auto px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                        class="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
                     >
                         <span>Lanjut ke Belanja Harian</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </button>
                     <button 
                         type="submit" 
-                        class="w-full sm:w-auto px-7 py-3 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition duration-150 flex items-center justify-center gap-2 cursor-pointer"
+                        class="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -661,17 +661,17 @@
 
         <!-- TAB 3: BELANJA HARIAN CABANG (FORMAT EXCEL) -->
         <div id="tabContentExpense" class="hidden space-y-5">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="bg-white p-6 rounded-lg border border-slate-300 shadow-none space-y-5">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h3 class="text-base font-bold text-slate-900">Pencatatan Belanja Harian Cabang</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Input pengeluaran belanja bahan baku, non bahan baku, dan pengeluaran pribadi cabang hari ini.</p>
+                        <h3 class="text-base font-black text-slate-900">Pencatatan Belanja Harian Cabang</h3>
+                        <p class="text-xs text-slate-600 mt-0.5 font-medium">Input pengeluaran belanja bahan baku, non bahan baku, dan pengeluaran pribadi cabang hari ini.</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button 
                             type="button" 
                             onclick="openImportExcelModal()" 
-                            class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                            class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -682,14 +682,14 @@
                 </div>
 
                 <!-- Info Box Belanja Excel Mapping -->
-                <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-950">
+                <div class="p-3.5 bg-amber-100 border border-amber-300 rounded-lg flex items-center justify-between gap-3 text-xs text-amber-950 font-medium">
                     <div class="flex items-center space-x-2">
-                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-amber-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                         <span>Belanja di bawah ini otomatis terisi dan terkalkulasi dari nota belanja di <strong>Sheet 2 (REKAPAN_BELANJA)</strong> saat import file.</span>
                     </div>
-                    <button type="button" onclick="openImportExcelModal()" class="text-[11px] font-bold text-amber-700 underline hover:text-amber-900 shrink-0 cursor-pointer">
+                    <button type="button" onclick="openImportExcelModal()" class="text-xs font-bold text-amber-900 underline hover:text-amber-950 shrink-0 cursor-pointer">
                         Upload Excel Belanja
                     </button>
                 </div>
@@ -697,100 +697,100 @@
                 <!-- 3 Box Input Pengeluaran Belanja -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <!-- 1. Belanja Bahan Baku -->
-                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-tealBrand focus-within:bg-white transition">
-                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-2">1. Belanja Bahan Baku</label>
+                    <div class="bg-slate-50 p-4 rounded-lg border-2 border-slate-300 focus-within:border-amber-600 focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-2">1. Belanja Bahan Baku</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-500 font-black">Rp</span>
                             <input 
                                 type="text" 
                                 name="expense_raw_material" 
                                 id="expenseRawMaterialInput" 
                                 value="0" 
                                 oninput="formatRupiahInput(this); calculateExpenses();" 
-                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                                class="w-full text-base font-black pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:border-amber-600"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">Bumbu, sayur pasar, daging, santan, dsb.</p>
+                        <p class="text-[10px] text-slate-600 font-semibold mt-1.5">Bumbu, sayur pasar, daging, santan, dsb.</p>
                     </div>
 
                     <!-- 2. Belanja Non Bahan Baku -->
-                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-tealBrand focus-within:bg-white transition">
-                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-2">2. Belanja Non Bahan Baku</label>
+                    <div class="bg-slate-50 p-4 rounded-lg border-2 border-slate-300 focus-within:border-amber-600 focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-2">2. Belanja Non Bahan Baku</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-500 font-black">Rp</span>
                             <input 
                                 type="text" 
                                 name="expense_non_raw_material" 
                                 id="expenseNonRawMaterialInput" 
                                 value="0" 
                                 oninput="formatRupiahInput(this); calculateExpenses();" 
-                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                                class="w-full text-base font-black pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:border-amber-600"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">Gas LPG, plastik kresek, sabun cuci, kertas nasi.</p>
+                        <p class="text-[10px] text-slate-600 font-semibold mt-1.5">Gas LPG, plastik kresek, sabun cuci, kertas nasi.</p>
                     </div>
 
                     <!-- 3. Belanja Pribadi -->
-                    <div class="bg-slate-50/75 p-4 rounded-xl border border-slate-200 focus-within:border-tealBrand focus-within:bg-white transition">
-                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-2">3. Belanja Pribadi / Lainnya</label>
+                    <div class="bg-slate-50 p-4 rounded-lg border-2 border-slate-300 focus-within:border-amber-600 focus-within:bg-white transition">
+                        <label class="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-2">3. Belanja Pribadi / Lainnya</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-400 font-bold">Rp</span>
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-slate-500 font-black">Rp</span>
                             <input 
                                 type="text" 
                                 name="expense_personal" 
                                 id="expensePersonalInput" 
                                 value="0" 
                                 oninput="formatRupiahInput(this); calculateExpenses();" 
-                                class="w-full text-base font-extrabold pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-tealBrand"
+                                class="w-full text-base font-black pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:border-amber-600"
                             >
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5">Konsumsi staff harian, transport darurat, dsb.</p>
+                        <p class="text-[10px] text-slate-600 font-semibold mt-1.5">Konsumsi staff harian, transport darurat, dsb.</p>
                     </div>
                 </div>
 
                 <!-- Rekap Perhitungan Belanja & Sisa Bersih Kasir -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Total Belanja Harian -->
-                    <div class="bg-rose-50/80 p-5 rounded-2xl border border-rose-200 flex flex-col justify-between">
+                    <div class="bg-rose-700 text-white p-5 rounded-lg border border-rose-800 flex flex-col justify-between shadow-sm">
                         <div>
-                            <span class="block text-[11px] font-black text-rose-900 uppercase tracking-wider">TOTAL BELANJA HARIAN</span>
-                            <div class="text-2xl font-black text-rose-700 mt-1" id="totalExpenseLabel">
+                            <span class="block text-[11px] font-black text-rose-100 uppercase tracking-wider">TOTAL BELANJA HARIAN</span>
+                            <div class="text-2xl font-black text-white mt-1" id="totalExpenseLabel">
                                 Rp 0
                             </div>
                         </div>
-                        <p class="text-[11px] text-rose-600 mt-2">Bahan Baku + Non Bahan Baku + Pribadi</p>
+                        <p class="text-[11px] text-rose-200 font-semibold mt-2">Bahan Baku + Non Bahan Baku + Pribadi</p>
                     </div>
 
                     <!-- Sisa Setoran Bersih Kasir -->
-                    <div class="bg-emerald-50/80 p-5 rounded-2xl border border-emerald-200 flex flex-col justify-between">
+                    <div class="bg-emerald-800 text-white p-5 rounded-lg border border-emerald-900 flex flex-col justify-between shadow-sm">
                         <div>
-                            <span class="block text-[11px] font-black text-emerald-900 uppercase tracking-wider">SISA SETORAN KASIR BERSIH</span>
-                            <div class="text-2xl font-black text-emerald-700 mt-1" id="netCashIncomeLabel">
+                            <span class="block text-[11px] font-black text-emerald-100 uppercase tracking-wider">SISA SETORAN KASIR BERSIH</span>
+                            <div class="text-2xl font-black text-white mt-1" id="netCashIncomeLabel">
                                 Rp 0
                             </div>
                         </div>
-                        <p class="text-[11px] text-emerald-600 mt-2">Pendapatan Kas Tunai Laci dikurangi Total Belanja</p>
+                        <p class="text-[11px] text-emerald-200 font-semibold mt-2">Pendapatan Kas Tunai Laci dikurangi Total Belanja</p>
                     </div>
                 </div>
 
                 <!-- Rincian Catatan Belanja -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Rincian / Catatan Belanja Harian (Opsional)</label>
+                    <label class="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-2">Rincian / Catatan Belanja Harian (Opsional)</label>
                     <textarea 
                         name="expense_notes" 
                         rows="2" 
                         placeholder="Contoh: Beli cabai 5kg Rp 150.000, Gas 3kg 2 tabung Rp 44.000, Minyak 2 liter Rp 32.000..." 
-                        class="w-full text-xs border border-slate-200 rounded-xl p-3 bg-slate-50 focus:bg-white focus:outline-none focus:border-tealBrand transition"
+                        class="w-full text-xs font-medium border-2 border-slate-300 rounded-lg p-3 bg-white focus:outline-none focus:border-teal-700 transition"
                     ></textarea>
                 </div>
             </div>
 
             <!-- Bottom Actions Bar Tab 3 -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="bg-white p-5 rounded-lg border border-slate-300 shadow-none flex flex-col sm:flex-row items-center justify-between gap-3">
                 <button 
                     type="button" 
                     onclick="switchKitchenTab('tab-settlement')" 
-                    class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    class="w-full sm:w-auto px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-300"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     <span>Kembali ke Rekapan Uang Kasir</span>
@@ -798,7 +798,7 @@
 
                 <button 
                     type="submit" 
-                    class="w-full sm:w-auto px-7 py-3 bg-[#0B192C] hover:bg-[#142B4D] text-white text-xs font-bold rounded-xl shadow-xs transition duration-150 flex items-center justify-center gap-2 cursor-pointer"
+                    class="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -830,19 +830,19 @@
         tabExpense.classList.add('hidden');
 
         // Reset all button styles
-        btnDishes.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0";
-        btnSettlement.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0";
-        btnExpense.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer shrink-0";
+        btnDishes.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-lg transition flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 cursor-pointer shrink-0";
+        btnSettlement.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-lg transition flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 cursor-pointer shrink-0";
+        btnExpense.className = "px-4 sm:px-5 py-2.5 text-xs font-bold rounded-lg transition flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 cursor-pointer shrink-0";
 
         if (tabId === 'tab-dishes') {
             tabDishes.classList.remove('hidden');
-            btnDishes.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer shrink-0";
+            btnDishes.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-lg transition flex items-center gap-2 bg-slate-900 text-white cursor-pointer shrink-0";
         } else if (tabId === 'tab-settlement') {
             tabSettlement.classList.remove('hidden');
-            btnSettlement.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer shrink-0";
+            btnSettlement.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-lg transition flex items-center gap-2 bg-slate-900 text-white cursor-pointer shrink-0";
         } else if (tabId === 'tab-expense') {
             tabExpense.classList.remove('hidden');
-            btnExpense.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-xl transition flex items-center gap-2 bg-[#0B192C] text-white shadow-xs cursor-pointer shrink-0";
+            btnExpense.className = "px-4 sm:px-5 py-2.5 text-xs font-extrabold rounded-lg transition flex items-center gap-2 bg-slate-900 text-white cursor-pointer shrink-0";
         }
     }
 
@@ -858,12 +858,12 @@
 
         for (const [key, btn] of Object.entries(catButtons)) {
             if (key === cat) {
-                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white transition cursor-pointer";
+                btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-slate-900 text-white transition cursor-pointer";
             } else {
-                if (key === 'perishable') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer";
-                else if (key === 'non_perishable') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition cursor-pointer";
-                else if (key === 'filled_only') btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 transition cursor-pointer";
-                else btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer";
+                if (key === 'perishable') btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-rose-100 text-rose-900 hover:bg-rose-200 border border-rose-300 transition cursor-pointer";
+                else if (key === 'non_perishable') btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-teal-100 text-teal-900 hover:bg-teal-200 border border-teal-300 transition cursor-pointer";
+                else if (key === 'filled_only') btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300 transition cursor-pointer";
+                else btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-slate-200 text-slate-800 hover:bg-slate-300 border border-slate-300 transition cursor-pointer";
             }
         }
 
@@ -970,10 +970,10 @@
 
         const soldInput = row.querySelector('.sold-input');
         if (sold > totalCooked && totalCooked > 0) {
-            soldInput.classList.add('border-rose-500', 'bg-rose-50');
+            soldInput.classList.add('border-rose-600', 'bg-rose-50');
             soldInput.title = `Peringatan: Jumlah terjual (${sold}) melebihi total masakan (${totalCooked})!`;
         } else {
-            soldInput.classList.remove('border-rose-500', 'bg-rose-50');
+            soldInput.classList.remove('border-rose-600', 'bg-rose-50');
             soldInput.title = '';
         }
 
@@ -1073,37 +1073,37 @@
         const tabStatusBadge = document.getElementById('tabSettlementStatusBadge');
 
         if (totalOmset === 0 && grandTotalSales === 0) {
-            discrepancyBox.className = 'p-5 rounded-2xl border bg-slate-50 border-slate-200 text-slate-700';
+            discrepancyBox.className = 'p-5 rounded-lg border-2 bg-slate-100 border-slate-300 text-slate-800';
             discrepancyTitle.innerText = 'Menunggu Input Data';
             discrepancyMsg.innerText = 'Silakan isi jumlah masakan yang dimasak & terjual serta rekapan uang kasir.';
             discrepancyDiffValue.innerText = 'Rp 0';
-            discrepancyDiffValue.className = 'text-base font-black text-slate-700';
+            discrepancyDiffValue.className = 'text-base font-black text-slate-800';
             tabStatusBadge.innerText = 'Pending';
-            tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-slate-300 text-slate-700 rounded-full font-bold';
+            tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-slate-300 text-slate-800 rounded-md font-bold';
         } else if (Math.abs(diff) < 1) {
-            discrepancyBox.className = 'p-5 rounded-2xl border bg-emerald-50 border-emerald-200 text-emerald-900';
+            discrepancyBox.className = 'p-5 rounded-lg border-2 bg-emerald-100 border-emerald-400 text-emerald-950';
             discrepancyTitle.innerText = 'Sempurna: Omset Kasir Cocok!';
             discrepancyMsg.innerText = 'Total uang kasir (Cash + QRIS + Online) 100% cocok dengan grand total nilai porsi masakan yang laku terjual.';
             discrepancyDiffValue.innerText = 'Rp 0 (Cocok)';
-            discrepancyDiffValue.className = 'text-base font-black text-emerald-700';
+            discrepancyDiffValue.className = 'text-base font-black text-emerald-800';
             tabStatusBadge.innerText = 'Cocok';
-            tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-emerald-600 text-white rounded-full font-bold';
+            tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-emerald-700 text-white rounded-md font-bold';
         } else if (diff > 0) {
-            discrepancyBox.className = 'p-5 rounded-2xl border bg-amber-50 border-amber-200 text-amber-900';
+            discrepancyBox.className = 'p-5 rounded-lg border-2 bg-amber-100 border-amber-400 text-amber-950';
             discrepancyTitle.innerText = 'Perhatian: Ada Kelebihan Uang Kasir';
             discrepancyMsg.innerText = `Total uang di kasir LEBIH Rp ${formatNumber(diff)} dibanding nilai porsi masakan yang tercatat terjual.`;
             discrepancyDiffValue.innerText = '+ Rp ' + formatNumber(diff);
-            discrepancyDiffValue.className = 'text-base font-black text-amber-800';
+            discrepancyDiffValue.className = 'text-base font-black text-amber-900';
             tabStatusBadge.innerText = `+Rp ${formatNumber(diff)}`;
-            tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-amber-500 text-white rounded-full font-bold';
+            tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-amber-600 text-white rounded-md font-bold';
         } else {
-            discrepancyBox.className = 'p-5 rounded-2xl border bg-rose-50 border-rose-200 text-rose-900';
+            discrepancyBox.className = 'p-5 rounded-lg border-2 bg-rose-100 border-rose-400 text-rose-950';
             discrepancyTitle.innerText = 'Peringatan: Selisih Kurang (Minus)';
             discrepancyMsg.innerText = `Total uang kasir KURANG Rp ${formatNumber(Math.abs(diff))} dari nilai porsi masakan yang tercatat terjual. Cek kembali perhitungan kasir.`;
             discrepancyDiffValue.innerText = '- Rp ' + formatNumber(Math.abs(diff));
-            discrepancyDiffValue.className = 'text-base font-black text-rose-700';
+            discrepancyDiffValue.className = 'text-base font-black text-rose-800';
             tabStatusBadge.innerText = `-Rp ${formatNumber(Math.abs(diff))}`;
-            tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-rose-600 text-white rounded-full font-bold';
+            tabStatusBadge.className = 'px-2 py-0.5 text-[10px] bg-rose-700 text-white rounded-md font-bold';
         }
 
         calculateExpenses();
@@ -1168,23 +1168,23 @@
             if (input && !isPerishable) {
                 if (isYesterdayUnlocked) {
                     input.removeAttribute('readonly');
-                    input.classList.remove('cursor-not-allowed', 'bg-slate-100', 'border-slate-200', 'text-slate-700');
-                    input.classList.add('bg-white', 'border-teal-400', 'focus:border-teal-600', 'text-slate-900', 'font-black');
+                    input.classList.remove('cursor-not-allowed', 'bg-slate-100', 'border-slate-300', 'text-slate-800');
+                    input.classList.add('bg-white', 'border-2', 'border-teal-600', 'focus:border-teal-800', 'text-slate-900', 'font-black');
                     input.setAttribute('oninput', `calculateRow(${index})`);
                 } else {
                     input.setAttribute('readonly', true);
-                    input.classList.remove('bg-white', 'border-teal-400', 'focus:border-teal-600', 'text-slate-900', 'font-black');
-                    input.classList.add('cursor-not-allowed', 'bg-slate-100', 'border-slate-200', 'text-slate-700');
+                    input.classList.remove('bg-white', 'border-2', 'border-teal-600', 'focus:border-teal-800', 'text-slate-900', 'font-black');
+                    input.classList.add('cursor-not-allowed', 'bg-slate-100', 'border-slate-300', 'text-slate-800');
                 }
             }
         });
 
         if (btn && textLabel) {
             if (isYesterdayUnlocked) {
-                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-tealBrand text-white border border-teal-700 transition cursor-pointer flex items-center space-x-1 shadow-xs";
+                btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-teal-700 text-white border border-teal-800 transition cursor-pointer flex items-center space-x-1 shadow-sm";
                 textLabel.innerText = "Kunci Sisa Kemarin";
             } else {
-                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition cursor-pointer flex items-center space-x-1";
+                btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-slate-200 hover:bg-slate-300 text-slate-800 border border-slate-300 transition cursor-pointer flex items-center space-x-1";
                 textLabel.innerText = "Buka Kunci Sisa Kemarin";
             }
         }
@@ -1229,7 +1229,7 @@
 
     function handleFileDrop(e) {
         e.preventDefault();
-        document.getElementById('excelDropZone').classList.remove('border-emerald-500', 'bg-emerald-50/50');
+        document.getElementById('excelDropZone').classList.remove('border-emerald-600', 'bg-emerald-100');
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             processSelectedExcelFile(e.dataTransfer.files[0]);
         }
@@ -1237,12 +1237,12 @@
 
     function handleFileDragOver(e) {
         e.preventDefault();
-        document.getElementById('excelDropZone').classList.add('border-emerald-500', 'bg-emerald-50/50');
+        document.getElementById('excelDropZone').classList.add('border-emerald-600', 'bg-emerald-100');
     }
 
     function handleFileDragLeave(e) {
         e.preventDefault();
-        document.getElementById('excelDropZone').classList.remove('border-emerald-500', 'bg-emerald-50/50');
+        document.getElementById('excelDropZone').classList.remove('border-emerald-600', 'bg-emerald-100');
     }
 
     function handleFileSelect(e) {
@@ -1336,12 +1336,12 @@
 
         Object.values(items).forEach((item, idx) => {
             const tr = document.createElement('tr');
-            tr.className = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
+            tr.className = idx % 2 === 0 ? 'bg-white' : 'bg-slate-100';
             tr.innerHTML = `
-                <td class="px-3 py-2 text-xs font-semibold text-slate-800">${item.menu_name || ('Menu #' + item.menu_id)}</td>
-                <td class="px-3 py-2 text-xs text-center font-bold text-slate-600">${item.yesterday_remaining ?? '-'}</td>
-                <td class="px-3 py-2 text-xs text-center font-bold text-teal-700">${item.cooked_today ?? 0}</td>
-                <td class="px-3 py-2 text-xs text-center font-bold text-emerald-700">${item.sold ?? 0}</td>
+                <td class="px-3 py-2 text-xs font-bold text-slate-900">${item.menu_name || ('Menu #' + item.menu_id)}</td>
+                <td class="px-3 py-2 text-xs text-center font-bold text-slate-700">${item.yesterday_remaining ?? '-'}</td>
+                <td class="px-3 py-2 text-xs text-center font-black text-teal-800">${item.cooked_today ?? 0}</td>
+                <td class="px-3 py-2 text-xs text-center font-black text-emerald-800">${item.sold ?? 0}</td>
             `;
             previewTbody.appendChild(tr);
         });
@@ -1466,23 +1466,23 @@
 </script>
 
 <!-- Modal Import Excel -->
-<div id="importExcelModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden transition-all transform scale-100">
+<div id="importExcelModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg border-2 border-slate-300 shadow-2xl max-w-2xl w-full overflow-hidden transition-all transform scale-100">
         
         <!-- Modal Header -->
-        <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b-2 border-slate-800">
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-xs">
+                <div class="w-9 h-9 rounded-lg bg-emerald-700 flex items-center justify-center text-white shadow-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-base font-extrabold tracking-tight text-white">Import Data Masakan & Belanja Excel</h3>
-                    <p class="text-xs text-slate-400 font-medium">Cabang: <span class="text-emerald-400 font-bold">{{ $activeBranch->name }}</span> | Tanggal: <span class="text-slate-200 font-bold">{{ \Carbon\Carbon::parse($dateString)->translatedFormat('d F Y') }}</span></p>
+                    <h3 class="text-base font-black tracking-tight text-white">Import Data Masakan & Belanja Excel</h3>
+                    <p class="text-xs text-slate-300 font-medium">Cabang: <span class="text-emerald-400 font-bold">{{ $activeBranch->name }}</span> | Tanggal: <span class="text-slate-100 font-bold">{{ \Carbon\Carbon::parse($dateString)->translatedFormat('d F Y') }}</span></p>
                 </div>
             </div>
-            <button type="button" onclick="closeImportExcelModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer">
+            <button type="button" onclick="closeImportExcelModal()" class="text-slate-300 hover:text-white p-1.5 rounded-md hover:bg-slate-800 transition cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
@@ -1491,21 +1491,21 @@
         <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
             
             <!-- Petunjuk & Download Template Box -->
-            <div class="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl flex items-center justify-between gap-4">
+            <div class="p-4 bg-emerald-100 border border-emerald-300 rounded-lg flex items-center justify-between gap-4">
                 <div class="flex items-start space-x-3">
-                    <svg class="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-emerald-800 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
                         <div class="text-xs font-bold text-emerald-950">Template Lengkap 2 Sheet dengan Contoh Nyata</div>
-                        <div class="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
+                        <div class="text-[11px] text-emerald-900 mt-0.5 leading-relaxed font-medium">
                             <strong>Sheet 1:</strong> Input Masakan Dapur & Kasir | <strong>Sheet 2:</strong> Rekapan Belanja Harian Cabang Pasar & Operasional.
                         </div>
                     </div>
                 </div>
                 <a 
                     href="{{ route('kitchen-reports.download-template', ['branch_id' => $activeBranch->id]) }}" 
-                    class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shrink-0 transition flex items-center space-x-1.5 shadow-2xs"
+                    class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shrink-0 transition flex items-center space-x-1.5 shadow-sm"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1520,7 +1520,7 @@
                 ondragover="handleFileDragOver(event)"
                 ondragleave="handleFileDragLeave(event)"
                 ondrop="handleFileDrop(event)"
-                class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-6 text-center transition-all bg-slate-50/50 hover:bg-emerald-50/20 cursor-pointer"
+                class="border-2 border-dashed border-slate-400 hover:border-emerald-600 rounded-lg p-6 text-center transition-all bg-slate-50 hover:bg-emerald-50 cursor-pointer"
                 onclick="document.getElementById('excelFileInput').click()"
             >
                 <input 
@@ -1532,31 +1532,31 @@
                 >
 
                 <div id="dropZonePrompt" class="space-y-2">
-                    <div class="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center mx-auto text-emerald-600 shadow-2xs">
+                    <div class="w-12 h-12 bg-white border border-slate-300 rounded-lg flex items-center justify-center mx-auto text-emerald-700 shadow-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                     </div>
-                    <div class="text-xs font-bold text-slate-800">
+                    <div class="text-xs font-bold text-slate-900">
                         Klik untuk memilih file atau seret file Excel ke sini
                     </div>
-                    <p class="text-[11px] text-slate-500">Mendukung format spreadsheet .xlsx dan .xls (Sheet 1 Masakan & Sheet 2 Belanja)</p>
+                    <p class="text-[11px] text-slate-600 font-medium">Mendukung format spreadsheet .xlsx dan .xls (Sheet 1 Masakan & Sheet 2 Belanja)</p>
                 </div>
 
                 <div id="fileSelectedBox" class="hidden space-y-3">
-                    <div class="inline-flex items-center space-x-3 bg-white border border-emerald-300 px-4 py-2.5 rounded-xl shadow-xs">
-                        <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="inline-flex items-center space-x-3 bg-white border-2 border-emerald-400 px-4 py-2.5 rounded-lg shadow-sm">
+                        <svg class="w-5 h-5 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <div class="text-left">
                             <div id="selectedFileName" class="text-xs font-bold text-slate-900 truncate max-w-xs">file_excel.xlsx</div>
-                            <div id="selectedFileSize" class="text-[10px] text-slate-500 font-medium">0 KB</div>
+                            <div id="selectedFileSize" class="text-[10px] text-slate-600 font-semibold">0 KB</div>
                         </div>
-                        <button type="button" onclick="event.stopPropagation(); resetExcelImportForm();" class="text-rose-500 hover:text-rose-700 p-1 font-bold text-xs" title="Ganti File">
+                        <button type="button" onclick="event.stopPropagation(); resetExcelImportForm();" class="text-rose-600 hover:text-rose-800 p-1 font-bold text-xs" title="Ganti File">
                             ✕
                         </button>
                     </div>
-                    <div id="parsingStatusText" class="text-xs font-semibold text-emerald-700 animate-pulse"></div>
+                    <div id="parsingStatusText" class="text-xs font-bold text-emerald-800 animate-pulse"></div>
                 </div>
             </div>
 
@@ -1565,35 +1565,35 @@
                 
                 <!-- Sheet 1 Menu Preview Header -->
                 <div class="flex items-center justify-between">
-                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                         <span>1. Preview Porsi Masakan (Sheet 1)</span>
                     </h4>
-                    <span id="prevTotalMenuCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    <span id="prevTotalMenuCount" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-200 text-emerald-900 border border-emerald-300">
                         0 Menu
                     </span>
                 </div>
 
                 <!-- Rekapan Kasir Quick Stats -->
-                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
+                <div class="grid grid-cols-3 gap-2 bg-slate-100 p-3 rounded-lg border border-slate-300 text-center">
                     <div>
-                        <div class="text-[10px] text-slate-500 font-bold uppercase">Uang Tunai (Cash)</div>
+                        <div class="text-[10px] text-slate-600 font-bold uppercase">Uang Tunai (Cash)</div>
                         <div id="prevCashOmset" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
                     </div>
                     <div>
-                        <div class="text-[10px] text-slate-500 font-bold uppercase">QRIS / Transfer</div>
+                        <div class="text-[10px] text-slate-600 font-bold uppercase">QRIS / Transfer</div>
                         <div id="prevQrisOmset" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
                     </div>
                     <div>
-                        <div class="text-[10px] text-slate-500 font-bold uppercase">Online Food</div>
+                        <div class="text-[10px] text-slate-600 font-bold uppercase">Online Food</div>
                         <div id="prevOnlineOmset" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
                     </div>
                 </div>
 
                 <!-- Preview Table Dishes -->
-                <div class="border border-slate-200 rounded-xl overflow-hidden max-h-40 overflow-y-auto">
+                <div class="border border-slate-300 rounded-lg overflow-hidden max-h-40 overflow-y-auto">
                     <table class="w-full text-left border-collapse text-xs">
-                        <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] font-extrabold sticky top-0">
+                        <thead class="bg-slate-200 text-slate-800 uppercase text-[10px] font-extrabold sticky top-0 border-b border-slate-300">
                             <tr>
                                 <th class="px-3 py-2">Nama Masakan</th>
                                 <th class="px-3 py-2 text-center">Sisa Kemarin</th>
@@ -1601,40 +1601,40 @@
                                 <th class="px-3 py-2 text-center">Terjual</th>
                             </tr>
                         </thead>
-                        <tbody id="excelPreviewTbody" class="divide-y divide-slate-200">
+                        <tbody id="excelPreviewTbody" class="divide-y divide-slate-300">
                             <!-- Rows inserted dynamically -->
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Sheet 2 Belanja Harian Preview Box -->
-                <div id="prevExpenseBox" class="space-y-2 pt-2 border-t border-slate-200">
+                <div id="prevExpenseBox" class="space-y-2 pt-2 border-t border-slate-300">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             <span>2. Preview Belanja Harian Cabang (Sheet 2)</span>
                         </h4>
-                        <span id="prevExpenseBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                        <span id="prevExpenseBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-950 border border-amber-300">
                             Belanja Sheet 2
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-amber-50/50 p-3 rounded-xl border border-amber-200 text-center">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-amber-100 p-3 rounded-lg border border-amber-300 text-center">
                         <div>
-                            <div class="text-[10px] text-slate-500 font-bold uppercase">Bahan Baku</div>
+                            <div class="text-[10px] text-slate-600 font-bold uppercase">Bahan Baku</div>
                             <div id="prevRawExpense" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
                         </div>
                         <div>
-                            <div class="text-[10px] text-slate-500 font-bold uppercase">Non Bahan Baku</div>
+                            <div class="text-[10px] text-slate-600 font-bold uppercase">Non Bahan Baku</div>
                             <div id="prevNonRawExpense" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
                         </div>
                         <div>
-                            <div class="text-[10px] text-slate-500 font-bold uppercase">Pribadi</div>
+                            <div class="text-[10px] text-slate-600 font-bold uppercase">Pribadi</div>
                             <div id="prevPersonalExpense" class="text-xs font-black text-slate-900 mt-0.5">Rp 0</div>
                         </div>
-                        <div class="bg-amber-100/70 rounded-lg p-1">
-                            <div class="text-[10px] text-amber-900 font-bold uppercase">Total Belanja</div>
-                            <div id="prevTotalExpense" class="text-xs font-black text-rose-700 mt-0.5">Rp 0</div>
+                        <div class="bg-amber-200 rounded-md p-1 border border-amber-300">
+                            <div class="text-[10px] text-amber-950 font-bold uppercase">Total Belanja</div>
+                            <div id="prevTotalExpense" class="text-xs font-black text-rose-800 mt-0.5">Rp 0</div>
                         </div>
                     </div>
                 </div>
@@ -1644,11 +1644,11 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end space-x-2.5">
+        <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-300 flex items-center justify-end space-x-2.5">
             <button 
                 type="button" 
                 onclick="closeImportExcelModal()" 
-                class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition cursor-pointer"
+                class="px-4 py-2 bg-white hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg border border-slate-300 transition cursor-pointer"
             >
                 Batal
             </button>
@@ -1657,7 +1657,7 @@
                 id="btnApplyExcel" 
                 onclick="applyParsedExcelToForm()" 
                 disabled 
-                class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-xs opacity-50 cursor-not-allowed"
+                class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5 shadow-sm opacity-50 cursor-not-allowed"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
