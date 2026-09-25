@@ -75,6 +75,13 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
+            // Single Device Session: Logout sesi aktif di perangkat/browser lain
+            try {
+                Auth::logoutOtherDevices($password);
+            } catch (\Throwable $e) {
+                // Ignore jika session driver tidak mendukung logoutOtherDevices
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 

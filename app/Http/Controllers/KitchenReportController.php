@@ -390,8 +390,8 @@ class KitchenReportController extends Controller
                 'expense_personal' => $cleanPersonalExpense,
                 'total_expense' => $totalExpense,
                 'net_cash_income' => $netCashIncome,
-                'expense_notes' => $validated['expense_notes'] ?? null,
-                'notes' => $validated['notes'] ?? null,
+                'expense_notes' => isset($validated['expense_notes']) ? strip_tags(trim($validated['expense_notes'])) : null,
+                'notes' => isset($validated['notes']) ? strip_tags(trim($validated['notes'])) : null,
                 'status' => 'completed',
             ]);
 
@@ -412,15 +412,34 @@ class KitchenReportController extends Controller
     }
 
     /**
+     * Helper proteksi otorisasi akses laporan dapur per cabang
+     */
+    protected function authorizeReportAccess(DailyKitchenReport $kitchenReport, bool $allowViewer = false): void
+    {
+        $user = auth()->user();
+
+        if (!$allowViewer && $user->isViewer()) {
+            abort(403, 'Akses ditolak: Akun Viewer hanya memiliki hak akses melihat data.');
+        }
+
+        if ($user->isAdminCabang() || $user->isAdminDapur()) {
+            if ($user->branch_id && (int) $kitchenReport->branch_id !== (int) $user->branch_id) {
+                abort(403, 'Akses ditolak: Anda tidak memiliki akses ke laporan cabang lain.');
+            }
+        } elseif ($user->isKepalaCabang() || $user->isViewer()) {
+            $accessibleBranchIds = $user->getAccessibleBranchIds();
+            if (!in_array((int) $kitchenReport->branch_id, array_map('intval', $accessibleBranchIds))) {
+                abort(403, 'Akses ditolak: Anda tidak memiliki wewenang pada cabang laporan ini.');
+            }
+        }
+    }
+
+    /**
      * Tampilkan detail rincian laporan masakan dapur.
      */
     public function show(DailyKitchenReport $kitchenReport): View
     {
-        $user = auth()->user();
-
-        if (($user->isAdminCabang() || $user->isAdminDapur()) && $user->branch_id && $kitchenReport->branch_id != $user->branch_id) {
-            abort(403, 'Anda tidak memiliki akses ke laporan cabang lain.');
-        }
+        $this->authorizeReportAccess($kitchenReport, allowViewer: true);
 
         $kitchenReport->load(['branch', 'user', 'items.menu' => function ($q) {
             $q->orderBy('order_number', 'asc')->orderBy('id', 'asc');
@@ -434,15 +453,9 @@ class KitchenReportController extends Controller
      */
     public function edit(DailyKitchenReport $kitchenReport): View|RedirectResponse
     {
+        $this->authorizeReportAccess($kitchenReport, allowViewer: false);
+
         $user = auth()->user();
-        if ($user->isViewer()) {
-            return redirect()->route('kitchen-reports.index')->with('error', 'Anda tidak memiliki izin mengubah laporan.');
-        }
-
-        if (($user->isAdminCabang() || $user->isAdminDapur()) && $user->branch_id && $kitchenReport->branch_id != $user->branch_id) {
-            abort(403, 'Anda tidak memiliki akses ke laporan cabang lain.');
-        }
-
         $kitchenReport->load(['branch', 'user', 'items.menu' => function ($q) {
             $q->orderBy('order_number', 'asc')->orderBy('id', 'asc');
         }]);
@@ -463,14 +476,7 @@ class KitchenReportController extends Controller
      */
     public function update(Request $request, DailyKitchenReport $kitchenReport): RedirectResponse
     {
-        $user = auth()->user();
-        if ($user->isViewer()) {
-            return redirect()->route('kitchen-reports.index')->with('error', 'Anda tidak memiliki izin mengubah laporan.');
-        }
-
-        if (($user->isAdminCabang() || $user->isAdminDapur()) && $user->branch_id && $kitchenReport->branch_id != $user->branch_id) {
-            abort(403, 'Anda tidak memiliki akses ke laporan cabang lain.');
-        }
+        $this->authorizeReportAccess($kitchenReport, allowViewer: false);
 
         $cleanCash = (float) str_replace(['.', ','], ['', '.'], $request->input('cash_income', '0'));
         $cleanQris = (float) str_replace(['.', ','], ['', '.'], $request->input('qris_income', '0'));
@@ -553,6 +559,9 @@ class KitchenReportController extends Controller
             $totalExpense = $cleanRawExpense + $cleanNonRawExpense + $cleanPersonalExpense;
             $netCashIncome = $totalOmset - $totalExpense;
 
+            $sanitizedNotes = isset($validated['notes']) ? strip_tags(trim($validated['notes'])) : null;
+            $sanitizedExpenseNotes = isset($validated['expense_notes']) ? strip_tags(trim($validated['expense_notes'])) : null;
+
             $kitchenReport->update([
                 'grand_total_sales' => $grandTotalSales,
                 'total_remaining_sellable' => $totalRemainingSellable,
@@ -567,8 +576,8 @@ class KitchenReportController extends Controller
                 'expense_personal' => $cleanPersonalExpense,
                 'total_expense' => $totalExpense,
                 'net_cash_income' => $netCashIncome,
-                'expense_notes' => $validated['expense_notes'] ?? null,
-                'notes' => $validated['notes'] ?? null,
+                'expense_notes' => $sanitizedExpenseNotes,
+                'notes' => $sanitizedNotes,
             ]);
 
             DB::commit();
@@ -586,14 +595,7 @@ class KitchenReportController extends Controller
      */
     public function destroy(DailyKitchenReport $kitchenReport): RedirectResponse
     {
-        $user = auth()->user();
-        if ($user->isViewer()) {
-            return redirect()->route('kitchen-reports.index')->with('error', 'Anda tidak memiliki izin menghapus laporan.');
-        }
-
-        if (($user->isAdminCabang() || $user->isAdminDapur()) && $user->branch_id && $kitchenReport->branch_id != $user->branch_id) {
-            abort(403, 'Anda tidak memiliki akses ke laporan cabang lain.');
-        }
+        $this->authorizeReportAccess($kitchenReport, allowViewer: false);
 
         $dateStr = $kitchenReport->report_date->translatedFormat('d F Y');
         $branchName = $kitchenReport->branch->name ?? 'Cabang';
@@ -609,11 +611,7 @@ class KitchenReportController extends Controller
      */
     public function exportPdf(DailyKitchenReport $kitchenReport): Response
     {
-        $user = auth()->user();
-
-        if (($user->isAdminCabang() || $user->isAdminDapur()) && $user->branch_id && $kitchenReport->branch_id != $user->branch_id) {
-            abort(403, 'Anda tidak memiliki akses ke laporan cabang lain.');
-        }
+        $this->authorizeReportAccess($kitchenReport, allowViewer: true);
 
         $kitchenReport->load(['branch', 'user', 'items.menu' => function ($q) {
             $q->orderBy('order_number', 'asc')->orderBy('id', 'asc');

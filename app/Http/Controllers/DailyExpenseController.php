@@ -172,8 +172,8 @@ class DailyExpenseController extends Controller
         $report->expense_personal = $cleanPersonalExpense;
         $report->total_expense = $totalExpense;
         $report->net_cash_income = $report->total_omset - $totalExpense;
-        if (!empty($validated['expense_notes'])) {
-            $report->expense_notes = $validated['expense_notes'];
+        if (isset($validated['expense_notes'])) {
+            $report->expense_notes = strip_tags(trim($validated['expense_notes']));
         }
         $report->save();
 
